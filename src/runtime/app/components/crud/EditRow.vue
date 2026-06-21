@@ -1,0 +1,73 @@
+<script setup lang="ts">
+import { ref, computed } from 'vue'
+import type { SchemaDefinition } from '../../../shared/types/schema'
+import { useCrudFetch, useFormState } from '#imports'
+
+const props = defineProps<{
+  resource: string
+  row: Record<string, unknown> // data of the row being edited
+  schema: SchemaDefinition
+}>()
+
+const state = computed(() => {
+  if (!props.schema) return {}
+  // exclude system fields
+  const filteredFields = props.schema.fields.filter(
+    field => !['id', 'created_at', 'updated_at', 'deleted_at', 'createdAt', 'updatedAt', 'deletedAt'].includes(field.name),
+  )
+
+  return useFormState(filteredFields, props.row)
+})
+
+const open = ref(false)
+const loading = ref(false)
+
+async function onSubmit(data: Record<string, unknown>) {
+  loading.value = true
+  try {
+    await useCrudFetch('PATCH', props.resource, props.row.id as number, data)
+    open.value = false
+  }
+  finally {
+    loading.value = false
+  }
+}
+</script>
+
+<template>
+  <UModal v-model:open="open">
+    <UButton
+      label="Edit"
+      color="primary"
+      variant="outline"
+      class="font-medium"
+    />
+
+    <!-- Modal content -->
+    <template #content>
+      <div class="max-w-md p-6 rounded-lg shadow-lg space-y-4">
+        <h2 class="text-lg font-semibold mb-2">
+          Edit {{ resource }}
+        </h2>
+        <hr>
+
+        <!-- Form -->
+        <CrudForm
+          v-if="schema"
+          :schema="schema"
+          :initial-state="state"
+          :loading="loading"
+          @submit="onSubmit"
+        />
+
+        <!-- Fallback -->
+        <p
+          v-else
+          class="text-sm text-red-500"
+        >
+          No schema provided for {{ resource }}
+        </p>
+      </div>
+    </template>
+  </UModal>
+</template>
