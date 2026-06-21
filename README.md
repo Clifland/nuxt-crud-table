@@ -1,84 +1,77 @@
-<!--
-Get your module up and running quickly.
+# nuxt-crud-table
 
-Find and replace all on all files (CMD+SHIFT+F):
-- Name: My Module
-- Package name: my-module
-- Description: My new Nuxt module
--->
+An API-driven dynamic CRUD table and form engine for Nuxt.js. Automatically reflects backend resource schemas at runtime to build instant, functional administration data grids and forms.
 
-# My Module
-
-[![npm version][npm-version-src]][npm-version-href]
-[![npm downloads][npm-downloads-src]][npm-downloads-href]
-[![License][license-src]][license-href]
-[![Nuxt][nuxt-src]][nuxt-href]
-
-My new Nuxt module for doing amazing things.
-
-- [✨ &nbsp;Release Notes](/CHANGELOG.md)
-<!-- - [🏀 Online playground](https://stackblitz.com/github/your-org/my-module?file=playground%2Fapp.vue) -->
-<!-- - [📖 &nbsp;Documentation](https://example.com) -->
+Designed for rapid deployment of internal admin portals where standard grids handle baseline operations, while preserving layout freedom for custom feature views.
 
 ## Features
 
-<!-- Highlight some of the features your module provide here -->
-- ⛰ &nbsp;Foo
-- 🚠 &nbsp;Bar
-- 🌲 &nbsp;Baz
+- **Runtime Reflection:** Automatically queries your backend for configuration schemas to build interfaces dynamically.
+- **Headless Client Architecture:** Completely detached from any single backend ecosystem; compatible with NAC, Laravel, Supabase, or custom REST specifications.
+- **Zero Local Schema Setup:** No local code generation or static schemas required within the client bundle.
+- **Admin Workspace Focus:** Drops into resource views instantly while leaving standard custom page development uninhibited.
 
-## Quick Setup
-
-Install the module to your Nuxt application with one command:
+## Installation
 
 ```bash
-npx nuxt module add my-module
+bun add nuxt-crud-table
+
 ```
 
-That's it! You can now use My Module in your Nuxt app ✨
+## Configuration
 
+Register the module in your Nuxt configuration file. Define your global fallback endpoints or authentication tokens here.
 
-## Contribution
+```typescript
+// nuxt.config.ts
+export default defineNuxtConfig({
+  modules: ['nuxt-crud-table'],
+  crudTable: {
+    baseUrl: process.env.API_BASE_URL || '/api/_nac',
+    headers: () => ({
+      Authorization: `Bearer ${useCookie('token').value}`
+    })
+  }
+})
 
-<details>
-  <summary>Local development</summary>
-  
-  ```bash
-  # Install dependencies
-  npm install
-  
-  # Generate type stubs
-  npm run dev:prepare
-  
-  # Develop with the playground
-  npm run dev
-  
-  # Build the playground
-  npm run dev:build
-  
-  # Run ESLint
-  npm run lint
-  
-  # Run Vitest
-  npm run test
-  npm run test:watch
-  
-  # Release new version
-  npm run release
-  ```
+```
 
-</details>
+## Usage
 
+Drop the interface engine directly into any administrative page route. It will query the endpoint, process the metadata context, and render the workspace.
 
-<!-- Badges -->
-[npm-version-src]: https://img.shields.io/npm/v/my-module/latest.svg?style=flat&colorA=020420&colorB=00DC82
-[npm-version-href]: https://npmjs.com/package/my-module
+```vue
+<!-- pages/admin/orders.vue -->
+<template>
+  <NuxtCrudTable :actions="['create', 'read', 'update', 'delete']" resource="orders"/>
+</template>
 
-[npm-downloads-src]: https://img.shields.io/npm/dm/my-module.svg?style=flat&colorA=020420&colorB=00DC82
-[npm-downloads-href]: https://npm.chart.dev/my-module
+```
 
-[license-src]: https://img.shields.io/npm/l/my-module.svg?style=flat&colorA=020420&colorB=00DC82
-[license-href]: https://npmjs.com/package/my-module
+## Architecture Integration Model
 
-[nuxt-src]: https://img.shields.io/badge/Nuxt-020420?logo=nuxt
-[nuxt-href]: https://nuxt.com
+This module functions as a dynamic interface client within a decoupled system layout:
+
+1. **Interface Layer:** `nuxt-crud-table` handles rendering data layouts and parsing schema responses.
+2. **Abstract Framework:** Your central template coordinates endpoint routing protocols.
+3. **Concrete Database/Instance:** Individual backend installations process actual queries and return resource definitions.
+
+## Development
+
+```bash
+# Install dependencies
+bun install
+
+# Prepare local playground environment
+bun run dev:prepare
+
+# Start playground development server
+bun run dev
+
+```
+
+## License
+
+MIT
+
+```
