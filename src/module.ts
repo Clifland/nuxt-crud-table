@@ -10,7 +10,7 @@ export default defineNuxtModule<ModuleOptions>({
     name: 'nuxt-crud-table',
     configKey: 'crudTable',
   },
-  
+
   // Default configuration options of the Nuxt module
   defaults: {
     crudEndpointPrefix: '/api/_nac'
@@ -35,7 +35,7 @@ export default defineNuxtModule<ModuleOptions>({
     addImportsDir(resolver.resolve('runtime/composables'))    
     addImportsDir(resolver.resolve('runtime/shared/utils'))
     addImportsDir(resolver.resolve('runtime/app/utils'))
-    addPlugin(resolver.resolve('runtime/plugins/nac-auth'))
+    addPlugin(resolver.resolve('runtime/plugins/crud-auth'))
     
     _nuxt.hook('prepare:types', ({ references, sharedReferences }) => {
       const typeFiles = ['auth', 'config', 'schema', 'validation-rules']

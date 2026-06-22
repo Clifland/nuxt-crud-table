@@ -1,14 +1,14 @@
-// plugins/02.nac-auth-impl.ts
+// plugins/02.crud-auth-impl.ts
 export default defineNuxtPlugin({
-  name: 'nac-auth-implementation',
-  dependsOn: ['nac-auth-core'], 
+  name: 'crud-auth-implementation',
+  dependsOn: ['crud-auth-core'], 
   setup() {
     // const { user, loggedIn } = useUserSession()
     
     // Resolving via composable provides the fully augmented types
     const nuxtApp = useNuxtApp()
 
-    nuxtApp.$nacAuth.setStrategy({
+    nuxtApp.$crudAuth.setStrategy({
       // getUser: () => user.value,
       // isAuthenticated: () => loggedIn.value
       getUser: () => null,

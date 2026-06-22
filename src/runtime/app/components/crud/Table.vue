@@ -4,10 +4,10 @@ import { useNuxtApp, useRuntimeConfig, useAppConfig } from '#app'
 import { crudHeaders, dbFieldToLabel, hasRowPermission, hasPermission, useExport, useFetch, useToast, useCrudFetch } from '#imports'
 
 import type { SchemaDefinition } from '../../../shared/types/schema'
-import type { NacCrudConfig } from '../../../shared/types/config'
+import type { CrudTableConfig } from '../../../shared/types/config'
 
-const { $nacAuth } = useNuxtApp()
-const user = computed(() => $nacAuth.getUser())
+const { $crudAuth } = useNuxtApp()
+const user = computed(() => $crudAuth.getUser())
 
 const props = defineProps<{
   resource: string
@@ -53,7 +53,7 @@ async function onDelete(id: number) {
 }
 
 const { exportToExcel, exportToPDF } = useExport()
-const crudConfig = useAppConfig().crud as NacCrudConfig
+const crudConfig = useAppConfig().crud as CrudTableConfig
 const isExportEnabled = !!crudConfig?.exports
 
 
