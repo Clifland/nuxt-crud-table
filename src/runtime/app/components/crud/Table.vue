@@ -27,26 +27,29 @@ const { data: schema } = await useFetch<SchemaDefinition>(`${nacEndpointPrefix}/
 
 const toast = useToast()
 
-function onDelete(id: number) {
-  toast.add({
-    title: 'Delete Record',
-    description: 'Are you sure you want to permanently delete this row?',
-    color: 'warning',
-    duration: 0, // Keeps the toast visible until an action is clicked
-    actions: [
-      {
-        label: 'Cancel',
-        variant: 'ghost',
-        color: 'neutral',
-        onClick: () => {} // Soft dismisses the toast natively
-      },
-      {
-        label: 'Delete',
-        color: 'error',
-        onClick: async () => await useCrudFetch('DELETE', props.resource, id)
-      }
-    ]
-  })
+async function onDelete(id: number) {
+  if (!confirm('Are you sure you want to permanently delete this row?')) return  
+  await useCrudFetch('DELETE', props.resource, id)
+  
+  // toast.add({
+  //   title: 'Delete Record',
+  //   description: 'Are you sure you want to permanently delete this row?',
+  //   color: 'warning',
+  //   duration: 0, // Keeps the toast visible until an action is clicked
+  //   actions: [
+  //     {
+  //       label: 'Cancel',
+  //       variant: 'ghost',
+  //       color: 'neutral',
+  //       onClick: () => {} // Soft dismisses the toast natively
+  //     },
+  //     {
+  //       label: 'Delete',
+  //       color: 'error',
+  //       onClick: async () => await useCrudFetch('DELETE', props.resource, id)
+  //     }
+  //   ]
+  // })
 }
 
 const { exportToExcel, exportToPDF } = useExport()
@@ -71,9 +74,9 @@ const paginatedItems = ref<Record<string, unknown>[]>([])
   <UCard
     class="w-full"
     :ui="{
-      root: 'divide-y divide-gray-200 dark:divide-gray-700',
+      root: 'divide-y divide-(--ui-border)',
       header: 'px-4 py-5',
-      body: 'divide-y divide-gray-200 dark:divide-gray-700',
+      body: 'divide-y divide-(--ui-border)',
       footer: 'p-4',
     }"
   >
