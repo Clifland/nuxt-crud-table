@@ -20,19 +20,18 @@ const emit = defineEmits<{
 }>()
 
 // filter out system fields
-const filteredFields = props.schema.fields.filter(
-  (field) => {
-    const config = useRuntimeConfig().public.autoCrud as {
-      formHiddenFields: string[]
-    }
-    const { formHiddenFields } = config
+const config = useRuntimeConfig()
+const { formHiddenFields } = config.public.crudTable
 
-    if (formHiddenFields.includes(field.name)) return false
-    // Hide status during creation
-    if (field.name === 'status' && !props.initialState) return false
-    return true
-  },
-)
+const filteredFields = props.schema.fields.filter((field) => {
+  // Hide globally restricted form fields
+  if (formHiddenFields.includes(field.name)) return false
+  
+  // Hide status field during initial record creation stages
+  if (field.name === 'status' && !props.initialState) return false
+  
+  return true
+})
 
 const { $crudAuth } = useNuxtApp()
 const user = computed(() => $crudAuth.getUser())

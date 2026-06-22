@@ -2,9 +2,9 @@ import { useRuntimeConfig } from '#app'
 import type { User } from '../types/auth'
 
 
-function isAuthEnabled() {
-  const config = (useRuntimeConfig().public as { autoCrud: { auth: { authentication: boolean, authorization: boolean } } }).autoCrud.auth
-  return config?.authentication === true && config?.authorization === true
+export function isAuthEnabled(): boolean {
+  const auth = useRuntimeConfig().public.crudTable.auth
+  return !!auth
 }
 
 export function isAdmin(user: User | null | undefined) {

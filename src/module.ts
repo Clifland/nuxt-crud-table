@@ -3,6 +3,8 @@ import { defineNuxtModule, addComponentsDir, createResolver, addImportsDir, addP
 // Module options TypeScript interface definition
 export interface ModuleOptions {
   crudEndpointPrefix: string
+  auth: boolean | Record<string, unknown>
+  formHiddenFields: string[]
 }
 
 export default defineNuxtModule<ModuleOptions>({
@@ -13,7 +15,9 @@ export default defineNuxtModule<ModuleOptions>({
 
   // Default configuration options of the Nuxt module
   defaults: {
-    crudEndpointPrefix: '/api/_nac'
+    crudEndpointPrefix: '/api/_nac',
+    auth: false,
+    formHiddenFields: []
   },
 
   moduleDependencies: {
@@ -26,7 +30,9 @@ export default defineNuxtModule<ModuleOptions>({
     const resolver = createResolver(import.meta.url)
 
     _nuxt.options.runtimeConfig.public.crudTable = {
-      crudEndpointPrefix: _options.crudEndpointPrefix
+      crudEndpointPrefix: _options.crudEndpointPrefix,
+      auth: _options.auth,
+      formHiddenFields: _options.formHiddenFields
     }
 
     addComponentsDir({
