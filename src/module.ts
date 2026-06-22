@@ -1,15 +1,20 @@
 import { defineNuxtModule, addComponentsDir, createResolver, addImportsDir, addPlugin, addVitePlugin } from '@nuxt/kit'
 
 // Module options TypeScript interface definition
-export interface ModuleOptions {}
+export interface ModuleOptions {
+  crudEndpointPrefix: string
+}
 
 export default defineNuxtModule<ModuleOptions>({
   meta: {
     name: 'nuxt-crud-table',
     configKey: 'crudTable',
   },
+  
   // Default configuration options of the Nuxt module
-  defaults: {},
+  defaults: {
+    crudEndpointPrefix: '/api/_nac'
+  },
 
   moduleDependencies: {
     '@nuxt/ui': {
@@ -19,6 +24,10 @@ export default defineNuxtModule<ModuleOptions>({
 
   setup(_options, _nuxt) {
     const resolver = createResolver(import.meta.url)
+
+    _nuxt.options.runtimeConfig.public.crudTable = {
+      crudEndpointPrefix: _options.crudEndpointPrefix
+    }
 
     addComponentsDir({
       path: resolver.resolve('runtime/app/components'),
@@ -36,6 +45,7 @@ export default defineNuxtModule<ModuleOptions>({
         references.push({ path: resolvedPath })
         sharedReferences.push({ path: resolvedPath })
       }
+      references.push({ path: resolver.resolve('runtime/types.d.ts') })
     })
 
     addVitePlugin(() => ({

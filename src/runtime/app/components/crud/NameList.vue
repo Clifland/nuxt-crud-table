@@ -22,9 +22,9 @@ else if (props.fieldName) {
 }
 
 const config = useRuntimeConfig()
-const nacEndpointPrefix = (config.public as { autoCrud: { nacEndpointPrefix: string } }).autoCrud.nacEndpointPrefix
+const crudEndpointPrefix = config.public.crudTable.crudEndpointPrefix
 
-const { data: options } = await useFetch(() => `${nacEndpointPrefix}/${urlPath}`, {
+const { data: options } = await useFetch(() => `${crudEndpointPrefix}/${urlPath}`, {
   key: `crud-${urlPath}`,
   transform: (rows: Record<string, unknown>[]) =>
     rows?.map((row) => {

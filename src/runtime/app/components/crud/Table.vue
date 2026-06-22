@@ -14,14 +14,14 @@ const props = defineProps<{
 }>()
 
 const config = useRuntimeConfig()
-const nacEndpointPrefix = (config.public as { autoCrud: { nacEndpointPrefix: string } }).autoCrud.nacEndpointPrefix
+const crudEndpointPrefix = config.public.crudTable.crudEndpointPrefix
 
 
-const { data } = await useFetch(`${nacEndpointPrefix}/${props.resource}`, {
+const { data } = await useFetch(`${crudEndpointPrefix}/${props.resource}`, {
   headers: crudHeaders(),
 })
 
-const { data: schema } = await useFetch<SchemaDefinition>(`${nacEndpointPrefix}/_schemas/${props.resource}`, {
+const { data: schema } = await useFetch<SchemaDefinition>(`${crudEndpointPrefix}/_schemas/${props.resource}`, {
   headers: crudHeaders(),
 })
 
