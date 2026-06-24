@@ -21,10 +21,9 @@ else if (props.fieldName) {
   urlPath = pluralize(baseName) // e.g., user_id → users
 }
 
-const config = useRuntimeConfig()
-const crudEndpointPrefix = config.public.crudTable.crudEndpointPrefix
+const { apiBase } = useRuntimeConfig().public.crudTable
 
-const { data: options } = await useFetch(() => `${crudEndpointPrefix}/${urlPath}`, {
+const { data: options } = await useFetch(() => `${apiBase}/${urlPath}`, {
   key: `crud-${urlPath}`,
   transform: (rows: Record<string, unknown>[]) =>
     rows?.map((row) => {

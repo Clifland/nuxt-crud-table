@@ -7,8 +7,7 @@ export async function useCrudFetch(
   id: number | null = null,
   data: Record<string, unknown> | null = null,
 ) {
-  const config = useRuntimeConfig()
-  const crudEndpointPrefix = config.public.crudTable.crudEndpointPrefix
+  const { apiBase } = useRuntimeConfig().public.crudTable
 
   const toastMessage: Record<
     'POST' | 'PATCH' | 'DELETE',
@@ -32,10 +31,10 @@ export async function useCrudFetch(
   }
 
   try {
-    const url
-      = method === 'PATCH' || method === 'DELETE'
-        ? `${crudEndpointPrefix}/${resource}/${id}`
-        : `${crudEndpointPrefix}/${resource}`.replace('//', '/')
+    const baseEndpoint = apiBase.replace(/\/+$/, '')
+    const url = method === 'PATCH' || method === 'DELETE'
+      ? `${baseEndpoint}/${resource}/${id}`
+      : `${baseEndpoint}/${resource}`
 
     await $fetch(url, {
       method,

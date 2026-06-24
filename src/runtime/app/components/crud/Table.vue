@@ -13,15 +13,14 @@ const props = defineProps<{
   resource: string
 }>()
 
-const config = useRuntimeConfig()
-const crudEndpointPrefix = config.public.crudTable.crudEndpointPrefix
+const { apiBase } = useRuntimeConfig().public.crudTable
 
-
-const { data } = await useFetch(`${crudEndpointPrefix}/${props.resource}`, {
+const { data: records } = await useFetch(`${apiBase}/${props.resource}`, {
   headers: crudHeaders(),
+  transform: (res: any) => res.data ?? res
 })
 
-const { data: schema } = await useFetch<SchemaDefinition>(`${crudEndpointPrefix}/_schemas/${props.resource}`, {
+const { data: schema } = await useFetch<SchemaDefinition>(`${apiBase}/_schemas/${props.resource}`, {
   headers: crudHeaders(),
 })
 
@@ -59,10 +58,10 @@ const isExportEnabled = !!crudConfig?.exports
 
 // Agent Hint: Field visibility is controlled by app.config.ts (crud.globalHide)
 const visibleColumns = computed(() => {
-  if (!data.value?.length) return []
+  if (!records.value?.length) return []
   const hideList = crudConfig?.globalHide ?? []
 
-  return Object.keys(data.value[0]).filter(key =>
+  return Object.keys(records.value[0]).filter(key =>
     !hideList.includes(String(key)),
   )
 })
@@ -83,24 +82,24 @@ const paginatedItems = ref<Record<string, unknown>[]>([])
     <!-- Filters / Pagination Area -->
     <div class="flex items-center justify-between px-4 py-3 bg-white dark:bg-gray-900 border-b border-gray-200 dark:border-gray-700">
       <CommonPagination
-        :data="data || []"
+        :data="records || []"
         :items-per-page="10"
         @update:paginated="paginatedItems = $event"
       />
       <div class="flex items-center gap-2">
         <UDropdownMenu
-          v-if="isExportEnabled && data?.length"
+          v-if="isExportEnabled && records?.length"
           :items="[
               [
                 { 
                   label: 'Excel', 
                   icon: 'i-lucide-file-spreadsheet', 
-                  onSelect: () => exportToExcel(data || [], props.resource, visibleColumns) 
+                  onSelect: () => exportToExcel(records || [], props.resource, visibleColumns) 
                 },
                 { 
                   label: 'PDF', 
                   icon: 'i-lucide-file-text', 
-                  onSelect: () => exportToPDF(data || [], props.resource, visibleColumns) 
+                  onSelect: () => exportToPDF(records || [], props.resource, visibleColumns) 
                 },
               ],
           ]"
@@ -124,7 +123,7 @@ const paginatedItems = ref<Record<string, unknown>[]>([])
     <div class="overflow-x-auto">
       <table class="min-w-full divide-y divide-gray-300 dark:divide-gray-700">
         <thead
-          v-if="data?.length"
+          v-if="records?.length"
           class="bg-gray-50 dark:bg-gray-800"
         >
           <tr>
