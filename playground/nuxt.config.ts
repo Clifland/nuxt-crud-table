@@ -7,7 +7,7 @@ export default defineNuxtConfig({
     db: 'sqlite'
   },
   crudTable: {
-    crudEndpointPrefix: '/api/_nac',
+    apiBase: '/api/_nac',
     auth: false,
     formHiddenFields: []
   }
