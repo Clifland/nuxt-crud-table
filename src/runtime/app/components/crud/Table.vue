@@ -26,29 +26,26 @@ const { data: schema } = await useFetch<SchemaDefinition>(`${apiBase}/_schemas/$
 
 const toast = useToast()
 
-async function onDelete(id: number) {
-  if (!confirm('Are you sure you want to permanently delete this row?')) return  
-  await useCrudFetch('DELETE', props.resource, id)
-  
-  // toast.add({
-  //   title: 'Delete Record',
-  //   description: 'Are you sure you want to permanently delete this row?',
-  //   color: 'warning',
-  //   duration: 0, // Keeps the toast visible until an action is clicked
-  //   actions: [
-  //     {
-  //       label: 'Cancel',
-  //       variant: 'ghost',
-  //       color: 'neutral',
-  //       onClick: () => {} // Soft dismisses the toast natively
-  //     },
-  //     {
-  //       label: 'Delete',
-  //       color: 'error',
-  //       onClick: async () => await useCrudFetch('DELETE', props.resource, id)
-  //     }
-  //   ]
-  // })
+async function onDelete(id: number) {  
+  toast.add({
+    title: 'Delete Record',
+    description: 'Are you sure you want to permanently delete this row?',
+    color: 'warning',
+    duration: 0, // Keeps the toast visible until an action is clicked
+    actions: [
+      {
+        label: 'Cancel',
+        variant: 'ghost',
+        color: 'neutral',
+        onClick: () => {} // Soft dismisses the toast natively
+      },
+      {
+        label: 'Delete',
+        color: 'error',
+        onClick: async () => await useCrudFetch('DELETE', props.resource, id)
+      }
+    ]
+  })
 }
 
 const { exportToExcel, exportToPDF } = useExport()
