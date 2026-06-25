@@ -1,7 +1,7 @@
 <script setup lang="ts">
-definePageMeta({
-  layout: 'admin-panel',
-})
+// definePageMeta({
+//   layout: 'admin-panel',
+// })
 
 const route = useRoute()
 const resource = computed(() => {
