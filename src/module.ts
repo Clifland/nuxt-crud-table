@@ -3,7 +3,7 @@ import { defineNuxtModule, addComponentsDir, createResolver, addImportsDir, addP
 // Module options TypeScript interface definition
 export interface ModuleOptions {
   apiBase: string
-  auth: boolean | Record<string, unknown>
+  auth: false | { authentication: 'nuxt-auth-utils' | 'sanctum' }
   formHiddenFields: string[]
 }
 

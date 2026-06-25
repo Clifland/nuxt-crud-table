@@ -1,8 +1,7 @@
 <script setup lang="ts">
-// definePageMeta({
-//   middleware: ['auth'],
-//   layout: 'dashboard',
-// })
+definePageMeta({
+  layout: 'admin-panel',
+})
 
 const route = useRoute()
 const resource = computed(() => {

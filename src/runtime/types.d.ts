@@ -1,13 +1,14 @@
 import '@nuxt/schema'
+import type { ModuleOptions } from '../module' 
 
 declare module '@nuxt/schema' {
   interface PublicRuntimeConfig {
-    crudTable: {
-      apiBase: string
-      auth: boolean | Record<string, unknown>
-      formHiddenFields: string[]
-    }
+    crudTable: ModuleOptions
   }
+}
+
+declare module '#imports' {  
+  export function crudHeaders(): Record<string, string>
 }
 
 export {}
