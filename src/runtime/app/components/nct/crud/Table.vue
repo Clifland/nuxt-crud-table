@@ -1,7 +1,7 @@
 <script setup lang="ts">
 import { computed, ref } from 'vue'
 import { useNuxtApp, useRuntimeConfig, useAppConfig,  useFetch } from '#app'
-import { crudHeaders, nctDbFieldToLabel, nctHasRowPermission, nctHasPermission, useExport, useCrudFetch, useToast } from '#imports'
+import { crudHeaders, nctDbFieldToLabel, nctHasRowPermission, nctHasPermission, useNctExport, useNctCrudFetch, useToast } from '#imports'
 
 import type { SchemaDefinition } from '../../../../shared/types/schema'
 import type { CrudTableConfig } from '../../../../shared/types/config'
@@ -48,13 +48,13 @@ async function onDelete(id: number) {
       {
         label: 'Delete',
         color: 'error',
-        onClick: async () => await useCrudFetch('DELETE', props.resource, id),
+        onClick: async () => await useNctCrudFetch('DELETE', props.resource, id),
       },
     ],
   })
 }
 
-const { exportToExcel, exportToPDF } = useExport()
+const { exportToExcel, exportToPDF } = useNctExport()
 const crudConfig = useAppConfig().crud as CrudTableConfig
 const isExportEnabled = !!crudConfig?.exports
 

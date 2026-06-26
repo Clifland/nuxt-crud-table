@@ -2,7 +2,7 @@ import { useAppConfig } from '#app'
 import type { CrudTableConfig } from '../shared/types/config'
 import { nctDbFieldToLabel } from '#imports'
 
-export const useExport = () => {
+export const useNctExport = () => {
   const appConfig = useAppConfig()
   const crudConfig = appConfig.crud as CrudTableConfig
   const isExportEnabled = !!crudConfig?.exports

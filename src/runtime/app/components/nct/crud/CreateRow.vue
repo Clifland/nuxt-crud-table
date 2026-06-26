@@ -2,7 +2,7 @@
 import { ref } from 'vue'
 import type { SchemaDefinition } from '../../../../shared/types/schema'
 import { useChangeCase } from '@vueuse/integrations/useChangeCase'
-import { useCrudFetch } from '#imports'
+import { useNctCrudFetch } from '#imports'
 
 const props = defineProps<{
   resource: string
@@ -15,7 +15,7 @@ const loading = ref(false)
 async function onSubmit(data: Record<string, unknown>) {
   loading.value = true
   try {
-    await useCrudFetch('POST', props.resource, null, data)
+    await useNctCrudFetch('POST', props.resource, null, data)
     open.value = false
   }
   finally {

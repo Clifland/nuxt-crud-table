@@ -1,7 +1,7 @@
 import { useRuntimeConfig, refreshNuxtData } from '#app'
 import { crudHeaders, useToast } from '#imports'
 
-export async function useCrudFetch(
+export async function useNctCrudFetch(
   method: 'POST' | 'PATCH' | 'DELETE',
   resource: string,
   id: number | null = null,

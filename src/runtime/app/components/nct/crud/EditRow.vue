@@ -1,7 +1,7 @@
 <script setup lang="ts">
 import { ref, computed } from 'vue'
 import type { SchemaDefinition } from '../../../../shared/types/schema'
-import { useCrudFetch, useFormState } from '#imports'
+import { useNctCrudFetch, useNctFormState } from '#imports'
 
 const props = defineProps<{
   resource: string
@@ -16,7 +16,7 @@ const state = computed(() => {
     field => !['id', 'created_at', 'updated_at', 'deleted_at', 'createdAt', 'updatedAt', 'deletedAt'].includes(field.name),
   )
 
-  return useFormState(filteredFields, props.row)
+  return useNctFormState(filteredFields, props.row)
 })
 
 const open = ref(false)
@@ -25,7 +25,7 @@ const loading = ref(false)
 async function onSubmit(data: Record<string, unknown>) {
   loading.value = true
   try {
-    await useCrudFetch('PATCH', props.resource, props.row.id as number, data)
+    await useNctCrudFetch('PATCH', props.resource, props.row.id as number, data)
     open.value = false
   }
   finally {

@@ -1,6 +1,6 @@
 import { reactive } from 'vue'
 
-export function useFormState(
+export function useNctFormState(
   fields: { name: string, type: string, required?: boolean }[],
   initialState?: Record<string, unknown>,
 ) {

@@ -29,8 +29,8 @@ mockNuxtImport('nctDbFieldToLabel', () => (str: string) => str.toUpperCase())
 mockNuxtImport('nctHasPermission', () => () => true)
 mockNuxtImport('nctHasRowPermission', () => () => true)
 mockNuxtImport('useToast', () => () => ({ add: hoistedMocks.toastAdd }))
-mockNuxtImport('useCrudFetch', () => hoistedMocks.crudFetch)
-mockNuxtImport('useExport', () => () => ({ exportToExcel: vi.fn(), exportToPDF: vi.fn() }))
+mockNuxtImport('useNctCrudFetch', () => hoistedMocks.crudFetch)
+mockNuxtImport('useNctExport', () => () => ({ exportToExcel: vi.fn(), exportToPDF: vi.fn() }))
 mockNuxtImport('useFetch', () => (url: string | (() => string)) => {
   const targetUrl = typeof url === 'function' ? url() : url
   if (targetUrl.includes('_schemas')) {
@@ -53,7 +53,7 @@ describe('NAC Core CRUD Engine Validation', () => {
     expect(wrapper.html()).toBeDefined()
   })
 
-  it('verifies Delete action workflow fires confirmation toast and calls useCrudFetch', async () => {
+  it('verifies Delete action workflow fires confirmation toast and calls useNctCrudFetch', async () => {
     const wrapper = await mountSuspended(Table, {
       props: { resource: 'users' },
     })

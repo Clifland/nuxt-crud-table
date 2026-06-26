@@ -2,7 +2,7 @@
 import { computed, reactive } from 'vue'
 import type { FormSubmitEvent } from '@nuxt/ui'
 import { useNuxtApp, useRuntimeConfig } from '#app'
-import { useDynamicZodSchema, nctHasPermission } from '#imports'
+import { useNctDynamicZodSchema, nctHasPermission } from '#imports'
 
 import { useChangeCase } from '@vueuse/integrations/useChangeCase'
 
@@ -40,7 +40,7 @@ const user = computed(() => $crudAuth.getUser() as User | null)
 const canUpdateStatus = computed(() => nctHasPermission(user.value, props.schema.resource, 'update_status'))
 
 // dynamically build zod schema
-const formSchema = useDynamicZodSchema(filteredFields, !!props.initialState)
+const formSchema = useNctDynamicZodSchema(filteredFields, !!props.initialState)
 
 // reactive state for form data
 const state = reactive<Record<string, unknown>>(

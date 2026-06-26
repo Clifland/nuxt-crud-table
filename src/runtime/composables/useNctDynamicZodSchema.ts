@@ -2,7 +2,7 @@ import { z } from 'zod'
 import type { Field } from '../shared/types/schema'
 import { ValidationRules, type FieldType } from '../shared/types/validation-rules'
 
-export function useDynamicZodSchema(fields: Field[], isEdit = false) {
+export function useNctDynamicZodSchema(fields: Field[], isEdit = false) {
   const validators: Record<string, z.ZodTypeAny> = {}
 
   for (const field of fields) {
