@@ -38,7 +38,7 @@ export default defineNuxtModule<ModuleOptions>({
     addComponentsDir({ path: resolver.resolve('runtime/app/components') })
     addImportsDir(resolver.resolve('runtime/composables'))
     addImportsDir(resolver.resolve('runtime/app/utils'))
-    addPlugin(resolver.resolve('runtime/plugins/crud-auth'))
+    addPlugin(resolver.resolve('runtime/plugins/nct-auth'))
 
     _nuxt.hook('prepare:types', ({ references, sharedReferences }) => {
       const typeFiles = ['auth', 'config', 'schema', 'validation-rules']

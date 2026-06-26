@@ -34,8 +34,8 @@ const filteredFields = props.schema.fields.filter((field) => {
   return true
 })
 
-const { $crudAuth } = useNuxtApp()
-const user = computed(() => $crudAuth.getUser() as User | null)
+const { $nctAuth } = useNuxtApp()
+const user = computed(() => $nctAuth.getUser() as User | null)
 
 const canUpdateStatus = computed(() => nctHasPermission(user.value, props.schema.resource, 'update_status'))
 

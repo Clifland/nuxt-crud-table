@@ -7,8 +7,8 @@ import type { SchemaDefinition } from '../../../../shared/types/schema'
 import type { CrudTableConfig } from '../../../../shared/types/config'
 import type { User } from '../../../../shared/types/auth'
 
-const { $crudAuth } = useNuxtApp()
-const user = computed(() => $crudAuth.getUser() as User | null)
+const { $nctAuth } = useNuxtApp()
+const user = computed(() => $nctAuth.getUser() as User | null)
 
 const props = defineProps<{
   resource: string
