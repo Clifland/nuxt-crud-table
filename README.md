@@ -1,77 +1,167 @@
-# nuxt-crud-table
+# nuxt-crud-table (nct - beta)
 
-An API-driven dynamic CRUD table and form engine for Nuxt.js. Automatically reflects backend resource schemas at runtime to build instant, functional administration data grids and forms.
+A Nuxt module that **dynamically renders CRUD tables and forms** from API data and schema specifications. 
+Highly useful for building admin panels and internal tools quickly.
 
-Designed for rapid deployment of internal admin portals where standard grids handle baseline operations, while preserving layout freedom for custom feature views.
+---
 
-## Features
+## What It Solves
 
-- **Runtime Reflection:** Automatically queries your backend for configuration schemas to build interfaces dynamically.
-- **Headless Client Architecture:** Completely detached from any single backend ecosystem; compatible with NAC, Laravel, Supabase, or custom REST specifications.
-- **Zero Local Schema Setup:** No local code generation or static schemas required within the client bundle.
-- **Admin Workspace Focus:** Drops into resource views instantly while leaving standard custom page development uninhibited.
+Building admin panels typically requires duplicate layout, form, and validation boilerplate for every single resource. `nuxt-crud-table` eliminates this.
 
-## Installation
+* **Zero Boilerplate:** Renders listings, lookups, forms, and permission states natively via a single `:resource` parameter.
+* **Data-Agnostic Processing:** Works natively with standard raw data arrays (Nuxt/Nitro) or data-wrapped response objects (Laravel structures).
 
-```bash
-bun add nuxt-crud-table
+---
+## How to Implement & Use
+
+### 1. Backend Contract Requirements
+
+Your target backend application must expose standard RESTful endpoints for your resources along with a dedicated metadata schema route.
+
+#### Data API Endpoints
+
+| Method | Endpoint | Action |
+| --- | --- | --- |
+| **GET** | `apiBaseUrl/:model` | List records |
+| **POST** | `apiBaseUrl/:model` | Create a record |
+| **GET** | `apiBaseUrl/:model/:id` | Fetch a single record |
+| **PATCH** | `apiBaseUrl/:model/:id` | Partially update a record |
+| **DELETE** | `apiBaseUrl/:model/:id` | Delete a record |
+
+#### Schema Specification Endpoint
+
+Your API must provide a metadata schema to populate, and validate your forms. The data structure within your API payload must match this schema signature:
+
+```ts
+export interface NctField {
+  name: string
+  type: string
+  required?: boolean
+  selectOptions?: string[]
+  references?: string
+  readonly?: boolean
+}
+
+export interface NctSchemaDefinition {
+  resource: string
+  labelField: string
+  fields: NctField[]
+}
 
 ```
 
-## Configuration
+* **Route Pattern:** `GET apiBaseUrl/_schemas/:resource`
+* **Payload Example (`GET http://localhost:8000/api/_schemas/users`):**
 
-Register the module in your Nuxt configuration file. Define your global fallback endpoints or authentication tokens here.
+```json
+{
+  "resource": "users",
+  "labelField": "name",
+  "fields": [
+    { "name": "id", "type": "string", "required": true, "readonly": true },
+    { "name": "name", "type": "string", "required": true, "readonly": false },
+    { "name": "email", "type": "string", "required": true, "readonly": false }
+  ]
+}
 
-```typescript
-// nuxt.config.ts
-export default defineNuxtConfig({
-  modules: ['nuxt-crud-table'],
-  crudTable: {
-    baseUrl: process.env.API_BASE_URL || '/api/_nac',
-    headers: () => ({
-      Authorization: `Bearer ${useCookie('token').value}`
-    })
+```
+
+---
+
+### 2. Frontend Application Setup
+
+#### Step A: Configure Environment Base URL
+
+Define your target backend API root url string inside your host `.env` configuration file:
+
+```env
+NUXT_PUBLIC_CRUD_TABLE_API_BASE=http://localhost:8000/api
+
+```
+
+#### Step B: Define Global Request Headers
+
+Create the utility file below to supply transport metadata (such as authentication context) to internal engine fetch pools.
+
+> [!IMPORTANT]
+> The `NctCrudHeaders` helper function is **mandatory**. If your implementation does not leverage application layer security tokens, it must still exist and return a blank object `{}`.
+
+```ts
+// app/utils/helpers.ts
+export function NctCrudHeaders() {
+  return {
+    Authorization: `Bearer ${useCookie('token').value || ''}`
+  }
+}
+
+```
+
+#### Step C: Mount the Unified Table Layout Workspace
+
+Mount the component to a dynamic route view layer to instantly capture parameter changes:
+
+```vue
+<!-- app/pages/resource/[...slug].vue -->
+<script setup lang="ts">
+const route = useRoute()
+const resource = computed(() => {
+  const slug = route.params.slug
+  return Array.isArray(slug) ? slug[0] : slug
+})
+</script>
+
+<template>
+  <div v-if="resource">
+    <NctCrudTable :resource="resource" />
+  </div>
+  <div v-else class="p-4">
+    Loading Data Table...
+  </div>
+</template>
+
+```
+
+#### Step D: Optional Customization Rules (`app.config.ts`)
+
+Override field visibility parameters, structural presentation rules, or data extraction exclusions directly using your root runtime configurations layout:
+
+```ts
+// app.config.ts
+export default defineAppConfig({
+  crud: {
+    // Columns globally filtered from UI layouts
+    globalHide: ['updatedAt', 'deletedAt', 'createdBy', 'updatedBy', 'resetToken'],
+
+    // Export layout targeting metrics
+    exports: {
+      pdf: {
+        globalExclude: ['avatar', 'resetToken', 'resetExpires'],
+        resourceExclude: {
+          users: ['password', 'googleId', 'githubId']
+        }
+      },
+      excel: {
+        globalExclude: [],
+        resourceExclude: {
+          users: ['password']
+        }
+      }
+    }
   }
 })
 
 ```
 
-## Usage
+---
 
-Drop the interface engine directly into any administrative page route. It will query the endpoint, process the metadata context, and render the workspace.
+## Limitations
 
-```vue
-<!-- pages/admin/orders.vue -->
-<template>
-  <NuxtCrudTable :actions="['create', 'read', 'update', 'delete']" resource="orders"/>
-</template>
+* Global search querying, filtering, and pagination states are executed client-side via JavaScript.
 
-```
+---
 
-## Architecture Integration Model
+## Reference Implementations
 
-This module functions as a dynamic interface client within a decoupled system layout:
-
-1. **Interface Layer:** `nuxt-crud-table` handles rendering data layouts and parsing schema responses.
-2. **Abstract Framework:** Your central template coordinates endpoint routing protocols.
-3. **Concrete Database/Instance:** Individual backend installations process actual queries and return resource definitions.
-
-## Development
-
-```bash
-# Install dependencies
-bun install
-
-# Prepare local playground environment
-bun run dev:prepare
-
-# Start playground development server
-bun run dev
-
-```
-
-## License
-
-MIT
-
-```
+* 🔹 **Frontend:** [nct-laravel-frontend](https://github.com/Clifland/nct-laravel-frontend)
+* 🔸 **Backend:** [nct-laravel-backend](https://github.com/Clifland/nct-laravel-backend)
