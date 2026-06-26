@@ -1,6 +1,6 @@
 <script setup lang="ts">
 import { computed, ref } from 'vue'
-import { useNuxtApp, useRuntimeConfig, useAppConfig,  useFetch } from '#app'
+import { useNuxtApp, useRuntimeConfig, useAppConfig, useFetch } from '#app'
 import { NctCrudHeaders, nctDbFieldToLabel, nctHasRowPermission, nctHasPermission, useNctExport, useNctCrudFetch, useToast } from '#imports'
 
 import type { NctSchemaDefinition } from '../../../../shared/types/schema'
