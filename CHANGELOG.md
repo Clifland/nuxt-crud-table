@@ -1,6 +1,18 @@
 # Changelog
 
 
+## v0.0.3
+
+[compare changes](https://github.com/Clifland/nuxt-crud-table/compare/v0.0.2...v0.0.3)
+
+### 🏡 Chore
+
+- Use camelCase for helper functions and variable names. ([57aa3e0](https://github.com/Clifland/nuxt-crud-table/commit/57aa3e0))
+
+### ❤️ Contributors
+
+- Cliford Pereira ([@clifordpereira](https://github.com/clifordpereira))
+
 ## v0.0.2
 
 

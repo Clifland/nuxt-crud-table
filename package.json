@@ -1,6 +1,6 @@
 {
   "name": "nuxt-crud-table",
-  "version": "0.0.2",
+  "version": "0.0.3",
   "description": "API-driven dynamic CRUD table and forms in Nuxt.js. Automatically reflects backend resource schemas to build instant admin data grids and forms.",
   "repository": {
     "type": "git",
