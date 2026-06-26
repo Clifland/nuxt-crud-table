@@ -1,4 +1,4 @@
-export interface CrudTableConfig {
+export interface NctCrudTableConfig {
   globalHide?: string[]
   exports?: {
     excel?: {

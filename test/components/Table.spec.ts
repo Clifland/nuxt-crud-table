@@ -17,14 +17,14 @@ vi.mock('#app', async (importOriginal) => {
   const actual = await importOriginal<typeof import('#app')>()
   return {
     ...actual,
-    useNuxtApp: () => ({ $nctAuth: { getUser: () => ({ id: 1 }) } }),
+    useNuxtApp: () => ({ $nctAuth: { getNctUser: () => ({ id: 1 }) } }),
     useRuntimeConfig: () => ({ public: { crudTable: { apiBase: '/api/_nac', formHiddenFields: [] } } }),
     useAppConfig: () => ({ crud: { globalHide: ['password'], exports: true } }),
   }
 })
 
 // 3. Register your runtime auto-imports securely
-mockNuxtImport('crudHeaders', () => () => ({ Accept: 'application/json' }))
+mockNuxtImport('NctCrudHeaders', () => () => ({ Accept: 'application/json' }))
 mockNuxtImport('nctDbFieldToLabel', () => (str: string) => str.toUpperCase())
 mockNuxtImport('nctHasPermission', () => () => true)
 mockNuxtImport('nctHasRowPermission', () => () => true)

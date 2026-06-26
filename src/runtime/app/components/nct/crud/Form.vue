@@ -6,11 +6,11 @@ import { useNctDynamicZodSchema, nctHasPermission } from '#imports'
 
 import { useChangeCase } from '@vueuse/integrations/useChangeCase'
 
-import type { SchemaDefinition } from '../../../../shared/types/schema'
-import type { User } from '../../../../shared/types/auth'
+import type { NctSchemaDefinition } from '../../../../shared/types/schema'
+import type { NctUser } from '../../../../shared/types/auth'
 
 const props = defineProps<{
-  schema: SchemaDefinition
+  schema: NctSchemaDefinition
   initialState?: Record<string, unknown>
   loading?: boolean
 }>()
@@ -35,7 +35,7 @@ const filteredFields = props.schema.fields.filter((field) => {
 })
 
 const { $nctAuth } = useNuxtApp()
-const user = computed(() => $nctAuth.getUser() as User | null)
+const user = computed(() => $nctAuth.getNctUser() as NctUser | null)
 
 const canUpdateStatus = computed(() => nctHasPermission(user.value, props.schema.resource, 'update_status'))
 

@@ -1,10 +1,10 @@
 import { useAppConfig } from '#app'
-import type { CrudTableConfig } from '../shared/types/config'
+import type { NctCrudTableConfig } from '../shared/types/config'
 import { nctDbFieldToLabel } from '#imports'
 
 export const useNctExport = () => {
   const appConfig = useAppConfig()
-  const crudConfig = appConfig.crud as CrudTableConfig
+  const crudConfig = appConfig.crud as NctCrudTableConfig
   const isExportEnabled = !!crudConfig?.exports
 
   const getExportExclusions = (type: 'pdf' | 'excel', resource: string) => {

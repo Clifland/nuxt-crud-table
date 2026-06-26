@@ -1,7 +1,7 @@
 import { defineNuxtPlugin } from '#app'
 
 export interface NctAuthResolver {
-  getUser: () => unknown | null
+  getNctUser: () => unknown | null
   isAuthenticated: () => boolean
 }
 
@@ -9,7 +9,7 @@ export default defineNuxtPlugin({
   name: 'nct-crud-auth',
   setup() {
     let activeStrategy: NctAuthResolver = {
-      getUser: () => null,
+      getNctUser: () => null,
       isAuthenticated: () => false,
     }
 
@@ -19,7 +19,7 @@ export default defineNuxtPlugin({
           setStrategy: (strategy: NctAuthResolver) => {
             activeStrategy = strategy
           },
-          getUser: () => activeStrategy.getUser(),
+          getNctUser: () => activeStrategy.getNctUser(),
           isAuthenticated: () => activeStrategy.isAuthenticated(),
         },
       },
@@ -31,7 +31,7 @@ declare module '#app' {
   interface NuxtApp {
     $nctAuth: {
       setStrategy: (strategy: NctAuthResolver) => void
-      getUser: () => unknown | null
+      getNctUser: () => unknown | null
       isAuthenticated: () => boolean
     }
   }

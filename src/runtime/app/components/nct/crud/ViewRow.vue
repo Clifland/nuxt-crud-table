@@ -1,11 +1,11 @@
 <script setup lang="ts">
 import { ref } from 'vue'
-import type { SchemaDefinition } from '../../../../shared/types/schema'
+import type { NctSchemaDefinition } from '../../../../shared/types/schema'
 import { nctDbFieldToLabel } from '#imports'
 
 const props = defineProps<{
   row: Record<string, unknown>
-  schema?: SchemaDefinition
+  schema?: NctSchemaDefinition
 }>()
 
 const isOpen = ref(false)

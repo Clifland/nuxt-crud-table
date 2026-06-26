@@ -1,4 +1,4 @@
-export interface User {
+export interface NctUser {
   id: string | number
   name: string
   email: string

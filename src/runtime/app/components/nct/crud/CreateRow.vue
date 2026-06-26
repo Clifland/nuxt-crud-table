@@ -1,12 +1,12 @@
 <script setup lang="ts">
 import { ref } from 'vue'
-import type { SchemaDefinition } from '../../../../shared/types/schema'
+import type { NctSchemaDefinition } from '../../../../shared/types/schema'
 import { useChangeCase } from '@vueuse/integrations/useChangeCase'
 import { useNctCrudFetch } from '#imports'
 
 const props = defineProps<{
   resource: string
-  schema: SchemaDefinition
+  schema: NctSchemaDefinition
 }>()
 
 const open = ref(false)

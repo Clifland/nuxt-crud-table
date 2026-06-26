@@ -1,8 +1,8 @@
 import { z } from 'zod'
-import type { Field } from '../shared/types/schema'
-import { ValidationRules, type FieldType } from '../shared/types/validation-rules'
+import type { NctField } from '../shared/types/schema'
+import { NctValidationRules, type FieldType } from '../shared/types/validation-rules'
 
-export function useNctDynamicZodSchema(fields: Field[], isEdit = false) {
+export function useNctDynamicZodSchema(fields: NctField[], isEdit = false) {
   const validators: Record<string, z.ZodTypeAny> = {}
 
   for (const field of fields) {
@@ -10,13 +10,13 @@ export function useNctDynamicZodSchema(fields: Field[], isEdit = false) {
     let schema: z.ZodTypeAny
 
     if (type === 'password') {
-      schema = ValidationRules.password(isEdit)
+      schema = NctValidationRules.password(isEdit)
     }
     else if (type === 'enum') {
-      schema = ValidationRules.enum(field.selectOptions || [])
+      schema = NctValidationRules.enum(field.selectOptions || [])
     }
     else {
-      const rule = (ValidationRules[type] || ValidationRules.string) as () => z.ZodTypeAny
+      const rule = (NctValidationRules[type] || NctValidationRules.string) as () => z.ZodTypeAny
       schema = rule()
     }
 

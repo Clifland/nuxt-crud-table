@@ -1,14 +1,14 @@
 <script setup lang="ts">
 import { computed, ref } from 'vue'
 import { useNuxtApp, useRuntimeConfig, useAppConfig,  useFetch } from '#app'
-import { crudHeaders, nctDbFieldToLabel, nctHasRowPermission, nctHasPermission, useNctExport, useNctCrudFetch, useToast } from '#imports'
+import { NctCrudHeaders, nctDbFieldToLabel, nctHasRowPermission, nctHasPermission, useNctExport, useNctCrudFetch, useToast } from '#imports'
 
-import type { SchemaDefinition } from '../../../../shared/types/schema'
-import type { CrudTableConfig } from '../../../../shared/types/config'
-import type { User } from '../../../../shared/types/auth'
+import type { NctSchemaDefinition } from '../../../../shared/types/schema'
+import type { NctCrudTableConfig } from '../../../../shared/types/config'
+import type { NctUser } from '../../../../shared/types/auth'
 
 const { $nctAuth } = useNuxtApp()
-const user = computed(() => $nctAuth.getUser() as User | null)
+const user = computed(() => $nctAuth.getNctUser() as NctUser | null)
 
 const props = defineProps<{
   resource: string
@@ -17,7 +17,7 @@ const props = defineProps<{
 const { apiBase } = useRuntimeConfig().public.crudTable
 
 const { data: records } = await useFetch(`${apiBase}/${props.resource}`, {
-  headers: crudHeaders(),
+  headers: NctCrudHeaders(),
   transform: (res: unknown) => {
     if (res && typeof res === 'object' && 'data' in res) {
       return (res as Record<string, unknown>).data as Record<string, unknown>[]
@@ -26,8 +26,8 @@ const { data: records } = await useFetch(`${apiBase}/${props.resource}`, {
   },
 })
 
-const { data: schema } = await useFetch<SchemaDefinition>(`${apiBase}/_schemas/${props.resource}`, {
-  headers: crudHeaders(),
+const { data: schema } = await useFetch<NctSchemaDefinition>(`${apiBase}/_schemas/${props.resource}`, {
+  headers: NctCrudHeaders(),
 })
 
 const toast = useToast()
@@ -55,7 +55,7 @@ async function onDelete(id: number) {
 }
 
 const { exportToExcel, exportToPDF } = useNctExport()
-const crudConfig = useAppConfig().crud as CrudTableConfig
+const crudConfig = useAppConfig().crud as NctCrudTableConfig
 const isExportEnabled = !!crudConfig?.exports
 
 // Agent Hint: Field visibility is controlled by app.config.ts (crud.globalHide)

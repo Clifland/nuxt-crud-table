@@ -1,5 +1,5 @@
 import { useRuntimeConfig, refreshNuxtData } from '#app'
-import { crudHeaders, useToast } from '#imports'
+import { NctCrudHeaders, useToast } from '#imports'
 
 export async function useNctCrudFetch(
   method: 'POST' | 'PATCH' | 'DELETE',
@@ -39,7 +39,7 @@ export async function useNctCrudFetch(
     await $fetch(url, {
       method,
       ...(data && { body: data }),
-      headers: crudHeaders(),
+      headers: NctCrudHeaders(),
     })
 
     useToast().add({

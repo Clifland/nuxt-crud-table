@@ -8,7 +8,7 @@ declare module '@nuxt/schema' {
 }
 
 declare module '#imports' {
-  export function crudHeaders(): Record<string, string>
+  export function NctCrudHeaders(): Record<string, string>
 }
 
 export {}

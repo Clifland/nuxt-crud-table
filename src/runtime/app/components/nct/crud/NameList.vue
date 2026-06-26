@@ -1,7 +1,7 @@
 <script setup lang="ts">
 import { computed } from 'vue'
 import pluralize from 'pluralize'
-import { crudHeaders, useFetch } from '#imports'
+import { NctCrudHeaders, useFetch } from '#imports'
 import { useRuntimeConfig } from '#app'
 
 const props = defineProps<{
@@ -35,7 +35,7 @@ const { data: options } = await useFetch(() => `${apiBase}/${urlPath}`, {
       }
     }),
   lazy: true,
-  headers: crudHeaders(),
+  headers: NctCrudHeaders(),
 })
 
 const selected = computed({

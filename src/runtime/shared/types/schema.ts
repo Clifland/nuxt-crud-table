@@ -1,4 +1,4 @@
-export interface Field {
+export interface NctField {
   name: string
   type: string
   required?: boolean
@@ -6,8 +6,8 @@ export interface Field {
   references?: string
   readonly?: boolean
 }
-export interface SchemaDefinition {
+export interface NctSchemaDefinition {
   resource: string
   labelField: string
-  fields: Field[]
+  fields: NctField[]
 }

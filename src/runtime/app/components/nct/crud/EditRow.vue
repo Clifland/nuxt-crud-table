@@ -1,12 +1,12 @@
 <script setup lang="ts">
 import { ref, computed } from 'vue'
-import type { SchemaDefinition } from '../../../../shared/types/schema'
+import type { NctSchemaDefinition } from '../../../../shared/types/schema'
 import { useNctCrudFetch, useNctFormState } from '#imports'
 
 const props = defineProps<{
   resource: string
   row: Record<string, unknown> // data of the row being edited
-  schema: SchemaDefinition
+  schema: NctSchemaDefinition
 }>()
 
 const state = computed(() => {
