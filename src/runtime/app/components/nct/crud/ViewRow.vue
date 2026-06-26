@@ -1,7 +1,7 @@
 <script setup lang="ts">
 import { ref } from 'vue'
 import type { SchemaDefinition } from '../../../../shared/types/schema'
-import { dbFieldToLabel } from '#imports'
+import { nctDbFieldToLabel } from '#imports'
 
 const props = defineProps<{
   row: Record<string, unknown>
@@ -51,7 +51,7 @@ function isImage(key: string, value: unknown) {
             class="px-4 py-3 sm:grid sm:grid-cols-3 sm:gap-4"
           >
             <dt class="text-sm font-medium leading-6 text-gray-900 dark:text-white">
-              {{ dbFieldToLabel(String(key)) }}
+              {{ nctDbFieldToLabel(String(key)) }}
             </dt>
             <dd class="mt-1 text-sm leading-6 text-gray-700 dark:text-gray-400 sm:col-span-2 sm:mt-0 break-words">
               <img

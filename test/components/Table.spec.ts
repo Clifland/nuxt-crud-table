@@ -25,9 +25,9 @@ vi.mock('#app', async (importOriginal) => {
 
 // 3. Register your runtime auto-imports securely
 mockNuxtImport('crudHeaders', () => () => ({ Accept: 'application/json' }))
-mockNuxtImport('dbFieldToLabel', () => (str: string) => str.toUpperCase())
-mockNuxtImport('hasPermission', () => () => true)
-mockNuxtImport('hasRowPermission', () => () => true)
+mockNuxtImport('nctDbFieldToLabel', () => (str: string) => str.toUpperCase())
+mockNuxtImport('nctHasPermission', () => () => true)
+mockNuxtImport('nctHasRowPermission', () => () => true)
 mockNuxtImport('useToast', () => () => ({ add: hoistedMocks.toastAdd }))
 mockNuxtImport('useCrudFetch', () => hoistedMocks.crudFetch)
 mockNuxtImport('useExport', () => () => ({ exportToExcel: vi.fn(), exportToPDF: vi.fn() }))

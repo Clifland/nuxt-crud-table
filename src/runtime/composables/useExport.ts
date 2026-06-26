@@ -1,6 +1,6 @@
 import { useAppConfig } from '#app'
 import type { CrudTableConfig } from '../shared/types/config'
-import { dbFieldToLabel } from '#imports'
+import { nctDbFieldToLabel } from '#imports'
 
 export const useExport = () => {
   const appConfig = useAppConfig()
@@ -23,7 +23,7 @@ export const useExport = () => {
       .filter(col => !exclude.includes(String(col)))
       .map(col => ({
         key: String(col),
-        label: dbFieldToLabel(String(col)),
+        label: nctDbFieldToLabel(String(col)),
       }))
 
     return items.map((row) => {

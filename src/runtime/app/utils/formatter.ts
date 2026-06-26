@@ -1,5 +1,5 @@
 // utils/formatter.ts
-export const dbFieldToLabel = (str: string): string => {
+export const nctDbFieldToLabel = (str: string): string => {
   return String(str)
     .replace(/(_id|Id)$/, '') // Strip ID suffixes
     .replace(/[_-]/g, ' ') // Convert underscores/hyphens to spaces

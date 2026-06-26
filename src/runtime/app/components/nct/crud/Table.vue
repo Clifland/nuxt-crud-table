@@ -1,7 +1,7 @@
 <script setup lang="ts">
 import { computed, ref } from 'vue'
-import { useNuxtApp, useRuntimeConfig, useAppConfig } from '#app'
-import { crudHeaders, dbFieldToLabel, hasRowPermission, hasPermission, useExport, useFetch, useToast, useCrudFetch } from '#imports'
+import { useNuxtApp, useRuntimeConfig, useAppConfig,  useFetch } from '#app'
+import { crudHeaders, nctDbFieldToLabel, nctHasRowPermission, nctHasPermission, useExport, useCrudFetch, useToast } from '#imports'
 
 import type { SchemaDefinition } from '../../../../shared/types/schema'
 import type { CrudTableConfig } from '../../../../shared/types/config'
@@ -117,7 +117,7 @@ const paginatedItems = ref<Record<string, unknown>[]>([])
           />
         </UDropdownMenu>
         <NctCrudCreateRow
-          v-if="schema && hasPermission(user, resource, 'create')"
+          v-if="schema && nctHasPermission(user, resource, 'create')"
           :resource="resource"
           :schema="schema"
         />
@@ -140,7 +140,7 @@ const paginatedItems = ref<Record<string, unknown>[]>([])
                 scope="col"
                 class="px-3 py-3.5 text-left text-sm font-semibold text-gray-900 dark:text-white"
               >
-                {{ dbFieldToLabel(String(col)) }}
+                {{ nctDbFieldToLabel(String(col)) }}
               </th>
             </template>
             <th
@@ -193,18 +193,18 @@ const paginatedItems = ref<Record<string, unknown>[]>([])
                 <template #content>
                   <div class="p-1 flex flex-col gap-1 min-w-[120px]">
                     <NctCrudViewRow
-                      v-if="schema && hasRowPermission(user, resource, 'read', row)"
+                      v-if="schema && nctHasRowPermission(user, resource, 'read', row)"
                       :row="row"
                       :schema="schema"
                     />
                     <NctCrudEditRow
-                      v-if="schema && hasRowPermission(user, resource, 'update', row)"
+                      v-if="schema && nctHasRowPermission(user, resource, 'update', row)"
                       :resource="resource"
                       :row="row"
                       :schema="schema"
                     />
                     <UButton
-                      v-if="hasRowPermission(user, resource, 'delete', row)"
+                      v-if="nctHasRowPermission(user, resource, 'delete', row)"
                       label="Delete"
                       color="error"
                       variant="ghost"
