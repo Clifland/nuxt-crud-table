@@ -61,6 +61,6 @@ watch([searchedItems], () => {
       :total="searchedItems.length"
       :items-per-page="itemsPerPage"
     />
-    <CommonSearchButton v-model="search" />
+    <NctCommonSearchButton v-model="search" />
   </div>
 </template>

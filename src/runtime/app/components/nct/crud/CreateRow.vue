@@ -1,6 +1,6 @@
 <script setup lang="ts">
 import { ref } from 'vue'
-import type { SchemaDefinition } from '../../../shared/types/schema'
+import type { SchemaDefinition } from '../../../../shared/types/schema'
 import { useChangeCase } from '@vueuse/integrations/useChangeCase'
 import { useCrudFetch } from '#imports'
 
@@ -43,7 +43,7 @@ async function onSubmit(data: Record<string, unknown>) {
         <div class="mt-4">
           <!-- Dynamic form -->
           <div v-if="schema">
-            <CrudForm
+            <NctCrudForm
               :schema="schema"
               :loading="loading"
               @submit="onSubmit"

@@ -12,7 +12,7 @@ const resource = computed(() => {
 
 <template>
   <div v-if="resource">
-    <CrudTable :resource="resource" />
+    <NctCrudTable :resource="resource" />
   </div>
   <div
     v-else

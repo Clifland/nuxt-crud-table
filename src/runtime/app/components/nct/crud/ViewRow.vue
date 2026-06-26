@@ -1,6 +1,6 @@
 <script setup lang="ts">
 import { ref } from 'vue'
-import type { SchemaDefinition } from '../../../shared/types/schema'
+import type { SchemaDefinition } from '../../../../shared/types/schema'
 import { dbFieldToLabel } from '#imports'
 
 const props = defineProps<{

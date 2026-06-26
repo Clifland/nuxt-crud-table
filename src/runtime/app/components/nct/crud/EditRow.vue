@@ -1,6 +1,6 @@
 <script setup lang="ts">
 import { ref, computed } from 'vue'
-import type { SchemaDefinition } from '../../../shared/types/schema'
+import type { SchemaDefinition } from '../../../../shared/types/schema'
 import { useCrudFetch, useFormState } from '#imports'
 
 const props = defineProps<{
@@ -52,7 +52,7 @@ async function onSubmit(data: Record<string, unknown>) {
         <hr>
 
         <!-- Form -->
-        <CrudForm
+        <NctCrudForm
           v-if="schema"
           :schema="schema"
           :initial-state="state"

@@ -3,9 +3,9 @@ import { computed, ref } from 'vue'
 import { useNuxtApp, useRuntimeConfig, useAppConfig } from '#app'
 import { crudHeaders, dbFieldToLabel, hasRowPermission, hasPermission, useExport, useFetch, useToast, useCrudFetch } from '#imports'
 
-import type { SchemaDefinition } from '../../../shared/types/schema'
-import type { CrudTableConfig } from '../../../shared/types/config'
-import type { User } from '../../../shared/types/auth'
+import type { SchemaDefinition } from '../../../../shared/types/schema'
+import type { CrudTableConfig } from '../../../../shared/types/config'
+import type { User } from '../../../../shared/types/auth'
 
 const { $crudAuth } = useNuxtApp()
 const user = computed(() => $crudAuth.getUser() as User | null)
@@ -86,7 +86,7 @@ const paginatedItems = ref<Record<string, unknown>[]>([])
   >
     <!-- Filters / Pagination Area -->
     <div class="flex items-center justify-between px-4 py-3 bg-white dark:bg-gray-900 border-b border-gray-200 dark:border-gray-700">
-      <CommonPagination
+      <NctCommonPagination
         :data="records || []"
         :items-per-page="10"
         @update:paginated="paginatedItems = $event"
@@ -116,7 +116,7 @@ const paginatedItems = ref<Record<string, unknown>[]>([])
             variant="outline"
           />
         </UDropdownMenu>
-        <CrudCreateRow
+        <NctCrudCreateRow
           v-if="schema && hasPermission(user, resource, 'create')"
           :resource="resource"
           :schema="schema"
@@ -192,12 +192,12 @@ const paginatedItems = ref<Record<string, unknown>[]>([])
 
                 <template #content>
                   <div class="p-1 flex flex-col gap-1 min-w-[120px]">
-                    <CrudViewRow
+                    <NctCrudViewRow
                       v-if="schema && hasRowPermission(user, resource, 'read', row)"
                       :row="row"
                       :schema="schema"
                     />
-                    <CrudEditRow
+                    <NctCrudEditRow
                       v-if="schema && hasRowPermission(user, resource, 'update', row)"
                       :resource="resource"
                       :row="row"

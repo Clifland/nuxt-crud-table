@@ -1,12 +1,13 @@
-<!-- eslint-disable vue/multi-word-component-names -->
 <script setup lang="ts">
 import { computed, reactive } from 'vue'
 import type { FormSubmitEvent } from '@nuxt/ui'
 import { useNuxtApp, useRuntimeConfig } from '#app'
+import { useDynamicZodSchema, hasPermission } from '#imports'
+
 import { useChangeCase } from '@vueuse/integrations/useChangeCase'
 
-import type { SchemaDefinition } from '../../../shared/types/schema'
-import { useDynamicZodSchema, hasPermission } from '#imports'
+import type { SchemaDefinition } from '../../../../shared/types/schema'
+import type { User } from '../../../../shared/types/auth'
 
 const props = defineProps<{
   schema: SchemaDefinition
@@ -34,7 +35,7 @@ const filteredFields = props.schema.fields.filter((field) => {
 })
 
 const { $crudAuth } = useNuxtApp()
-const user = computed(() => $crudAuth.getUser())
+const user = computed(() => $crudAuth.getUser() as User | null)
 
 const canUpdateStatus = computed(() => hasPermission(user.value, props.schema.resource, 'update_status'))
 
@@ -117,7 +118,7 @@ function handleSubmit(event: FormSubmitEvent<Record<string, unknown>>) {
             v-model="state[field.name] as boolean"
           />
 
-          <CrudNameList
+          <NctCrudNameList
             v-else-if="field.name.endsWith('_id') || field.name.endsWith('Id')"
             v-model="state[field.name] as string | number | null"
             :field-name="field.name"
@@ -125,7 +126,7 @@ function handleSubmit(event: FormSubmitEvent<Record<string, unknown>>) {
           />
 
           <template v-else-if="field.name === 'password'">
-            <CommonPassword
+            <NctCommonPassword
               v-if="!props.initialState"
               v-model="state[field.name] as string"
               type="password"

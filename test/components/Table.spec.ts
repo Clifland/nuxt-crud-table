@@ -1,6 +1,6 @@
 import { describe, it, expect, vi, beforeEach } from 'vitest'
 import { mockNuxtImport, mountSuspended } from '@nuxt/test-utils/runtime'
-import Table from '../../src/runtime/app/components/crud/Table.vue'
+import Table from '../../src/runtime/app/components/nct/crud/Table.vue'
 
 // 1. Hoist your mock state tracking variables above everything else
 const { hoistedMocks } = vi.hoisted(() => {

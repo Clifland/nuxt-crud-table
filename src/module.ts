@@ -35,9 +35,7 @@ export default defineNuxtModule<ModuleOptions>({
       formHiddenFields: _options.formHiddenFields,
     }
 
-    addComponentsDir({
-      path: resolver.resolve('runtime/app/components'),
-    })
+    addComponentsDir({ path: resolver.resolve('runtime/app/components') })
     addImportsDir(resolver.resolve('runtime/composables'))
     addImportsDir(resolver.resolve('runtime/shared/utils'))
     addImportsDir(resolver.resolve('runtime/app/utils'))
