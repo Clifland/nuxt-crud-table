@@ -1,5 +1,5 @@
 <script setup lang="ts">
-import { computed, ref } from 'vue';
+import { computed, ref } from 'vue'
 import { useNuxtApp, useRuntimeConfig, useAppConfig } from '#app'
 import { crudHeaders, dbFieldToLabel, hasRowPermission, hasPermission, useExport, useFetch, useToast, useCrudFetch } from '#imports'
 
@@ -17,7 +17,7 @@ const { apiBase } = useRuntimeConfig().public.crudTable
 
 const { data: records } = await useFetch(`${apiBase}/${props.resource}`, {
   headers: crudHeaders(),
-  transform: (res: any) => res.data ?? res
+  transform: (res: any) => res.data ?? res,
 })
 
 const { data: schema } = await useFetch<SchemaDefinition>(`${apiBase}/_schemas/${props.resource}`, {
@@ -26,7 +26,7 @@ const { data: schema } = await useFetch<SchemaDefinition>(`${apiBase}/_schemas/$
 
 const toast = useToast()
 
-async function onDelete(id: number) {  
+async function onDelete(id: number) {
   toast.add({
     title: 'Delete Record',
     description: 'Are you sure you want to permanently delete this row?',
@@ -37,21 +37,20 @@ async function onDelete(id: number) {
         label: 'Cancel',
         variant: 'ghost',
         color: 'neutral',
-        onClick: () => {} // Soft dismisses the toast natively
+        onClick: () => {}, // Soft dismisses the toast natively
       },
       {
         label: 'Delete',
         color: 'error',
-        onClick: async () => await useCrudFetch('DELETE', props.resource, id)
-      }
-    ]
+        onClick: async () => await useCrudFetch('DELETE', props.resource, id),
+      },
+    ],
   })
 }
 
 const { exportToExcel, exportToPDF } = useExport()
 const crudConfig = useAppConfig().crud as CrudTableConfig
 const isExportEnabled = !!crudConfig?.exports
-
 
 // Agent Hint: Field visibility is controlled by app.config.ts (crud.globalHide)
 const visibleColumns = computed(() => {
@@ -87,18 +86,18 @@ const paginatedItems = ref<Record<string, unknown>[]>([])
         <UDropdownMenu
           v-if="isExportEnabled && records?.length"
           :items="[
-              [
-                { 
-                  label: 'Excel', 
-                  icon: 'i-lucide-file-spreadsheet', 
-                  onSelect: () => exportToExcel(records || [], props.resource, visibleColumns) 
-                },
-                { 
-                  label: 'PDF', 
-                  icon: 'i-lucide-file-text', 
-                  onSelect: () => exportToPDF(records || [], props.resource, visibleColumns) 
-                },
-              ],
+            [
+              {
+                label: 'Excel',
+                icon: 'i-lucide-file-spreadsheet',
+                onSelect: () => exportToExcel(records || [], props.resource, visibleColumns),
+              },
+              {
+                label: 'PDF',
+                icon: 'i-lucide-file-text',
+                onSelect: () => exportToPDF(records || [], props.resource, visibleColumns),
+              },
+            ],
           ]"
         >
           <UButton

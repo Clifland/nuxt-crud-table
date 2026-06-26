@@ -17,13 +17,13 @@ export default defineNuxtModule<ModuleOptions>({
   defaults: {
     apiBase: '/api/_nac',
     auth: false,
-    formHiddenFields: ['id']
+    formHiddenFields: ['id'],
   },
 
   moduleDependencies: {
     '@nuxt/ui': {
-      version: '^4.0.0' 
-    }
+      version: '^4.0.0',
+    },
   },
 
   setup(_options, _nuxt) {
@@ -32,17 +32,17 @@ export default defineNuxtModule<ModuleOptions>({
     _nuxt.options.runtimeConfig.public.crudTable = {
       apiBase: _options.apiBase,
       auth: _options.auth,
-      formHiddenFields: _options.formHiddenFields
+      formHiddenFields: _options.formHiddenFields,
     }
 
     addComponentsDir({
       path: resolver.resolve('runtime/app/components'),
-    })    
-    addImportsDir(resolver.resolve('runtime/composables'))    
+    })
+    addImportsDir(resolver.resolve('runtime/composables'))
     addImportsDir(resolver.resolve('runtime/shared/utils'))
     addImportsDir(resolver.resolve('runtime/app/utils'))
     addPlugin(resolver.resolve('runtime/plugins/crud-auth'))
-    
+
     _nuxt.hook('prepare:types', ({ references, sharedReferences }) => {
       const typeFiles = ['auth', 'config', 'schema', 'validation-rules']
 
@@ -74,6 +74,5 @@ export default defineNuxtModule<ModuleOptions>({
         return environment.name === 'client'
       },
     }))
-
   },
 })

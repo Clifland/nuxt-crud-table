@@ -38,7 +38,7 @@ export const useExport = () => {
   const exportToExcel = async (rawData: any[], resource: string, visibleColumns: string[]) => {
     if (!isExportEnabled) return
     const XLSX = await import('xlsx')
-    
+
     const exclusions = getExportExclusions('excel', resource)
     const exportData = prepareData(rawData, visibleColumns, exclusions)
 
@@ -73,7 +73,7 @@ export const useExport = () => {
     doc.setTextColor(100, 116, 139)
     doc.text(`Generated on ${date}`, 14, 28)
 
-    const tableRows = exportData.map(item => headers.map(col => {
+    const tableRows = exportData.map(item => headers.map((col) => {
       const val = item[col]
       return val === null || val === undefined ? '' : String(val)
     }))

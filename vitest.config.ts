@@ -6,8 +6,8 @@ export default defineVitestConfig({
     environment: 'nuxt',
     environmentOptions: {
       nuxt: {
-        rootDir: fileURLToPath(new URL('./playground', import.meta.url))
-      }
-    }
-  }
+        rootDir: fileURLToPath(new URL('./playground', import.meta.url)),
+      },
+    },
+  },
 })

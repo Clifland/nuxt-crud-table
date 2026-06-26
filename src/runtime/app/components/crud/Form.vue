@@ -26,10 +26,10 @@ const { formHiddenFields } = config.public.crudTable
 const filteredFields = props.schema.fields.filter((field) => {
   // Hide globally restricted form fields
   if (formHiddenFields.includes(field.name)) return false
-  
+
   // Hide status field during initial record creation stages
   if (field.name === 'status' && !props.initialState) return false
-  
+
   return true
 })
 

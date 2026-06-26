@@ -6,9 +6,9 @@ import Table from '../../src/runtime/app/components/crud/Table.vue'
 const { hoistedMocks } = vi.hoisted(() => {
   return {
     hoistedMocks: {
-      toastAdd: vi.fn((payload: Record<string, unknown>) => {}),
-      crudFetch: vi.fn(() => Promise.resolve({ success: true }))
-    }
+      toastAdd: vi.fn(),
+      crudFetch: vi.fn(() => Promise.resolve({ success: true })),
+    },
   }
 })
 
@@ -19,7 +19,7 @@ vi.mock('#app', async (importOriginal) => {
     ...actual,
     useNuxtApp: () => ({ $crudAuth: { getUser: () => ({ id: 1 }) } }),
     useRuntimeConfig: () => ({ public: { crudTable: { apiBase: '/api/_nac', formHiddenFields: [] } } }),
-    useAppConfig: () => ({ crud: { globalHide: ['password'], exports: true } })
+    useAppConfig: () => ({ crud: { globalHide: ['password'], exports: true } }),
   }
 })
 
@@ -46,7 +46,7 @@ describe('NAC Core CRUD Engine Validation', () => {
 
   it('verifies Read execution loops and runtime structural rendering', async () => {
     const wrapper = await mountSuspended(Table, {
-      props: { resource: 'users' }
+      props: { resource: 'users' },
     })
 
     expect(wrapper.vm.resource).toBe('users')
@@ -55,22 +55,22 @@ describe('NAC Core CRUD Engine Validation', () => {
 
   it('verifies Delete action workflow fires confirmation toast and calls useCrudFetch', async () => {
     const wrapper = await mountSuspended(Table, {
-      props: { resource: 'users' }
+      props: { resource: 'users' },
     })
 
     const instance = wrapper.vm as unknown as { onDelete: (id: number) => Promise<void> }
     await instance.onDelete(1)
 
     expect(hoistedMocks.toastAdd).toHaveBeenCalled()
-    
+
     const lastCall = hoistedMocks.toastAdd.mock.calls[0]
     expect(lastCall).toBeDefined()
-    
+
     const toastCallArgs = lastCall![0] as unknown as { actions: Array<{ label: string, onClick: () => Promise<void> }> }
-    const deleteAction = toastCallArgs.actions.find((action) => action.label === 'Delete')
-    
+    const deleteAction = toastCallArgs.actions.find(action => action.label === 'Delete')
+
     expect(deleteAction).toBeDefined()
-    
+
     await deleteAction!.onClick()
     expect(hoistedMocks.crudFetch).toHaveBeenCalledWith('DELETE', 'users', 1)
   })

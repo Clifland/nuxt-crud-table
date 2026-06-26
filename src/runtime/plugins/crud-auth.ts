@@ -10,7 +10,7 @@ export default defineNuxtPlugin({
   setup() {
     let activeStrategy: crudAuthResolver = {
       getUser: () => null,
-      isAuthenticated: () => false
+      isAuthenticated: () => false,
     }
 
     return {
@@ -20,11 +20,11 @@ export default defineNuxtPlugin({
             activeStrategy = strategy
           },
           getUser: () => activeStrategy.getUser(),
-          isAuthenticated: () => activeStrategy.isAuthenticated()
-        }
-      }
+          isAuthenticated: () => activeStrategy.isAuthenticated(),
+        },
+      },
     }
-  }
+  },
 })
 
 declare module '#app' {

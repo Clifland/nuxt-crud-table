@@ -1,5 +1,5 @@
 import '@nuxt/schema'
-import type { ModuleOptions } from '../module' 
+import type { ModuleOptions } from '../module'
 
 declare module '@nuxt/schema' {
   interface PublicRuntimeConfig {
@@ -7,7 +7,7 @@ declare module '@nuxt/schema' {
   }
 }
 
-declare module '#imports' {  
+declare module '#imports' {
   export function crudHeaders(): Record<string, string>
 }
 

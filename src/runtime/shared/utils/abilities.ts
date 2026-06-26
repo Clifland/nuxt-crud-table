@@ -1,7 +1,6 @@
 import { useRuntimeConfig } from '#app'
 import type { User } from '../types/auth'
 
-
 export function isAuthEnabled(): boolean {
   const auth = useRuntimeConfig().public.crudTable.auth
   return !!auth
@@ -19,7 +18,7 @@ export function isOwner(user: User | null | undefined, record?: Record<string, u
 
 export function hasPermission(user: User | null | undefined, model: string, action: string) {
   if (!isAuthEnabled()) return true
-  
+
   if (isAdmin(user)) return true
   if (!user) return false
   return !!user?.permissions?.[model]?.includes(action)
