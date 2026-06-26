@@ -15,6 +15,12 @@ export default createConfigForNuxt({
     ],
   },
 })
-  .append(
-    // your custom flat config here...
-  )
+  .append({
+    files: [
+      'src/runtime/**/*.vue',
+      'playground/**/*.vue',
+    ],
+    rules: {
+      'vue/multi-word-component-names': 'off',
+    },
+  })

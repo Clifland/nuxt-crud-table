@@ -1,7 +1,7 @@
 import { defineNuxtPlugin } from '#app'
 
 export interface crudAuthResolver {
-  getUser: () => any
+  getUser: () => unknown | null
   isAuthenticated: () => boolean
 }
 
@@ -31,7 +31,7 @@ declare module '#app' {
   interface NuxtApp {
     $crudAuth: {
       setStrategy: (strategy: crudAuthResolver) => void
-      getUser: () => any
+      getUser: () => unknown | null
       isAuthenticated: () => boolean
     }
   }

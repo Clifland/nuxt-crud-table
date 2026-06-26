@@ -5,9 +5,10 @@ import { crudHeaders, dbFieldToLabel, hasRowPermission, hasPermission, useExport
 
 import type { SchemaDefinition } from '../../../shared/types/schema'
 import type { CrudTableConfig } from '../../../shared/types/config'
+import type { User } from '../../../shared/types/auth'
 
 const { $crudAuth } = useNuxtApp()
-const user = computed(() => $crudAuth.getUser())
+const user = computed(() => $crudAuth.getUser() as User | null)
 
 const props = defineProps<{
   resource: string
@@ -17,7 +18,12 @@ const { apiBase } = useRuntimeConfig().public.crudTable
 
 const { data: records } = await useFetch(`${apiBase}/${props.resource}`, {
   headers: crudHeaders(),
-  transform: (res: any) => res.data ?? res,
+  transform: (res: unknown) => {
+    if (res && typeof res === 'object' && 'data' in res) {
+      return (res as Record<string, unknown>).data as Record<string, unknown>[]
+    }
+    return (res ?? []) as Record<string, unknown>[]
+  },
 })
 
 const { data: schema } = await useFetch<SchemaDefinition>(`${apiBase}/_schemas/${props.resource}`, {
@@ -57,7 +63,10 @@ const visibleColumns = computed(() => {
   if (!records.value?.length) return []
   const hideList = crudConfig?.globalHide ?? []
 
-  return Object.keys(records.value[0]).filter(key =>
+  // Cast target record to a clear indexed object primitive
+  const firstRow = records.value[0] as Record<string, unknown>
+
+  return Object.keys(firstRow).filter(key =>
     !hideList.includes(String(key)),
   )
 })

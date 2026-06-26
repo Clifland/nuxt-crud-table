@@ -15,7 +15,7 @@ export const useExport = () => {
     return [...new Set([...global, ...resourceSpecific])]
   }
 
-  const prepareData = (data: any[], visibleColumns: string[], exclude: string[]) => {
+  const prepareData = (data: unknown[], visibleColumns: string[], exclude: string[]) => {
     const items = (data ?? []) as Record<string, unknown>[]
     if (!items.length) return []
 
@@ -35,7 +35,7 @@ export const useExport = () => {
     })
   }
 
-  const exportToExcel = async (rawData: any[], resource: string, visibleColumns: string[]) => {
+  const exportToExcel = async (rawData: unknown[], resource: string, visibleColumns: string[]) => {
     if (!isExportEnabled) return
     const XLSX = await import('xlsx')
 
@@ -48,7 +48,7 @@ export const useExport = () => {
     XLSX.writeFile(workbook, `${resource}.xlsx`)
   }
 
-  const exportToPDF = async (rawData: any[], resource: string, visibleColumns: string[]) => {
+  const exportToPDF = async (rawData: unknown[], resource: string, visibleColumns: string[]) => {
     if (!isExportEnabled) return
     const [{ jsPDF }, { default: autoTable }] = await Promise.all([
       import('jspdf'),
