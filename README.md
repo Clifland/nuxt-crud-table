@@ -85,11 +85,11 @@ NUXT_PUBLIC_CRUD_TABLE_API_BASE=http://localhost:8000/api
 Create the utility file below to supply transport metadata (such as authentication context) to internal engine fetch pools.
 
 > [!IMPORTANT]
-> The `NctCrudHeaders` helper function is **mandatory**. If your implementation does not leverage application layer security tokens, it must still exist and return a blank object `{}`.
+> The `nctCrudHeaders` helper function is **mandatory**. If your implementation does not leverage application layer security tokens, it must still exist and return a blank object `{}`.
 
 ```ts
 // app/utils/helpers.ts
-export function NctCrudHeaders() {
+export function nctCrudHeaders() {
   return {
     Authorization: `Bearer ${useCookie('token').value || ''}`
   }

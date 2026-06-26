@@ -1,7 +1,7 @@
 <script setup lang="ts">
 import { computed, ref } from 'vue'
 import { useNuxtApp, useRuntimeConfig, useAppConfig, useFetch } from '#app'
-import { NctCrudHeaders, nctDbFieldToLabel, nctHasRowPermission, nctHasPermission, useNctExport, useNctCrudFetch, useToast } from '#imports'
+import { nctCrudHeaders, nctDbFieldToLabel, nctHasRowPermission, nctHasPermission, useNctExport, useNctCrudFetch, useToast } from '#imports'
 
 import type { NctSchemaDefinition } from '../../../../shared/types/schema'
 import type { NctCrudTableConfig } from '../../../../shared/types/config'
@@ -17,7 +17,7 @@ const props = defineProps<{
 const { apiBase } = useRuntimeConfig().public.crudTable
 
 const { data: records } = await useFetch(`${apiBase}/${props.resource}`, {
-  headers: NctCrudHeaders(),
+  headers: nctCrudHeaders(),
   transform: (res: unknown) => {
     if (res && typeof res === 'object' && 'data' in res) {
       return (res as Record<string, unknown>).data as Record<string, unknown>[]
@@ -27,7 +27,7 @@ const { data: records } = await useFetch(`${apiBase}/${props.resource}`, {
 })
 
 const { data: schema } = await useFetch<NctSchemaDefinition>(`${apiBase}/_schemas/${props.resource}`, {
-  headers: NctCrudHeaders(),
+  headers: nctCrudHeaders(),
 })
 
 const toast = useToast()

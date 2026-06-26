@@ -1,3 +1,3 @@
-export function NctCrudHeaders() {
+export function nctCrudHeaders() {
   // add authentication headers here
 }

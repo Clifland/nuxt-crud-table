@@ -24,7 +24,7 @@ vi.mock('#app', async (importOriginal) => {
 })
 
 // 3. Register your runtime auto-imports securely
-mockNuxtImport('NctCrudHeaders', () => () => ({ Accept: 'application/json' }))
+mockNuxtImport('nctCrudHeaders', () => () => ({ Accept: 'application/json' }))
 mockNuxtImport('nctDbFieldToLabel', () => (str: string) => str.toUpperCase())
 mockNuxtImport('nctHasPermission', () => () => true)
 mockNuxtImport('nctHasRowPermission', () => () => true)

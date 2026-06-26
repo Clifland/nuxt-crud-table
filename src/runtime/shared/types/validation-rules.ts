@@ -4,7 +4,7 @@ import { z } from 'zod'
  * Validation Factory
  * Ensures backend and frontend never drift.
  */
-export const NctValidationRules = {
+export const nctValidationRules = {
   email: () => z.email(),
   number: () => z.number(),
   date: () => z.date(),
@@ -19,4 +19,4 @@ export const NctValidationRules = {
     : z.string(),
 } as const
 
-export type FieldType = keyof typeof NctValidationRules
+export type FieldType = keyof typeof nctValidationRules
