@@ -1,5 +1,7 @@
 import { defineNuxtModule, addComponentsDir, createResolver, addImportsDir, addPlugin, addVitePlugin } from '@nuxt/kit'
 
+import { NCT_FORM_HIDDEN_FIELDS } from './runtime/app/utils/constants'
+
 // Module options TypeScript interface definition
 export interface ModuleOptions {
   apiBase: string
@@ -17,7 +19,7 @@ export default defineNuxtModule<ModuleOptions>({
   defaults: {
     apiBase: '/api/_nac',
     auth: false,
-    formHiddenFields: ['id'],
+    formHiddenFields: NCT_FORM_HIDDEN_FIELDS
   },
 
   moduleDependencies: {
