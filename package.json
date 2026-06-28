@@ -2,6 +2,21 @@
   "name": "nuxt-crud-table",
   "version": "0.0.3",
   "description": "API-driven dynamic CRUD table and forms in Nuxt.js. Automatically reflects backend resource schemas to build instant admin data grids and forms.",
+  "keywords": [
+    "nuxt",
+    "nuxt-module",
+    "drizzle",
+    "drizzle-orm",
+    "zod",
+    "crud",
+    "auto-crud",
+    "rest-api",
+    "crud-ui", 
+    "auto-crud-ui",
+    "crud-table",
+    "data-table",
+    "admin-panel"
+  ],
   "repository": {
     "type": "git",
     "url": "git+https://github.com/Clifland/nuxt-crud-table.git"
@@ -53,6 +68,8 @@
     "nuxt": "^4.0.0"
   },
   "devDependencies": {
+    "@iconify-json/heroicons": "^1.2.3",
+    "@iconify-json/lucide": "^1.2.114",
     "@libsql/client": "^0.17.4",
     "@nuxt/devtools": "^3.2.4",
     "@nuxt/eslint-config": "^1.16.0",
@@ -72,7 +89,7 @@
     "eslint": "^10.6.0",
     "happy-dom": "^20.10.6",
     "nuxt": "^4.4.8",
-    "nuxt-auto-crud": "^2.5.5",
+    "nuxt-auto-crud": "^2.5.6",
     "playwright-core": "^1.61.1",
     "tailwindcss": "^4.3.1",
     "typescript": "~6.0.3",
