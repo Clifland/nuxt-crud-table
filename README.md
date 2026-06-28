@@ -16,7 +16,7 @@ Building admin panels typically requires duplicate layout, form, and validation 
 
 ## Installation
 
-### 1. Install the Package
+### 1. Install the Dependencies
 
 Add `nuxt-crud-table` along with `@nuxt/ui` to your project dependencies:
 
@@ -44,7 +44,7 @@ bun dev
 
 ### 1. Backend Contract Requirements
 
-Your target backend application must expose standard RESTful endpoints for your resources along with a dedicated metadata schema route.
+To get started with `nct`, you'll need a backend application that serves APIs matching our expected contract. Your backend must expose standard RESTful endpoints for resources along with a dedicated metadata schema route:
 
 #### Data API Endpoints
 
