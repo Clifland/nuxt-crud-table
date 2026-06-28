@@ -1,6 +1,24 @@
 # Changelog
 
 
+## v0.0.4
+
+[compare changes](https://github.com/Clifland/nuxt-crud-table/compare/v0.0.3...v0.0.4)
+
+### 🩹 Fixes
+
+- Lint errors ([b610a53](https://github.com/Clifland/nuxt-crud-table/commit/b610a53))
+
+### 🏡 Chore
+
+- Add constants ([a78c0df](https://github.com/Clifland/nuxt-crud-table/commit/a78c0df))
+- Update packages and add products schema ([004c257](https://github.com/Clifland/nuxt-crud-table/commit/004c257))
+- Update nac to 2.5.6 ([90f7a20](https://github.com/Clifland/nuxt-crud-table/commit/90f7a20))
+
+### ❤️ Contributors
+
+- Cliford Pereira ([@clifordpereira](https://github.com/clifordpereira))
+
 ## v0.0.3
 
 [compare changes](https://github.com/Clifland/nuxt-crud-table/compare/v0.0.2...v0.0.3)
