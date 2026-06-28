@@ -13,6 +13,13 @@ Building admin panels typically requires duplicate layout, form, and validation 
 * **Data-Agnostic Processing:** Works natively with standard raw data arrays (Nuxt/Nitro) or data-wrapped response objects (Laravel structures).
 
 ---
+
+## Quick Install
+
+```bash
+bun add nuxt-crud-table
+```
+
 ## How to Implement & Use
 
 ### 1. Backend Contract Requirements
