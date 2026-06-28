@@ -1,6 +1,18 @@
 # Changelog
 
 
+## v0.0.6
+
+[compare changes](https://github.com/Clifland/nuxt-crud-table/compare/v0.0.5...v0.0.6)
+
+### 🏡 Chore
+
+- **release:** V0.0.5 ([ba97c0f](https://github.com/Clifland/nuxt-crud-table/commit/ba97c0f))
+
+### ❤️ Contributors
+
+- Cliford Pereira ([@clifordpereira](https://github.com/clifordpereira))
+
 ## v0.0.5
 
 [compare changes](https://github.com/Clifland/nuxt-crud-table/compare/v0.0.4...v0.0.5)
