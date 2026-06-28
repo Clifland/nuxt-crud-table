@@ -55,7 +55,7 @@
   "devDependencies": {
     "@libsql/client": "^0.17.4",
     "@nuxt/devtools": "^3.2.4",
-    "@nuxt/eslint-config": "^1.15.2",
+    "@nuxt/eslint-config": "^1.16.0",
     "@nuxt/module-builder": "^1.0.2",
     "@nuxt/schema": "^4.4.8",
     "@nuxt/test-utils": "^4.0.3",
@@ -69,15 +69,15 @@
     "changelogen": "^0.6.2",
     "drizzle-kit": "^1.0.0-rc.4-ca0f029",
     "drizzle-orm": "^1.0.0-rc.4-5d5b77c",
-    "eslint": "^10.4.1",
+    "eslint": "^10.6.0",
     "happy-dom": "^20.10.6",
     "nuxt": "^4.4.8",
-    "nuxt-auto-crud": "^2.5.3",
+    "nuxt-auto-crud": "^2.5.5",
     "playwright-core": "^1.61.1",
     "tailwindcss": "^4.3.1",
     "typescript": "~6.0.3",
     "vitest": "^4.1.9",
-    "vue-tsc": "^3.3.3"
+    "vue-tsc": "^3.3.5"
   },
   "overrides": {
     "h3": "1.15.11"
