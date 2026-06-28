@@ -79,16 +79,18 @@ export interface NctSchemaDefinition {
 ```
 
 * **Route Pattern:** `GET apiBaseUrl/_schemas/:resource`
-* **Payload Example (`GET http://localhost:8000/api/_schemas/users`):**
+* **Payload Example (`GET http://localhost:8000/api/_schemas/products`):**
 
 ```json
 {
-  "resource": "users",
+  "resource": "products",
   "labelField": "name",
   "fields": [
-    { "name": "id", "type": "string", "required": true, "readonly": true },
+    { "name": "id", "type": "number", "required": true, "readonly": true },
     { "name": "name", "type": "string", "required": true, "readonly": false },
-    { "name": "email", "type": "string", "required": true, "readonly": false }
+    { "name": "sku", "type": "string", "required": true, "readonly": false },
+    { "name": "price", "type": "number", "required": true, "readonly": false },
+    { "name": "stock", "type": "number", "required": true, "readonly": false }
   ]
 }
 
@@ -190,5 +192,6 @@ export default defineAppConfig({
 
 ## Reference Implementations
 
+* 🔹 **FullStack:** [nct-nac-fullstack](https://github.com/Clifland/nct-nac-fullstack)
 * 🔹 **Frontend:** [nct-laravel-frontend](https://github.com/Clifland/nct-laravel-frontend)
 * 🔸 **Backend:** [nct-laravel-backend](https://github.com/Clifland/nct-laravel-backend)
