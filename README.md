@@ -131,13 +131,10 @@ export function nctCrudHeaders() {
 Mount the component to a dynamic route view layer to instantly capture parameter changes:
 
 ```vue
-<!-- app/pages/resource/[...slug].vue -->
+<!-- app/pages/resource/[slug].vue -->
 <script setup lang="ts">
 const route = useRoute()
-const resource = computed(() => {
-  const slug = route.params.slug
-  return Array.isArray(slug) ? slug[0] : slug
-})
+const resource = route.params.slug as string
 </script>
 
 <template>

@@ -4,10 +4,7 @@
 // })
 
 const route = useRoute()
-const resource = computed(() => {
-  const slug = route.params.slug
-  return Array.isArray(slug) ? slug[0] : slug
-})
+const resource = route.params.slug as string
 </script>
 
 <template>
