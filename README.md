@@ -18,18 +18,18 @@ Building admin panels typically requires duplicate layout, form, and validation 
 
 ### 1. Install the Package
 
-Add `nuxt-crud-table` to your project dependencies using Bun:
+Add `nuxt-crud-table` along with `@nuxt/ui` to your project dependencies:
 
 ```bash
-bun add nuxt-crud-table
+bun add nuxt-crud-table @nuxt/ui
 ```
 
-### 2. Register the Module
-Add `nuxt-crud-table` to the modules array inside your `nuxt.config.ts`:
+### 2. Register the Modules
+Add both modules to the `modules` array inside your `nuxt.config.ts`:
 
 ```ts
 export default defineNuxtConfig({
-  modules: ['nuxt-crud-table']
+  modules: ['@nuxt/ui', 'nuxt-crud-table']
 })
 ```
 
