@@ -19,7 +19,7 @@ export default defineNuxtModule<ModuleOptions>({
   defaults: {
     apiBase: '/api/_nac',
     auth: false,
-    formHiddenFields: NCT_FORM_HIDDEN_FIELDS
+    formHiddenFields: NCT_FORM_HIDDEN_FIELDS,
   },
 
   moduleDependencies: {

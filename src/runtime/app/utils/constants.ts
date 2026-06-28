@@ -13,9 +13,9 @@ export const NCT_API_HIDDEN_FIELDS = [
  */
 export const NCT_FORM_HIDDEN_FIELDS = [
   ...NCT_API_HIDDEN_FIELDS,
-  'id', 'uuid', 
+  'id', 'uuid',
   'createdAt', 'updatedAt', 'deletedAt', 'createdBy', 'updatedBy', 'deletedBy', 'resetToken',
-  'created_at','updated_at','deleted_at','created_by','updated_by', 'deleted_by', 'reset_token'
+  'created_at', 'updated_at', 'deleted_at', 'created_by', 'updated_by', 'deleted_by', 'reset_token',
 ]
 
 /**
