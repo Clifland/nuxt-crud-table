@@ -1,7 +1,7 @@
 <script setup lang="ts">
 import { computed, ref } from 'vue'
 import { useNuxtApp, useRuntimeConfig, useAppConfig, useFetch } from '#app'
-import { nctCrudHeaders, nctDbFieldToLabel, nctHasRowPermission, nctHasPermission, useNctExport, useNctCrudFetch, useToast } from '#imports'
+import { nctCrudHeaders, nctDbFieldToLabel, nctHasRowPermission, nctHasPermission, useNctExport, useNctCrudFetch, useNctTableFormat, useToast } from '#imports'
 
 import type { NctSchemaDefinition } from '../../../../shared/types/schema'
 import type { NctCrudTableConfig } from '../../../../shared/types/config'
@@ -58,17 +58,14 @@ const { exportToExcel, exportToPDF } = useNctExport()
 const crudConfig = useAppConfig().crud as NctCrudTableConfig
 const isExportEnabled = !!crudConfig?.exports
 
-// Agent Hint: Field visibility is controlled by app.config.ts (crud.globalHide)
+const { formatCellValue, getColumnValue, flattenKeys } = useNctTableFormat()
+
 const visibleColumns = computed(() => {
   if (!records.value?.length) return []
   const hideList = crudConfig?.globalHide ?? []
-
-  // Cast target record to a clear indexed object primitive
   const firstRow = records.value[0] as Record<string, unknown>
 
-  return Object.keys(firstRow).filter(key =>
-    !hideList.includes(String(key)),
-  )
+  return flattenKeys(firstRow).filter(key => !hideList.includes(key))
 })
 
 const paginatedItems = ref<Record<string, unknown>[]>([])
@@ -140,7 +137,7 @@ const paginatedItems = ref<Record<string, unknown>[]>([])
                 scope="col"
                 class="px-3 py-3.5 text-left text-sm font-semibold text-gray-900 dark:text-white"
               >
-                {{ nctDbFieldToLabel(String(col)) }}
+                  {{ nctDbFieldToLabel(col.replace('.', ' ')) }}
               </th>
             </template>
             <th
@@ -175,7 +172,7 @@ const paginatedItems = ref<Record<string, unknown>[]>([])
               <td
                 class="whitespace-nowrap px-3 py-4 text-sm text-gray-500 dark:text-gray-400"
               >
-                {{ row[col] }}
+                {{ formatCellValue(getColumnValue(row, col)) }}
               </td>
             </template>
 

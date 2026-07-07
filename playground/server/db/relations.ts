@@ -46,6 +46,9 @@ export const relations = defineRelations(schema, r => ({
 
 export const nacTableQueryConfig: Record<string, DBQueryConfig> = {
   orders: {
+    columns: {
+      customer_id: false,
+    },
     orderBy: { id: 'desc' },
     with: {
       customer: { columns: { name: true, email: true } },
