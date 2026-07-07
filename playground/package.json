@@ -10,8 +10,8 @@
   "dependencies": {
     "nuxt-crud-table": "file:..",
     "nuxt": "^4.4.8",
+    "nuxt-auto-crud": "^2.6.0-rc.2",
     "@nuxt/ui": "^4.9.0",
-    "nuxt-auto-crud": "^2.5.1",
     "drizzle-orm": "^1.0.0-rc.4-5d5b77c",
     "@libsql/client": "^0.17.4",
     "@nuxthub/core": "0.10.6"

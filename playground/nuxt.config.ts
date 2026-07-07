@@ -11,4 +11,7 @@ export default defineNuxtConfig({
     auth: false,
     formHiddenFields: [],
   },
+  autoCrud: {
+    relationsPath: 'server/db/relations',
+  },
 })
