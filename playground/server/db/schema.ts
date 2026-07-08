@@ -21,6 +21,7 @@ export const customers = sqliteTable('customers', {
 
 export const orders = sqliteTable('orders', {
   id: integer('id').primaryKey({ autoIncrement: true }),
+  num: text('num').notNull().unique(),
   customer_id: integer('customer_id')
     .notNull()
     .references(() => customers.id, { onDelete: 'cascade' }),

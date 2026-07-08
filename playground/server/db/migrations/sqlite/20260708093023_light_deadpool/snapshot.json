@@ -1,7 +1,7 @@
 {
   "version": "7",
   "dialect": "sqlite",
-  "id": "9d1c7aa9-3f97-464f-b3d0-84baf759adb7",
+  "id": "c0b7368a-9e46-46bf-a0e4-1508999d724c",
   "prevIds": [
     "00000000-0000-0000-0000-000000000000"
   ],
@@ -139,6 +139,16 @@
       "default": null,
       "generated": null,
       "name": "id",
+      "entityType": "columns",
+      "table": "orders"
+    },
+    {
+      "type": "text",
+      "notNull": true,
+      "autoincrement": false,
+      "default": null,
+      "generated": null,
+      "name": "num",
       "entityType": "columns",
       "table": "orders"
     },
@@ -351,6 +361,15 @@
       "name": "customers_email_unique",
       "entityType": "uniques",
       "table": "customers"
+    },
+    {
+      "columns": [
+        "num"
+      ],
+      "nameExplicit": false,
+      "name": "orders_num_unique",
+      "entityType": "uniques",
+      "table": "orders"
     }
   ],
   "renames": []

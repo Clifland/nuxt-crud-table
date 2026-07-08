@@ -60,7 +60,7 @@ export const nacTableQueryConfig: Record<string, DBQueryConfig> = {
     orderBy: { id: 'asc' },
     with: {
       product: { columns: { name: true } },
-      order: { columns: { status: true } },
+      order: { columns: { num:true, status: true } },
     },
   },
 }
