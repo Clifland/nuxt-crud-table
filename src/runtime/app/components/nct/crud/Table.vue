@@ -58,7 +58,12 @@ const { exportToExcel, exportToPDF } = useNctExport()
 const crudConfig = useAppConfig().crud as NctCrudTableConfig
 const isExportEnabled = !!crudConfig?.exports
 
-const { formatCellValue, getColumnValue, flattenKeys } = useNctTableFormat()
+const { formatCellValue, getColumnValue, flattenKeys, getArrayColumns } = useNctTableFormat()
+const expandedRows = ref<Set<number>>(new Set())
+
+function toggleExpand(id: number) {
+  expandedRows.value.has(id) ? expandedRows.value.delete(id) : expandedRows.value.add(id)
+}
 
 const visibleColumns = computed(() => {
   if (!records.value?.length) return []
@@ -129,6 +134,11 @@ const paginatedItems = ref<Record<string, unknown>[]>([])
           class="bg-gray-50 dark:bg-gray-800"
         >
           <tr>
+            <!-- Expand toggle column -->
+            <th
+              scope="col"
+              class="w-8 px-2 py-3.5"
+            />
             <template
               v-for="col in visibleColumns"
               :key="col"
@@ -137,7 +147,7 @@ const paginatedItems = ref<Record<string, unknown>[]>([])
                 scope="col"
                 class="px-3 py-3.5 text-left text-sm font-semibold text-gray-900 dark:text-white"
               >
-                  {{ nctDbFieldToLabel(col.replace('.', ' ')) }}
+                {{ nctDbFieldToLabel(col.replace('.', ' ')) }}
               </th>
             </template>
             <th
@@ -160,61 +170,119 @@ const paginatedItems = ref<Record<string, unknown>[]>([])
         </tbody>
 
         <tbody class="divide-y divide-gray-200 dark:divide-gray-700 bg-white dark:bg-gray-900">
-          <tr
+          <template
             v-for="row in paginatedItems"
             :key="String(row.id)"
-            class="hover:bg-gray-50 dark:hover:bg-gray-800/50 transition-colors"
           >
-            <template
-              v-for="col in visibleColumns"
-              :key="col"
-            >
-              <td
-                class="whitespace-nowrap px-3 py-4 text-sm text-gray-500 dark:text-gray-400"
-              >
-                {{ formatCellValue(getColumnValue(row, col)) }}
-              </td>
-            </template>
-
-            <td class="relative whitespace-nowrap py-4 pl-3 pr-4 text-right text-sm font-medium sm:pr-6">
-              <UPopover
-                :content="{ align: 'end', side: 'bottom' }"
-              >
+            <tr class="hover:bg-gray-50 dark:hover:bg-gray-800/50 transition-colors">
+              <!-- Expand toggle cell -->
+              <td class="whitespace-nowrap px-2 py-4">
                 <UButton
-                  icon="i-lucide-more-vertical"
+                  v-if="getArrayColumns(row).length"
+                  :icon="expandedRows.has(row.id as number) ? 'i-lucide-chevron-down' : 'i-lucide-chevron-right'"
                   color="neutral"
                   variant="ghost"
                   size="xs"
+                  @click="toggleExpand(row.id as number)"
                 />
+              </td>
 
-                <template #content>
-                  <div class="p-1 flex flex-col gap-1 min-w-[120px]">
-                    <NctCrudViewRow
-                      v-if="schema && nctHasRowPermission(user, resource, 'read', row)"
-                      :row="row"
-                      :schema="schema"
-                    />
-                    <NctCrudEditRow
-                      v-if="schema && nctHasRowPermission(user, resource, 'update', row)"
-                      :resource="resource"
-                      :row="row"
-                      :schema="schema"
-                    />
-                    <UButton
-                      v-if="nctHasRowPermission(user, resource, 'delete', row)"
-                      label="Delete"
-                      color="error"
-                      variant="ghost"
-                      size="xs"
-                      icon="i-lucide-trash"
-                      class="justify-start"
-                      @click="onDelete(row.id as number)"
-                    />
-                  </div>
-                </template>
-              </UPopover>
-            </td>
-          </tr>
+              <template
+                v-for="col in visibleColumns"
+                :key="col"
+              >
+                <td
+                  class="whitespace-nowrap px-3 py-4 text-sm text-gray-500 dark:text-gray-400"
+                >
+                  {{ formatCellValue(getColumnValue(row, col)) }}
+                </td>
+              </template>
+
+              <td class="relative whitespace-nowrap py-4 pl-3 pr-4 text-right text-sm font-medium sm:pr-6">
+                <UPopover
+                  :content="{ align: 'end', side: 'bottom' }"
+                >
+                  <UButton
+                    icon="i-lucide-more-vertical"
+                    color="neutral"
+                    variant="ghost"
+                    size="xs"
+                  />
+
+                  <template #content>
+                    <div class="p-1 flex flex-col gap-1 min-w-[120px]">
+                      <NctCrudViewRow
+                        v-if="schema && nctHasRowPermission(user, resource, 'read', row)"
+                        :row="row"
+                        :schema="schema"
+                      />
+                      <NctCrudEditRow
+                        v-if="schema && nctHasRowPermission(user, resource, 'update', row)"
+                        :resource="resource"
+                        :row="row"
+                        :schema="schema"
+                      />
+                      <UButton
+                        v-if="nctHasRowPermission(user, resource, 'delete', row)"
+                        label="Delete"
+                        color="error"
+                        variant="ghost"
+                        size="xs"
+                        icon="i-lucide-trash"
+                        class="justify-start"
+                        @click="onDelete(row.id as number)"
+                      />
+                    </div>
+                  </template>
+                </UPopover>
+              </td>
+            </tr>
+
+            <!-- Expanded child-table row -->
+            <tr v-if="expandedRows.has(row.id as number)">
+              <td
+                :colspan="visibleColumns.length + 2"
+                class="bg-gray-50 dark:bg-gray-800 p-4"
+              >
+                <div
+                  v-for="arrCol in getArrayColumns(row)"
+                  :key="arrCol"
+                  class="mb-4 last:mb-0"
+                >
+                  <p class="font-medium text-sm mb-2 text-gray-700 dark:text-gray-300">
+                    {{ nctDbFieldToLabel(arrCol) }}
+                  </p>
+                  <table class="min-w-full text-sm divide-y divide-gray-200 dark:divide-gray-700">
+                    <thead>
+                      <tr>
+                        <th
+                          v-for="childCol in flattenKeys((row[arrCol] as Record<string, unknown>[])[0] ?? {})"
+                          :key="childCol"
+                          class="px-3 py-2 text-left font-semibold text-gray-900 dark:text-white"
+                        >
+                          {{ nctDbFieldToLabel(childCol.replace('.', ' ')) }}
+                        </th>
+                      </tr>
+                    </thead>
+                    <tbody class="divide-y divide-gray-200 dark:divide-gray-700">
+                      <tr
+                        v-for="child in (row[arrCol] as Record<string, unknown>[])"
+                        :key="String(child.id)"
+                      >
+                        <td
+                          v-for="childCol in flattenKeys((row[arrCol] as Record<string, unknown>[])[0] ?? {})"
+                          :key="childCol"
+                          class="whitespace-nowrap px-3 py-2 text-gray-500 dark:text-gray-400"
+                        >
+                          {{ formatCellValue(getColumnValue(child, childCol)) }}
+                        </td>
+                      </tr>
+                    </tbody>
+                  </table>
+                </div>
+              </td>
+            </tr>
+          </template>
         </tbody>
       </table>
     </div>

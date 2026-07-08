@@ -18,12 +18,17 @@ export function useNctTableFormat() {
   function flattenKeys(row: Record<string, unknown>, prefix = ''): string[] {
     return Object.entries(row).flatMap(([key, value]) => {
       const path = prefix ? `${prefix}.${key}` : key
-      if (value && typeof value === 'object' && !Array.isArray(value)) {
-        return flattenKeys(value as Record<string, unknown>, path)
-      }
+      if (Array.isArray(value)) return [] // arrays handled separately as expandable child tables
+      if (value && typeof value === 'object') return flattenKeys(value as Record<string, unknown>, path)
       return [path]
     })
   }
 
-  return { formatCellValue, getColumnValue, flattenKeys }
+  function getArrayColumns(row: Record<string, unknown>): string[] {
+    return Object.entries(row)
+      .filter(([, value]) => Array.isArray(value) && value.length > 0 && typeof value[0] === 'object')
+      .map(([key]) => key)
+  }
+
+  return { formatCellValue, getColumnValue, flattenKeys, getArrayColumns }
 }
