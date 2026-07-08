@@ -2,26 +2,52 @@ import { computed } from 'vue'
 import { useCookie, useRuntimeConfig, useState } from "#app"
 import { useNctHeaders } from "#imports"
 
+/**
+ * Represents the authenticated user identity schema.
+ */
 interface AuthUser {
+  /** The unique identifier for the user. */
   id: number
+  /** The display name of the user. */
   name: string
+  /** The primary email address of the user. */
   email: string
 }
 
+/**
+ * A Nuxt composable providing authentication states and actions for the `nuxt-crud-table` workspace.
+ * Handles token storage, user session persistence, SSR-safe states, and request headers.
+ * * @example
+ * ```ts
+ * const { user, isAuthenticated, login, logout } = useNctAuth()
+ * ```
+ * * @returns An object containing reactive authentication state and action utilities.
+ */
 export function useNctAuth() {
   const { apiBase } = useRuntimeConfig().public.crudTable
   const tokenCookie = useCookie<string | null>('nct_token', { path: '/', watch: true })
 
   // SSR-safe global states
+  /** The current authentication token, synced via cookies. */
   const token = useState<string | null>('nct_auth_token', () => tokenCookie.value || null)
+  
+  /** The profile information of the currently authenticated user. */
   const user = useState<AuthUser | null>('nct_auth_user', () => null)
 
+  /** Computed boolean indicating whether a valid auth token exists. */
   const isAuthenticated = computed(() => !!token.value)
 
+  /** Computed bearer authorization headers object derived from the active token state. */
   const authHeaders = computed<Record<string, string>>(() => ({
     ...(token.value && { Authorization: `Bearer ${token.value}` })
   }))
 
+  /**
+   * Authenticates a user using provided credentials.
+   * On success, updates local cookies, local state, and session profiles.
+   * * @param credentials - Key-value payload consisting of user credentials (e.g., email, password).
+   * @returns A promise resolving to an object indicating operations success status, accompanied by error messages if applicable.
+   */
   async function login(credentials: Record<string, string>) {
     try {
       const data = await $fetch<{ token: string; user: AuthUser }>(`${apiBase}/auth/login`, {
@@ -39,6 +65,10 @@ export function useNctAuth() {
     }
   }
 
+  /**
+   * Dispatches a logout operation to the backend API pool.
+   * Clears the current authentication token, active user records, and global cookie state regardless of request success.
+   */
   async function logout() {
     if (!token.value) return
     try {
@@ -55,6 +85,10 @@ export function useNctAuth() {
     }
   }
 
+  /**
+   * Populates the active user data object by fetching the logged-in profile context from the target backend API.
+   * Reverts session parameters and logs out automatically if the verification sequence fails.
+   */
   async function fetchUser() {
     if (!token.value) return
     try {
