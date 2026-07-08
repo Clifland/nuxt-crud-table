@@ -109,22 +109,26 @@ NUXT_PUBLIC_CRUD_TABLE_API_BASE=http://localhost:8000/api
 
 ```
 
-#### Step B: Define Global Request Headers
+#### Step B: Define Global Request Headers (Optional)
 
-Create the utility file below to supply transport metadata (such as authentication context) to internal engine fetch pools.
+If your app uses authentication, you can supply a `headers` function in your module config to attach auth tokens (or any other metadata) to internal engine fetch requests.
 
-> [!IMPORTANT]
-> The `nctCrudHeaders` helper function is **mandatory**. If your implementation does not leverage application layer security tokens, it must still exist and return a blank object `{}`.
+> [!NOTE]
+> This step is **optional**. If you don't set `headers`, requests are sent without any extra headers by default — no dummy function or extra file required.
 
 ```ts
-// app/utils/helpers.ts
-export function nctCrudHeaders() {
-  return {
-    Authorization: `Bearer ${useCookie('token').value || ''}`
+// nuxt.config.ts
+export default defineNuxtConfig({
+  crudTable: {
+    headers: () => ({
+      Authorization: `Bearer ${useCookie('token').value || ''}`
+    })
   }
-}
-
+})
 ```
+
+> [!IMPORTANT]
+> The `headers` function must be self-contained — it can't reference variables from outside its own body (e.g. imported constants or module-level variables), since it's serialized at build time. You can safely use Nuxt auto-imports like `useCookie` or `useRuntimeConfig` inside it, since those resolve globally.
 
 #### Step C: Mount the Unified Table Layout Workspace
 

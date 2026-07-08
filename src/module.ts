@@ -30,12 +30,6 @@ export default defineNuxtModule<ModuleOptions>({
     headers: () => ({}),
   },
 
-  moduleDependencies: {
-    '@nuxt/ui': {
-      version: '^4.0.0',
-    },
-  },
-
   setup(_options, _nuxt) {
     const resolver = createResolver(import.meta.url)
 
@@ -43,10 +37,6 @@ export default defineNuxtModule<ModuleOptions>({
       apiBase: _options.apiBase,
       auth: _options.auth,
       formHiddenFields: _options.formHiddenFields,
-    }
-    
-    _nuxt.options.runtimeConfig.crudTable = {
-      headers: _options.headers,
     }
 
     addComponentsDir({ path: resolver.resolve('runtime/app/components') })
