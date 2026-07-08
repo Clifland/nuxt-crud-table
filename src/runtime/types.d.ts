@@ -26,4 +26,10 @@ declare module '@nuxt/schema' {
   }
 }
 
+declare module '#app' {
+  interface NuxtApp {
+    $nctAuthHeaders?: () => Record<string, string>
+  }
+}
+
 export {}

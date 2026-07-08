@@ -1,5 +1,5 @@
 import { useRuntimeConfig, refreshNuxtData } from '#app'
-import { nctCrudHeaders, useToast } from '#imports'
+import { useNctHeaders, useToast } from '#imports'
 
 /**
  * A shared utility composable for handling state-mutating HTTP requests (`POST`, `PATCH`, `DELETE`)
@@ -56,7 +56,7 @@ export async function useNctCrudFetch(
     await $fetch(url, {
       method,
       ...(data && { body: data }),
-      headers: nctCrudHeaders(),
+      headers: useNctHeaders(),
     })
 
     useToast().add({
