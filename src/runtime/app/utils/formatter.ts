@@ -1,4 +1,17 @@
-// utils/formatter.ts
+/**
+ * Transforms a database column name or object key into a human-readable display label.
+ * Strips relational ID suffixes, breaks casing boundaries, and capitalizes the result.
+ * * @example
+ * ```ts
+ * nctDbFieldToLabel('user_profile_id') // Returns: "User Profile"
+ * nctDbFieldToLabel('createdAt')       // Returns: "Created At"
+ * ```
+ * * @param {string} str - The raw database field name or object key to format.
+ * @returns {string} The formatted, reader-friendly label string.
+ * * @internal
+ * This is a low-level engine utility. Avoid consuming this directly in application code, 
+ * as its behavior is subject to change without breaking-change notices.
+ */
 export const nctDbFieldToLabel = (str: string): string => {
   return String(str)
     .replace(/(_id|Id)$/, '') // Strip ID suffixes

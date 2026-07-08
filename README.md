@@ -196,3 +196,24 @@ export default defineAppConfig({
 * 🔹 **FullStack:** [nct-nac-fullstack](https://github.com/Clifland/nct-nac-fullstack)
 * 🔹 **Frontend:** [nct-laravel-frontend](https://github.com/Clifland/nct-laravel-frontend)
 * 🔸 **Backend:** [nct-laravel-backend](https://github.com/Clifland/nct-laravel-backend)
+
+---
+
+## Troubleshooting
+
+### "event.req.text is not a function" Error
+
+If you encounter the error `event.req.text is not a function`, it usually indicates an issue with cached or mismatched dependency versions. 
+
+To resolve this, completely reinstall your dependencies by running:
+
+```bash
+# Remove existing node_modules
+rm -rf node_modules
+
+# Reinstall dependencies
+bun install
+# or
+npm install
+
+```
