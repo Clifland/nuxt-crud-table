@@ -109,26 +109,29 @@ NUXT_PUBLIC_CRUD_TABLE_API_BASE=http://localhost:8000/api
 
 ```
 
-#### Step B: Define Global Request Headers (Optional)
+### Step B: Providing Authentication Context via Plugin (Optional)
 
-If your app uses authentication, you can supply a `headers` function in your module config to attach auth tokens (or any other metadata) to internal engine fetch requests.
+If your application uses authentication, you can "provide" your ***authenticated user*** and ***request headers*** globally to the `nuxt-crud-table` module by creating a Nuxt plugin as shown below.
 
-> [!NOTE]
-> This step is **optional**. If you don't set `headers`, requests are sent without any extra headers by default — no dummy function or extra file required.
+```typescript
+// eg: plugins/nct-auth.ts
+export default defineNuxtPlugin(() => {
+  const { user, authHeaders } = useNctAuth() // Or your own auth logic
 
-```ts
-// nuxt.config.ts
-export default defineNuxtConfig({
-  crudTable: {
-    headers: () => ({
-      Authorization: `Bearer ${useCookie('token').value || ''}`
-    })
+  return {
+    provide: {
+      nctAuthHeaders: () => authHeaders.value, // Must return a flat object of headers, e.g., { Authorization: 'Bearer ...' }
+      nctUser: user,
+    }
   }
 })
+
 ```
 
-> [!IMPORTANT]
-> The `headers` function must be self-contained — it can't reference variables from outside its own body (e.g. imported constants or module-level variables), since it's serialized at build time. You can safely use Nuxt auto-imports like `useCookie` or `useRuntimeConfig` inside it, since those resolve globally.
+
+> [!NOTE]
+> You are **not forced** to use any specific authentication library. You can use your own custom logic, `useCookie`, or third-party modules. The module only requires that your plugin `provide` the `nctAuthHeaders` function and the `nctUser` state as shown above.
+
 
 #### Step C: Mount the Unified Table Layout Workspace
 
