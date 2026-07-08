@@ -17,7 +17,6 @@ vi.mock('#app', async (importOriginal) => {
   const actual = await importOriginal<typeof import('#app')>()
   return {
     ...actual,
-    useNuxtApp: () => ({ $nctAuth: { getNctUser: () => ({ id: 1 }) } }),
     useRuntimeConfig: () => ({ public: { crudTable: { apiBase: '/api/_nac', formHiddenFields: [] } } }),
     useAppConfig: () => ({ crud: { globalHide: ['password'], exports: true } }),
   }

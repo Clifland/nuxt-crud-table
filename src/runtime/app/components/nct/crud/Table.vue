@@ -1,14 +1,13 @@
 <script setup lang="ts">
 import { computed, ref } from 'vue'
-import { useNuxtApp, useRuntimeConfig, useAppConfig, useFetch } from '#app'
+import { useRuntimeConfig, useAppConfig, useFetch, useNuxtApp } from '#app'
 import { useNctHeaders, nctDbFieldToLabel, nctHasRowPermission, nctHasPermission, useNctExport, useNctCrudFetch, useNctTableFormat, useToast } from '#imports'
 
 import type { NctSchemaDefinition } from '../../../../shared/types/schema'
 import type { NctCrudTableConfig } from '../../../../shared/types/config'
-import type { NctUser } from '../../../../shared/types/auth'
 
-const { $nctAuth } = useNuxtApp()
-const user = computed(() => $nctAuth.getNctUser() as NctUser | null)
+const { $nctUser } = useNuxtApp()
+const user = $nctUser ?? null
 
 const props = defineProps<{
   resource: string

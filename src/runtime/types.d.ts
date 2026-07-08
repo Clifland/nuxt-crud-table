@@ -1,5 +1,6 @@
 import '@nuxt/schema'
 import type { ModuleOptions } from '../module'
+import type { NctUser } from './shared/types/auth'
 
 declare module '@nuxt/schema' {
   interface PublicRuntimeConfig {
@@ -29,6 +30,7 @@ declare module '@nuxt/schema' {
 declare module '#app' {
   interface NuxtApp {
     $nctAuthHeaders?: () => Record<string, string>
+    $nctUser?: Ref<NctUser | null>
   }
 }
 

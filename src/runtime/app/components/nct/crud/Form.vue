@@ -1,13 +1,11 @@
 <script setup lang="ts">
 import { computed, reactive } from 'vue'
 import type { FormSubmitEvent } from '@nuxt/ui'
-import { useNuxtApp, useRuntimeConfig } from '#app'
+import { useRuntimeConfig, useNuxtApp } from '#app'
 import { useNctDynamicZodSchema, nctHasPermission } from '#imports'
-
 import { useChangeCase } from '@vueuse/integrations/useChangeCase'
 
 import type { NctSchemaDefinition } from '../../../../shared/types/schema'
-import type { NctUser } from '../../../../shared/types/auth'
 
 const props = defineProps<{
   schema: NctSchemaDefinition
@@ -34,8 +32,8 @@ const filteredFields = props.schema.fields.filter((field) => {
   return true
 })
 
-const { $nctAuth } = useNuxtApp()
-const user = computed(() => $nctAuth.getNctUser() as NctUser | null)
+const { $nctUser } = useNuxtApp()
+const user = $nctUser
 
 const canUpdateStatus = computed(() => nctHasPermission(user.value, props.schema.resource, 'update_status'))
 

@@ -75,7 +75,6 @@ export default defineNuxtModule<ModuleOptions>({
     addComponentsDir({ path: resolver.resolve('runtime/app/components') })
     addImportsDir(resolver.resolve('runtime/composables'))
     addImportsDir(resolver.resolve('runtime/app/utils'))
-    addPlugin(resolver.resolve('runtime/plugins/nct-auth'))
 
     // Hook to append module declarations directly into the project's compilation references (.nuxt/tsconfig.json)
     _nuxt.hook('prepare:types', ({ references, sharedReferences }) => {
