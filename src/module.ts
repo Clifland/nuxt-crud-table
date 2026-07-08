@@ -1,4 +1,4 @@
-import { defineNuxtModule, addComponentsDir, createResolver, addImportsDir, addPlugin, addVitePlugin } from '@nuxt/kit'
+import { defineNuxtModule, addComponentsDir, createResolver, addImportsDir, addPlugin, addVitePlugin, addTemplate, addImports } from '@nuxt/kit'
 
 import { NCT_FORM_HIDDEN_FIELDS } from './runtime/app/utils/constants'
 
@@ -7,6 +7,13 @@ export interface ModuleOptions {
   apiBase: string
   auth: false | { authentication: 'nuxt-auth-utils' | 'sanctum' }
   formHiddenFields: string[]
+  headers: () => Record<string, string>
+}
+
+declare module '@nuxt/schema' {
+  interface PublicRuntimeConfig {
+    crudTable: Omit<ModuleOptions, 'headers'>
+  }
 }
 
 export default defineNuxtModule<ModuleOptions>({
@@ -20,6 +27,7 @@ export default defineNuxtModule<ModuleOptions>({
     apiBase: '/api/_nac',
     auth: false,
     formHiddenFields: NCT_FORM_HIDDEN_FIELDS,
+    headers: () => ({}),
   },
 
   moduleDependencies: {
@@ -35,6 +43,10 @@ export default defineNuxtModule<ModuleOptions>({
       apiBase: _options.apiBase,
       auth: _options.auth,
       formHiddenFields: _options.formHiddenFields,
+    }
+    
+    _nuxt.options.runtimeConfig.crudTable = {
+      headers: _options.headers,
     }
 
     addComponentsDir({ path: resolver.resolve('runtime/app/components') })
@@ -73,5 +85,17 @@ export default defineNuxtModule<ModuleOptions>({
         return environment.name === 'client'
       },
     }))
+
+    addTemplate({
+      filename: 'nac/headers.mjs',
+      getContents: () => `
+        export const nctCrudHeaders = ${_options.headers.toString()}
+      `,
+    })
+    addImports({
+      name: 'nctCrudHeaders',
+      from: resolver.resolve(_nuxt.options.buildDir, 'nac/headers.mjs'),
+    })
+
   },
 })
