@@ -111,19 +111,5 @@ export default defineNuxtModule<ModuleOptions>({
       },
     }))
 
-    // Compiles dynamic asset templates allowing function parameters to persist across client bounds securely
-    addTemplate({
-      filename: 'nac/headers.mjs',
-      getContents: () => `
-        export const nctCrudHeaders = ${_options.headers.toString()}
-      `,
-    })
-    
-    // Auto-imports the virtual template module reference globally across client and server lanes
-    addImports({
-      name: 'nctCrudHeaders',
-      from: resolver.resolve(_nuxt.options.buildDir, 'nac/headers.mjs'),
-    })
-
   },
 })
