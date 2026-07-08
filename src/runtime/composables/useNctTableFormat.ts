@@ -38,5 +38,14 @@ export function useNctTableFormat() {
     })
   }
 
-  return { formatCellValue, getColumnValue, flattenKeys, getArrayColumns, getForeignKeyColumns }
+  function getParentBackReferenceColumns(
+    childRow: Record<string, unknown>,
+    parentRow: Record<string, unknown>,
+  ): string[] {
+    return Object.keys(childRow).filter(key =>
+      key.endsWith('_id') && childRow[key] === parentRow.id,
+    )
+  }
+
+  return { formatCellValue, getColumnValue, flattenKeys, getArrayColumns, getForeignKeyColumns, getParentBackReferenceColumns }
 }

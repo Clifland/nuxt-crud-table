@@ -58,7 +58,7 @@ const { exportToExcel, exportToPDF } = useNctExport()
 const crudConfig = useAppConfig().crud as NctCrudTableConfig
 const isExportEnabled = !!crudConfig?.exports
 
-const { formatCellValue, getColumnValue, flattenKeys, getArrayColumns, getForeignKeyColumns } = useNctTableFormat()
+const { formatCellValue, getColumnValue, flattenKeys, getArrayColumns, getForeignKeyColumns, getParentBackReferenceColumns } = useNctTableFormat()
 const expandedRows = ref<Set<number>>(new Set())
 
 function toggleExpand(id: number) {
@@ -75,6 +75,19 @@ const visibleColumns = computed(() => {
 
   return flattenKeys(firstRow).filter(key => !hideList.includes(key) && !fkColumns.includes(key))
 })
+
+function getChildColumns(row: Record<string, unknown>, arrCol: string): string[] {
+  const arr = row[arrCol] as Record<string, unknown>[]
+  const firstChild = arr[0] ?? {}
+  const hideForeignKeys = crudConfig?.hideForeignKeys ?? true
+
+  const fkColumns = hideForeignKeys ? getForeignKeyColumns(firstChild) : []
+  const parentRefColumns = hideForeignKeys ? getParentBackReferenceColumns(firstChild, row) : []
+
+  return flattenKeys(firstChild).filter(key =>
+    !fkColumns.includes(key) && !parentRefColumns.includes(key),
+  )
+}
 
 const paginatedItems = ref<Record<string, unknown>[]>([])
 </script>
@@ -259,7 +272,7 @@ const paginatedItems = ref<Record<string, unknown>[]>([])
                     <thead>
                       <tr>
                         <th
-                          v-for="childCol in flattenKeys((row[arrCol] as Record<string, unknown>[])[0] ?? {})"
+                          v-for="childCol in getChildColumns(row, arrCol)"
                           :key="childCol"
                           class="px-3 py-2 text-left font-semibold text-gray-900 dark:text-white"
                         >
@@ -273,7 +286,7 @@ const paginatedItems = ref<Record<string, unknown>[]>([])
                         :key="String(child.id)"
                       >
                         <td
-                          v-for="childCol in flattenKeys((row[arrCol] as Record<string, unknown>[])[0] ?? {})"
+                          v-for="childCol in getChildColumns(row, arrCol)"
                           :key="childCol"
                           class="whitespace-nowrap px-3 py-2 text-gray-500 dark:text-gray-400"
                         >
