@@ -30,5 +30,13 @@ export function useNctTableFormat() {
       .map(([key]) => key)
   }
 
-  return { formatCellValue, getColumnValue, flattenKeys, getArrayColumns }
+  function getForeignKeyColumns(row: Record<string, unknown>): string[] {
+    return Object.keys(row).filter((key) => {
+      if (!key.endsWith('_id')) return false
+      const relationKey = key.slice(0, -3) // 'customer_id' -> 'customer'
+      return relationKey in row && typeof row[relationKey] === 'object' && row[relationKey] !== null
+    })
+  }
+
+  return { formatCellValue, getColumnValue, flattenKeys, getArrayColumns, getForeignKeyColumns }
 }

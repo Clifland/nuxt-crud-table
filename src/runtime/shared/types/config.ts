@@ -1,5 +1,6 @@
 export interface NctCrudTableConfig {
   globalHide?: string[]
+  hideForeignKeys?: boolean
   exports?: {
     excel?: {
       globalExclude?: string[]

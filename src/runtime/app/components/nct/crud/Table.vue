@@ -58,7 +58,7 @@ const { exportToExcel, exportToPDF } = useNctExport()
 const crudConfig = useAppConfig().crud as NctCrudTableConfig
 const isExportEnabled = !!crudConfig?.exports
 
-const { formatCellValue, getColumnValue, flattenKeys, getArrayColumns } = useNctTableFormat()
+const { formatCellValue, getColumnValue, flattenKeys, getArrayColumns, getForeignKeyColumns } = useNctTableFormat()
 const expandedRows = ref<Set<number>>(new Set())
 
 function toggleExpand(id: number) {
@@ -68,9 +68,12 @@ function toggleExpand(id: number) {
 const visibleColumns = computed(() => {
   if (!records.value?.length) return []
   const hideList = crudConfig?.globalHide ?? []
+  const hideForeignKeys = crudConfig?.hideForeignKeys ?? true
   const firstRow = records.value[0] as Record<string, unknown>
 
-  return flattenKeys(firstRow).filter(key => !hideList.includes(key))
+  const fkColumns = hideForeignKeys ? getForeignKeyColumns(firstRow) : []
+
+  return flattenKeys(firstRow).filter(key => !hideList.includes(key) && !fkColumns.includes(key))
 })
 
 const paginatedItems = ref<Record<string, unknown>[]>([])
