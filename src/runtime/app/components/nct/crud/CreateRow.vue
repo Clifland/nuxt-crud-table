@@ -1,8 +1,9 @@
 <script setup lang="ts">
-import { ref } from 'vue'
+import { ref, computed } from 'vue'
 import type { NctSchemaDefinition } from '../../../../shared/types/schema'
 import { useChangeCase } from '@vueuse/integrations/useChangeCase'
 import { useNctCrudFetch } from '#imports'
+import pluralize from 'pluralize'
 
 const props = defineProps<{
   resource: string
@@ -22,12 +23,17 @@ async function onSubmit(data: Record<string, unknown>) {
     loading.value = false
   }
 }
+
+const singularResourceName = computed(() => {
+  const singular = pluralize.singular(props.resource)
+  return useChangeCase(singular, 'capitalCase').value
+})
 </script>
 
 <template>
   <UModal v-model:open="open">
     <UButton
-      :label="`Add New ${useChangeCase(props.resource, 'capitalCase').value}`"
+      :label="`Add New ${singularResourceName}`"
       color="neutral"
       variant="subtle"
     />
@@ -36,7 +42,7 @@ async function onSubmit(data: Record<string, unknown>) {
       <div class="p-6 w-[400px] rounded-lg shadow-lg">
         <!-- Modal header -->
         <h2 class="text-lg font-semibold mb-4">
-          Add New {{ props.resource }}
+          Add New {{ singularResourceName }}
         </h2>
         <hr>
 
