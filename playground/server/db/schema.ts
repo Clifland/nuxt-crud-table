@@ -42,7 +42,7 @@ export const orderitems = sqliteTable('orderitems', {
     .notNull()
     .references(() => products.id, { onDelete: 'cascade' }),
   quantity: integer('quantity').notNull(),
-  price: numeric('price', { mode: 'number' }).notNull(),
+  price: numeric('price', { mode: 'number' }), // insert current products.price by 'trigger'
 })
 
 export type Product = typeof products.$inferSelect

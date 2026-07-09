@@ -12,7 +12,7 @@ CREATE TABLE `orderitems` (
 	`order_id` integer NOT NULL,
 	`product_id` integer NOT NULL,
 	`quantity` integer NOT NULL,
-	`price` numeric NOT NULL,
+	`price` numeric,
 	CONSTRAINT `fk_orderitems_order_id_orders_id_fk` FOREIGN KEY (`order_id`) REFERENCES `orders`(`id`) ON DELETE CASCADE,
 	CONSTRAINT `fk_orderitems_product_id_products_id_fk` FOREIGN KEY (`product_id`) REFERENCES `products`(`id`) ON DELETE CASCADE
 );
