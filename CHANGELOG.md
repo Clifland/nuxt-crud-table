@@ -1,6 +1,41 @@
 # Changelog
 
 
+## v0.0.7
+
+[compare changes](https://github.com/Clifland/nuxt-crud-table/compare/v0.0.6...v0.0.7)
+
+### 🚀 Enhancements
+
+- Add auth support ([ed07f4e](https://github.com/Clifland/nuxt-crud-table/commit/ed07f4e))
+
+### 🩹 Fixes
+
+- Remove forcing users to add helper function nctCrudHeaders ([01fb680](https://github.com/Clifland/nuxt-crud-table/commit/01fb680))
+- Remove foreign keys from child table too ([624fc33](https://github.com/Clifland/nuxt-crud-table/commit/624fc33))
+
+### 🏡 Chore
+
+- **release:** V0.0.6 ([c4ce36b](https://github.com/Clifland/nuxt-crud-table/commit/c4ce36b))
+- Update nac to 2.6.0-rc ([76d3ed1](https://github.com/Clifland/nuxt-crud-table/commit/76d3ed1))
+- Display flattened belongs to relation ([4387042](https://github.com/Clifland/nuxt-crud-table/commit/4387042))
+- Add subtable for hasmany relations ([84ae87e](https://github.com/Clifland/nuxt-crud-table/commit/84ae87e))
+- Hide foreign keys ([fbc469a](https://github.com/Clifland/nuxt-crud-table/commit/fbc469a))
+- Singularize add new resource button ([71b1da4](https://github.com/Clifland/nuxt-crud-table/commit/71b1da4))
+- Update nac ([07d9044](https://github.com/Clifland/nuxt-crud-table/commit/07d9044))
+- Add tsdocs to public functions and constants ([2cc2873](https://github.com/Clifland/nuxt-crud-table/commit/2cc2873))
+- Show number (num) too in namelist. eg: inv-num ([fbf6a6a](https://github.com/Clifland/nuxt-crud-table/commit/fbf6a6a))
+- Add stub nctCrudHeaders() ([e32894f](https://github.com/Clifland/nuxt-crud-table/commit/e32894f))
+- Add stub ([62889fc](https://github.com/Clifland/nuxt-crud-table/commit/62889fc))
+- Remove outdated plugin and adjust accordingly ([8089db7](https://github.com/Clifland/nuxt-crud-table/commit/8089db7))
+- Add tsdoc for new file ([10f5c0c](https://github.com/Clifland/nuxt-crud-table/commit/10f5c0c))
+- Move AuthForm component to nct module from client app. ([330f51d](https://github.com/Clifland/nuxt-crud-table/commit/330f51d))
+- Fix lint errors ([e67db95](https://github.com/Clifland/nuxt-crud-table/commit/e67db95))
+
+### ❤️ Contributors
+
+- Cliford Pereira ([@clifordpereira](https://github.com/clifordpereira))
+
 ## v0.0.6
 
 [compare changes](https://github.com/Clifland/nuxt-crud-table/compare/v0.0.5...v0.0.6)
