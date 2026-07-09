@@ -66,6 +66,32 @@ export function useNctAuth() {
   }
 
   /**
+   * Registers a new user identity and automatically establishes an active session on success.
+   * * @param registrationDetails - Form inputs containing registration fields (e.g., name, email, password, password_confirmation).
+   * @returns A promise resolving to an object indicating operations success status, accompanied by error messages if applicable.
+   */
+  async function register(registrationDetails: Record<string, string>) {
+    try {
+      // Typically Sanctum registration return structures issue a token/user payload immediately on success
+      const data = await $fetch<{ token: string; user: AuthUser }>(`${apiBase}/auth/register`, {
+        method: 'POST',
+        body: registrationDetails,
+      })
+
+      token.value = data.token
+      user.value = data.user
+      tokenCookie.value = data.token
+
+      return { success: true }
+    } catch (error: any) {
+      return { 
+        success: false, 
+        error: error.data?.message || 'Registration failed. Please check your details.' 
+      }
+    }
+  }
+
+  /**
    * Dispatches a logout operation to the backend API pool.
    * Clears the current authentication token, active user records, and global cookie state regardless of request success.
    */
@@ -106,6 +132,7 @@ export function useNctAuth() {
     isAuthenticated,
     authHeaders,
     login,
+    register,
     logout,
     fetchUser,
   }
