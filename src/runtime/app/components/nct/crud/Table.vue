@@ -1,7 +1,7 @@
 <script setup lang="ts">
 import { computed, ref } from 'vue'
 import { useRuntimeConfig, useAppConfig, useFetch, useNuxtApp } from '#app'
-import { useNctHeaders, nctDbFieldToLabel, nctHasRowPermission, nctHasPermission, useNctExport, useNctCrudFetch, useNctTableFormat, useToast } from '#imports'
+import { useNctAggregates, useNctHeaders, nctDbFieldToLabel, nctHasRowPermission, nctHasPermission, useNctExport, useNctCrudFetch, useNctTableFormat, useToast } from '#imports'
 
 import type { NctSchemaDefinition } from '../../../../shared/types/schema'
 import type { NctCrudTableConfig } from '../../../../shared/types/config'
@@ -91,6 +91,41 @@ function getChildColumns(row: Record<string, unknown>, arrCol: string): string[]
   return flattenKeys(firstChild).filter(key =>
     !fkColumns.includes(key) && !parentRefColumns.includes(key),
   )
+}
+
+const appConfig = useAppConfig().crud as NctCrudTableConfig
+
+function getChildColumnLabel(arrCol: string, childCol: string): string {
+  const config = getAggregateConfig(arrCol)
+  const virtualCol = config?.columns?.find(c => c.name === childCol)
+  return virtualCol?.label ?? nctDbFieldToLabel(childCol.replace('.', ' '))
+}
+
+function getAggregateConfig(resourceOrArrCol: string) {
+  return appConfig?.aggregates?.[resourceOrArrCol]
+}
+
+function getChildRowsWithVirtualColumns(row: Record<string, unknown>, arrCol: string) {
+  const rawRows = row[arrCol] as Record<string, unknown>[]
+  const config = getAggregateConfig(arrCol) // e.g. 'orderitems'
+  const { withVirtualColumns } = useNctAggregates(rawRows)
+  return config?.columns ? withVirtualColumns(config.columns).value : rawRows
+}
+
+function getChildColumnsIncludingVirtual(row: Record<string, unknown>, arrCol: string): string[] {
+  const baseCols = getChildColumns(row, arrCol) // your existing logic
+  const config = getAggregateConfig(arrCol)
+  const virtualNames = config?.columns?.map(c => c.name) ?? []
+  return [...baseCols, ...virtualNames]
+}
+
+function getFooterValue(row: Record<string, unknown>, arrCol: string, column: string) {
+  const config = getAggregateConfig(arrCol)
+  const footerDef = config?.footer?.find(f => f.column === column)
+  if (!footerDef) return null
+  const rows = getChildRowsWithVirtualColumns(row, arrCol)
+  const { aggregateColumn } = useNctAggregates(rows)
+  return aggregateColumn(rows, column, footerDef.fn)
 }
 
 const paginatedItems = ref<Record<string, unknown>[]>([])
@@ -275,22 +310,22 @@ const paginatedItems = ref<Record<string, unknown>[]>([])
                   <table class="min-w-full text-sm divide-y divide-gray-200 dark:divide-gray-700">
                     <thead>
                       <tr>
-                        <th
-                          v-for="childCol in getChildColumns(row, arrCol)"
+                       <th
+                          v-for="childCol in getChildColumnsIncludingVirtual(row, arrCol)"
                           :key="childCol"
                           class="px-3 py-2 text-left font-semibold text-gray-900 dark:text-white"
                         >
-                          {{ nctDbFieldToLabel(childCol.replace('.', ' ')) }}
+                          {{ getChildColumnLabel(arrCol, childCol) }}
                         </th>
                       </tr>
                     </thead>
                     <tbody class="divide-y divide-gray-200 dark:divide-gray-700">
                       <tr
-                        v-for="child in (row[arrCol] as Record<string, unknown>[])"
+                        v-for="child in getChildRowsWithVirtualColumns(row, arrCol)"
                         :key="String(child.id)"
                       >
                         <td
-                          v-for="childCol in getChildColumns(row, arrCol)"
+                          v-for="childCol in getChildColumnsIncludingVirtual(row, arrCol)"
                           :key="childCol"
                           class="whitespace-nowrap px-3 py-2 text-gray-500 dark:text-gray-400"
                         >
@@ -298,6 +333,17 @@ const paginatedItems = ref<Record<string, unknown>[]>([])
                         </td>
                       </tr>
                     </tbody>
+                    <tfoot v-if="getAggregateConfig(arrCol)?.footer?.length">
+                      <tr class="font-semibold border-t border-gray-300 dark:border-gray-600">
+                        <td
+                          v-for="childCol in getChildColumnsIncludingVirtual(row, arrCol)"
+                          :key="childCol"
+                          class="px-3 py-2 text-right"
+                        >
+                          {{ formatCellValue(getFooterValue(row, arrCol, childCol)) }}
+                        </td>
+                      </tr>
+                    </tfoot>
                   </table>
                 </div>
               </td>

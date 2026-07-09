@@ -25,7 +25,7 @@ export const orders = sqliteTable('orders', {
   customer_id: integer('customer_id')
     .notNull()
     .references(() => customers.id, { onDelete: 'cascade' }),
-  total_amount: numeric('total_amount', { mode: 'number' }).notNull(),
+  total_amount: numeric('total_amount', { mode: 'number' }),
   status: text('status', { enum: ['pending', 'processing', 'shipped', 'delivered', 'cancelled'] })
     .notNull()
     .default('pending'),
