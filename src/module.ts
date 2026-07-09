@@ -1,4 +1,4 @@
-import { defineNuxtModule, addComponentsDir, createResolver, addImportsDir, addPlugin, addVitePlugin, addTemplate, addImports } from '@nuxt/kit'
+import { defineNuxtModule, addComponentsDir, createResolver, addImportsDir, addVitePlugin } from '@nuxt/kit'
 
 import { NCT_FORM_HIDDEN_FIELDS } from './runtime/app/utils/constants'
 
@@ -11,19 +11,19 @@ export interface ModuleOptions {
    * @default '/api/_nac'
    */
   apiBase: string
-  
+
   /**
    * Defines security ecosystem integrations or switches authentication layer mechanisms entirely off.
    * @default false
    */
   auth: false | { authentication: 'nuxt-auth-utils' | 'sanctum' }
-  
+
   /**
    * Global array mapping property key terms omitted from generating operational fields in form states.
    * @default NCT_FORM_HIDDEN_FIELDS
    */
   formHiddenFields: string[]
-  
+
   /**
    * An optional functional evaluator supplying a structured dictionary map of network authorization headers.
    * @remarks Useful for extracting localized browser cookies or dynamic authorization bearers safely.
@@ -36,7 +36,7 @@ declare module '@nuxt/schema' {
   interface PublicRuntimeConfig {
     /**
      * Public runtime options mapping parameters across client components and global composables.
-     * * @note Excludes the `headers` method interceptor to protect structural configuration environments.
+     * @note Excludes the `headers` method interceptor to protect structural configuration environments.
      */
     crudTable: Omit<ModuleOptions, 'headers'>
   }
@@ -109,6 +109,5 @@ export default defineNuxtModule<ModuleOptions>({
         return environment.name === 'client'
       },
     }))
-
   },
 })

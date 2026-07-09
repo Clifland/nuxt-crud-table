@@ -2,7 +2,7 @@ import { useRuntimeConfig } from '#app'
 import type { NctUser } from '../../shared/types/auth'
 
 /**
- * Checks whether authentication is globally enabled for the CRUD table module 
+ * Checks whether authentication is globally enabled for the CRUD table module
  * via the runtime public configuration.
  *
  * @returns {boolean} True if authentication configuration is present and enabled, false otherwise.
@@ -29,7 +29,7 @@ export function nctIsAdmin(user: NctUser | null | undefined): boolean {
  *
  * @param {NctUser | null | undefined} user - The user object to evaluate.
  * @param {Record<string, unknown>} [record] - The data record being checked.
- * @param {string} [ownerKey='createdBy'] - The property key in the record that holds the creator/owner ID.
+ * @param {string} [ownerKey] - The property key in the record that holds the creator/owner ID.
  * @returns {boolean} True if the user ID matches the record's owner field, false otherwise.
  */
 export function nctIsOwner(user: NctUser | null | undefined, record?: Record<string, unknown>, ownerKey: string = 'createdBy'): boolean {
@@ -55,8 +55,8 @@ export function nctHasPermission(user: NctUser | null | undefined, model: string
 }
 
 /**
- * Checks row-level permissions for a specific record. 
- * Allows the action if the user has global permission, or if they have an ownership-restricted 
+ * Checks row-level permissions for a specific record.
+ * Allows the action if the user has global permission, or if they have an ownership-restricted
  * permission (e.g., `action_own`) and actually own the record.
  *
  * @param {NctUser | null | undefined} user - The user executing the action.
@@ -78,7 +78,7 @@ export function nctHasRowPermission(user: NctUser | null | undefined, model: str
 }
 
 /**
- * Determines whether a user should see the navigation menu item for a specific resource 
+ * Determines whether a user should see the navigation menu item for a specific resource
  * based on whether they have list visibility permissions (`list`, `list_all`, or `list_own`).
  *
  * @param {NctUser | null | undefined} user - The current user.

@@ -3,13 +3,13 @@ import type { NctField } from '../shared/types/schema'
 import { nctValidationRules, type FieldType } from '../shared/types/validation-rules'
 
 /**
- * A composable utility that dynamically builds a runtime Zod validation schema 
+ * A composable utility that dynamically builds a runtime Zod validation schema
  * from an array of backend resource field definitions.
- * * @remarks
- * This parser evaluates specific field data types (such as password complexities, structural enums, 
- * or primitive text blocks) and appropriately accommodates conditional requirement states depending 
+ * @remarks
+ * This parser evaluates specific field data types (such as password complexities, structural enums,
+ * or primitive text blocks) and appropriately accommodates conditional requirement states depending
  * on whether an entry context is new or being modified.
- * * @example
+ * @example
  * ```ts
  * const fields: NctField[] = [
  * { name: 'email', type: 'email', required: true },
@@ -17,8 +17,8 @@ import { nctValidationRules, type FieldType } from '../shared/types/validation-r
  * ]
  * const schema = useNctDynamicZodSchema(fields, false)
  * ```
- * * @param {NctField[]} fields - An array containing field definitions metadata fetched from the schema contract mapping.
- * @param {boolean} [isEdit=false] - Flag indicating if the schema target is an update workflow. If true, turns parameters optional/nullable so unmodified fields don't fail validation.
+ * @param {NctField[]} fields - An array containing field definitions metadata fetched from the schema contract mapping.
+ * @param {boolean} [isEdit] - Flag indicating if the schema target is an update workflow. If true, turns parameters optional/nullable so unmodified fields don't fail validation.
  * @returns {z.ZodObject<Record<string, z.ZodTypeAny>>} A dynamically compiled Zod object ready to parse validation states.
  */
 export function useNctDynamicZodSchema(fields: NctField[], isEdit = false) {

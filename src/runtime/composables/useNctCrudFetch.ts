@@ -3,19 +3,19 @@ import { useNctHeaders, useToast } from '#imports'
 
 /**
  * A shared utility composable for handling state-mutating HTTP requests (`POST`, `PATCH`, `DELETE`)
- * against backend resource endpoints. Handles automatic endpoint resolution, injection of global headers, 
+ * against backend resource endpoints. Handles automatic endpoint resolution, injection of global headers,
  * UI toast alerts for successes or errors, and reactive data cache busting via `refreshNuxtData`.
- * * @example
+ * @example
  * ```ts
  * // Create a record
  * await useNctCrudFetch('POST', 'users', null, { name: 'John Doe' })
- * * // Update a record
+ * // Update a record
  * await useNctCrudFetch('PATCH', 'users', 42, { name: 'Jane Doe' })
  * ```
- * * @param {'POST' | 'PATCH' | 'DELETE'} method - The structural mutation HTTP request method to execute.
+ * @param {'POST' | 'PATCH' | 'DELETE'} method - The structural mutation HTTP request method to execute.
  * @param {string} resource - The name of the target resource endpoint (e.g., 'users', 'posts').
- * @param {number | null} [id=null] - The record unique ID identifier (required for 'PATCH' and 'DELETE').
- * @param {Record<string, unknown> | null} [data=null] - The payload body data to pass to the request server context.
+ * @param {number | null} [id] - The record unique ID identifier (required for 'PATCH' and 'DELETE').
+ * @param {Record<string, unknown> | null} [data] - The payload body data to pass to the request server context.
  * @returns {Promise<void>} Resolves once the mutation completes and cache tags are invalidated.
  */
 export async function useNctCrudFetch(

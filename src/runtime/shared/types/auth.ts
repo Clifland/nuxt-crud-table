@@ -12,8 +12,9 @@ export interface NctUser {
   avatar?: string
   /** Optional system role level grouping defining macro access privileges (e.g., 'admin', 'editor'). */
   role?: string
-  /** * Optional resource authorization matrices mapping specific models to permission rules.
-   * * @example
+  /**
+   * Optional resource authorization matrices mapping specific models to permission rules.
+   * @example
    * ```ts
    * permissions: {
    * "users": ["list", "create", "delete_own"],

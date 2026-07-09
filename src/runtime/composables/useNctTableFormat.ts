@@ -1,27 +1,26 @@
 /**
  * Regular expression pattern to detect ISO 8601 extended format date-time strings.
- * * @type {RegExp}
+ * @type {RegExp}
  */
-const ISO_DATE_REGEX = /^\d{4}-\d{2}-\d{2}T\d{2}:\d{2}:\d{2}(\.\d+)?Z$/
+const ISO_DATE_REGEX = /^\d{4}-\d{2}-\d{2}T\d{2}:\d{2}:\d{2}(?:\.\d+)?Z$/
 
 /**
- * A utility composable providing core logic for flattening complex nested object rows, 
- * resolving deeply nested dot-notation object paths, auto-detecting array or foreign key relations, 
+ * A utility composable providing core logic for flattening complex nested object rows,
+ * resolving deeply nested dot-notation object paths, auto-detecting array or foreign key relations,
  * and formatting cell values for rendering inside the main data table view.
- * * @example
+ * @example
  * ```ts
  * const { flattenKeys, getColumnValue, formatCellValue } = useNctTableFormat()
  * const row = { id: 1, user: { profile: { firstName: 'John' } } }
- * * const columns = flattenKeys(row) // ['id', 'user.profile.firstName']
+ * const columns = flattenKeys(row) // ['id', 'user.profile.firstName']
  * const value = getColumnValue(row, 'user.profile.firstName') // 'John'
  * ```
- * * @returns An object containing table formatting, row flattening, and relationship detection helpers.
+ * @returns An object containing table formatting, row flattening, and relationship detection helpers.
  */
 export function useNctTableFormat() {
-  
   /**
    * Evaluates a dynamic field value and transforms it into a localized readable string if an ISO date signature is detected.
-   * * @param {unknown} value - The cell primitive or variable data to evaluate.
+   * @param {unknown} value - The cell primitive or variable data to evaluate.
    * @returns {unknown} The formatted string if an ISO date format is matched; otherwise, the original value.
    */
   function formatCellValue(value: unknown): unknown {
@@ -33,11 +32,11 @@ export function useNctTableFormat() {
 
   /**
    * Safe data resolution utility to extract a nested property from an object map via a dot-notation path.
-   * * @example
+   * @example
    * ```ts
    * getColumnValue({ author: { meta: { name: 'Alice' } } }, 'author.meta.name') // Returns: 'Alice'
    * ```
-   * * @param {Record<string, unknown>} row - The database data record object.
+   * @param {Record<string, unknown>} row - The database data record object.
    * @param {string} path - The dot-separated property access path (e.g., 'profile.address.city').
    * @returns {unknown} The resolved property value, or `undefined` if any reference segment fails to resolve.
    */
@@ -50,9 +49,9 @@ export function useNctTableFormat() {
 
   /**
    * Recursively traverses a structural object row to generate flat, dot-notated path string keys for columns.
-   * * @note Skips structural arrays entirely, as they are designated for expansion into modular child tables.
-   * * @param {Record<string, unknown>} row - The target object record structure to inspect.
-   * @param {string} [prefix=''] - Internal recursive accumulator tracking parent key nesting depths.
+   * @note Skips structural arrays entirely, as they are designated for expansion into modular child tables.
+   * @param {Record<string, unknown>} row - The target object record structure to inspect.
+   * @param {string} [prefix] - Internal recursive accumulator tracking parent key nesting depths.
    * @returns {string[]} An array containing individual flattening string accessors (e.g., `['user.id', 'user.email']`).
    */
   function flattenKeys(row: Record<string, unknown>, prefix = ''): string[] {
@@ -66,10 +65,9 @@ export function useNctTableFormat() {
 
   /**
    * Scans a data row to pinpoint properties consisting of non-empty arrays containing relational objects.
-   * * @remarks
+   * @remarks
    * Used by the engine UI layer to selectively render layout expansion toggles for child resource tables.
-   * * @param {Record<string, unknown>} row - The database table row representation.
-   * @param row
+   * @param {Record<string, unknown>} row - The database table row representation.
    * @returns {string[]} An array of object keys corresponding to qualifying structural array payloads.
    */
   function getArrayColumns(row: Record<string, unknown>): string[] {
@@ -80,12 +78,12 @@ export function useNctTableFormat() {
 
   /**
    * Identifies foreign key columns by matching properties ending with `_id` against paired side-loaded relation objects.
-   * * @example
+   * @example
    * ```ts
    * // If row contains { customer_id: 5, customer: { name: 'Acme Corp' } }
    * getForeignKeyColumns(row) // Returns: ['customer_id']
    * ```
-   * * @param {Record<string, unknown>} row - The single domain row item.
+   * @param {Record<string, unknown>} row - The single domain row item.
    * @returns {string[]} A list of column names that are confirmed to act as structural foreign key values.
    */
   function getForeignKeyColumns(row: Record<string, unknown>): string[] {
@@ -98,9 +96,9 @@ export function useNctTableFormat() {
 
   /**
    * Searches a child object record to extract keys that act as backward reference indicators to its parent record instance.
-   * * @remarks
+   * @remarks
    * Helps filter out redundant operational foreign key bindings from rendering when browsing an embedded sub-table.
-   * * @param {Record<string, unknown>} childRow - The sub-table row entry metadata to evaluate.
+   * @param {Record<string, unknown>} childRow - The sub-table row entry metadata to evaluate.
    * @param {Record<string, unknown>} parentRow - The active parent table row instance serving as context root.
    * @returns {string[]} An array of field strings that mirror parent unique identity parameters.
    */

@@ -61,7 +61,12 @@ const { formatCellValue, getColumnValue, flattenKeys, getArrayColumns, getForeig
 const expandedRows = ref<Set<number>>(new Set())
 
 function toggleExpand(id: number) {
-  expandedRows.value.has(id) ? expandedRows.value.delete(id) : expandedRows.value.add(id)
+  if (expandedRows.value.has(id)) {
+    expandedRows.value.delete(id)
+  }
+  else {
+    expandedRows.value.add(id)
+  }
 }
 
 const visibleColumns = computed(() => {

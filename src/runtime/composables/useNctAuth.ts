@@ -1,6 +1,6 @@
 import { computed } from 'vue'
-import { useCookie, useRuntimeConfig, useState } from "#app"
-import { useNctHeaders } from "#imports"
+import { useCookie, useRuntimeConfig, useState } from '#app'
+import { useNctHeaders } from '#imports'
 
 /**
  * Represents the authenticated user identity schema.
@@ -17,11 +17,11 @@ interface AuthUser {
 /**
  * A Nuxt composable providing authentication states and actions for the `nuxt-crud-table` workspace.
  * Handles token storage, user session persistence, SSR-safe states, and request headers.
- * * @example
+ * @example
  * ```ts
  * const { user, isAuthenticated, login, logout } = useNctAuth()
  * ```
- * * @returns An object containing reactive authentication state and action utilities.
+ * @returns An object containing reactive authentication state and action utilities.
  */
 export function useNctAuth() {
   const { apiBase } = useRuntimeConfig().public.crudTable
@@ -30,7 +30,7 @@ export function useNctAuth() {
   // SSR-safe global states
   /** The current authentication token, synced via cookies. */
   const token = useState<string | null>('nct_auth_token', () => tokenCookie.value || null)
-  
+
   /** The profile information of the currently authenticated user. */
   const user = useState<AuthUser | null>('nct_auth_user', () => null)
 
@@ -39,18 +39,18 @@ export function useNctAuth() {
 
   /** Computed bearer authorization headers object derived from the active token state. */
   const authHeaders = computed<Record<string, string>>(() => ({
-    ...(token.value && { Authorization: `Bearer ${token.value}` })
+    ...(token.value && { Authorization: `Bearer ${token.value}` }),
   }))
 
   /**
    * Authenticates a user using provided credentials.
    * On success, updates local cookies, local state, and session profiles.
-   * * @param credentials - Key-value payload consisting of user credentials (e.g., email, password).
+   * @param credentials - Key-value payload consisting of user credentials (e.g., email, password).
    * @returns A promise resolving to an object indicating operations success status, accompanied by error messages if applicable.
    */
   async function login(credentials: Record<string, string>) {
     try {
-      const data = await $fetch<{ token: string; user: AuthUser }>(`${apiBase}/auth/login`, {
+      const data = await $fetch<{ token: string, user: AuthUser }>(`${apiBase}/auth/login`, {
         method: 'POST',
         body: credentials,
       })
@@ -58,22 +58,23 @@ export function useNctAuth() {
       token.value = data.token
       user.value = data.user
       tokenCookie.value = data.token
-      
+
       return { success: true }
-    } catch (error: any) {
-      return { success: false, error: error.data?.message || 'Authentication failed' }
+    }
+    catch {
+      return { success: false, error: 'Authentication failed' }
     }
   }
 
   /**
    * Registers a new user identity and automatically establishes an active session on success.
-   * * @param registrationDetails - Form inputs containing registration fields (e.g., name, email, password, password_confirmation).
+   * @param registrationDetails - Form inputs containing registration fields (e.g., name, email, password, password_confirmation).
    * @returns A promise resolving to an object indicating operations success status, accompanied by error messages if applicable.
    */
   async function register(registrationDetails: Record<string, string>) {
     try {
       // Typically Sanctum registration return structures issue a token/user payload immediately on success
-      const data = await $fetch<{ token: string; user: AuthUser }>(`${apiBase}/auth/register`, {
+      const data = await $fetch<{ token: string, user: AuthUser }>(`${apiBase}/auth/register`, {
         method: 'POST',
         body: registrationDetails,
       })
@@ -83,10 +84,11 @@ export function useNctAuth() {
       tokenCookie.value = data.token
 
       return { success: true }
-    } catch (error: any) {
-      return { 
-        success: false, 
-        error: error.data?.message || 'Registration failed. Please check your details.' 
+    }
+    catch {
+      return {
+        success: false,
+        error: 'Registration failed. Please check your details.',
       }
     }
   }
@@ -102,9 +104,11 @@ export function useNctAuth() {
         method: 'POST',
         headers: useNctHeaders(),
       })
-    } catch {
+    }
+    catch {
       // Fall through safely
-    } finally {
+    }
+    finally {
       token.value = null
       user.value = null
       tokenCookie.value = null
@@ -121,7 +125,8 @@ export function useNctAuth() {
       user.value = await $fetch<AuthUser>(`${apiBase}/auth/user`, {
         headers: useNctHeaders(),
       })
-    } catch {
+    }
+    catch {
       logout()
     }
   }

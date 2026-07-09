@@ -27,7 +27,7 @@ const { data: options } = await useFetch(() => `${apiBase}/${urlPath}`, {
   key: `crud-${urlPath}`,
   transform: (rows: Record<string, unknown>[]) =>
     rows?.map((row) => {
-      const r = row as { id: string | number, name?: string, title?: string, email?: string, num?: string,  }
+      const r = row as { id: string | number, name?: string, title?: string, email?: string, num?: string }
       return {
         label: r.name || r.title || r.num || `#${r.id}`,
         value: r.id,

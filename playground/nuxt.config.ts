@@ -6,12 +6,12 @@ export default defineNuxtConfig({
   hub: {
     db: 'sqlite',
   },
+  autoCrud: {
+    relationsPath: 'server/db/relations',
+  },
   crudTable: {
     apiBase: '/api/_nac',
     auth: false,
     formHiddenFields: [],
-  },
-  autoCrud: {
-    relationsPath: 'server/db/relations',
   },
 })

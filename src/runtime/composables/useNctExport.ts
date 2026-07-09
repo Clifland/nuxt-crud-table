@@ -5,18 +5,18 @@ import { nctDbFieldToLabel } from '#imports'
 /**
  * A reactive state and utility composable providing client-side data export capabilities
  * (Excel and PDF) for Nuxt Crud Table instances.
- * * @remarks
- * It dynamically evaluates layout constraints, matches configuration-driven column exclusion lists, 
- * maps raw structural keys into human-readable labels, and processes code splitting via lazy dynamic 
+ * @remarks
+ * It dynamically evaluates layout constraints, matches configuration-driven column exclusion lists,
+ * maps raw structural keys into human-readable labels, and processes code splitting via lazy dynamic
  * imports (`xlsx`, `jspdf`, `jspdf-autotable`) to preserve a optimized bundle footprint.
- * * @example
+ * @example
  * ```ts
  * const { isExportEnabled, exportToExcel, exportToPDF } = useNctExport()
  * if (isExportEnabled) {
  * await exportToExcel(usersData, 'users', ['id', 'name', 'email'])
  * }
  * ```
- * * @returns An object containing the export activation flags and lazy formatting action triggers.
+ * @returns An object containing the export activation flags and lazy formatting action triggers.
  */
 export const useNctExport = () => {
   const appConfig = useAppConfig()
@@ -25,7 +25,7 @@ export const useNctExport = () => {
 
   /**
    * Internal helper to merge global and resource-specific field omission lists for the target document format.
-   * * @param {'pdf' | 'excel'} type - The format identifier being constructed.
+   * @param {'pdf' | 'excel'} type - The format identifier being constructed.
    * @param {string} resource - The model or domain resource name context.
    * @returns {string[]} A deduplicated array of property keys to exclude from the payload.
    */
@@ -39,7 +39,7 @@ export const useNctExport = () => {
 
   /**
    * Sanitizes, filters, and transforms table records into display-ready structures using descriptive labels.
-   * * @param {unknown[]} data - Raw database records fetched for export processing.
+   * @param {unknown[]} data - Raw database records fetched for export processing.
    * @param {string[]} visibleColumns - Currently active or visible table columns.
    * @param {string[]} exclude - Specific field strings to drop from visibility rules.
    * @returns {Record<string, unknown>[]} Formatted structural key-value objects map.
@@ -66,7 +66,7 @@ export const useNctExport = () => {
 
   /**
    * Generates and triggers a prompt to save a processed dataset as an Microsoft Excel spreadsheet (.xlsx).
-   * * @param {unknown[]} rawData - The tabular target array matrix to process.
+   * @param {unknown[]} rawData - The tabular target array matrix to process.
    * @param {string} resource - The resource string to utilize for spreadsheet categorization and file name construction.
    * @param {string[]} visibleColumns - Column keys matching current layout configurations.
    * @returns {Promise<void>} Resolves when compilation finishes and download initiation is triggered by the host pipeline.
@@ -86,7 +86,7 @@ export const useNctExport = () => {
 
   /**
    * Builds and triggers a structured file system stream download for a formatted PDF ledger (.pdf).
-   * * @param {unknown[]} rawData - The raw rows matrix.
+   * @param {unknown[]} rawData - The raw rows matrix.
    * @param {string} resource - Context model tracking name.
    * @param {string[]} visibleColumns - Visual UI column layout tracker array.
    * @returns {Promise<void>} Resolves when coordinate maps and vectors execute file assembly.

@@ -1,4 +1,4 @@
-import { useNuxtApp } from "#app"
+import { useNuxtApp } from '#app'
 
 export function useNctHeaders(): Record<string, string> {
   const nuxtApp = useNuxtApp()

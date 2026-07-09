@@ -13,8 +13,9 @@ export const nctValidationRules = {
   date: () => z.date(),
   /** Verifies boolean binary checkbox states. */
   boolean: () => z.boolean(),
-  /** * Compiles secure password check evaluations based on operational state.
-   * * @param {boolean} [isEdit] - If true, permits passwords to pass as optional/empty during update workflows.
+  /**
+   * Compiles secure password check evaluations based on operational state.
+   * @param {boolean} [isEdit] - If true, permits passwords to pass as optional/empty during update workflows.
    */
   password: (isEdit?: boolean) => isEdit
     ? z.string().optional()
@@ -23,8 +24,9 @@ export const nctValidationRules = {
   string: () => z.string(),
   /** Evaluates multi-line content block parameters. */
   textarea: () => z.string(),
-  /** * Evaluates discrete options maps against literal values arrays.
-   * * @param {string[]} [options] - Permitted enumeration item variations.
+  /**
+   * Evaluates discrete options maps against literal values arrays.
+   * @param {string[]} [options] - Permitted enumeration item variations.
    */
   enum: (options?: string[]) => options?.length
     ? z.enum(options as [string, ...string[]])
