@@ -57,6 +57,7 @@ export function useNctTableFormat() {
   function flattenKeys(row: Record<string, unknown>, prefix = ''): string[] {
     return Object.entries(row).flatMap(([key, value]) => {
       const path = prefix ? `${prefix}.${key}` : key
+      if (prefix && key === 'id') return [] // skip nested relation ids (e.g. product.id) - redundant with the FK column itself
       if (Array.isArray(value)) return [] // arrays handled separately as expandable child tables
       if (value && typeof value === 'object') return flattenKeys(value as Record<string, unknown>, path)
       return [path]
