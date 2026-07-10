@@ -1,6 +1,6 @@
 {
   "name": "nuxt-crud-table",
-  "version": "0.0.7",
+  "version": "0.1.0-rc.0",
   "description": "API-driven dynamic CRUD table and forms in Nuxt.js. Automatically reflects backend resource schemas to build instant admin data grids and forms.",
   "keywords": [
     "nuxt",
@@ -49,6 +49,7 @@
     "dev:build": "nuxt build playground",
     "dev:prepare": "nuxt-module-build build --stub && nuxt-module-build prepare && nuxt prepare playground",
     "release": "npm run lint && npm run test && npm run prepack && changelogen --release && npm publish && git push --follow-tags",
+    "release:rc": "bun run lint && bun run test && bun run prepack && changelogen --prerelease rc && npm publish --tag rc && git push --follow-tags",
     "lint": "eslint .",
     "test": "vitest run",
     "test:watch": "vitest watch",
