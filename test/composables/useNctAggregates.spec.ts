@@ -1,7 +1,7 @@
 import { describe, it, expect } from 'vitest'
 import { ref } from 'vue'
 import { useNctAggregates } from '../../src/runtime/composables/useNctAggregates'
-import type { NctAggregatesConfig } from '../../src/runtime/shared/types/config'
+import type { NctAggregateDef, NctAggregatesConfig } from '../../src/runtime/shared/types/config'
 
 describe('useNctAggregates', () => {
   describe('withVirtualColumns — row-level operations', () => {
@@ -121,7 +121,7 @@ describe('useNctAggregates', () => {
       ['max', 200],
     ])('computes %s', (fn, expected) => {
       const config: NctAggregatesConfig = {
-        orderitems: { columns, footer: [{ name: 'r', label: 'R', fn: fn as any, args: ['linetotal'] }] },
+        orderitems: { columns, footer: [{ name: 'r', label: 'R', fn: fn as NctAggregateDef['fn'], args: ['linetotal'] }] },
       }
       expect(useNctAggregates(rows, config).footerValues('orderitems')[0]!.value).toBe(expected)
     })
@@ -135,7 +135,7 @@ describe('useNctAggregates', () => {
 
     it('returns 0 for an unrecognized fn', () => {
       const config: NctAggregatesConfig = {
-        orderitems: { footer: [{ name: 'r', fn: 'bogus' as any, args: ['price'] }] },
+        orderitems: { footer: [{ name: 'r', fn: 'bogus' as unknown as NctAggregateDef['fn'], args: ['price'] }] },
       }
       expect(useNctAggregates(rows, config).footerValues('orderitems')[0]!.value).toBe(0)
     })

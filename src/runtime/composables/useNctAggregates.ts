@@ -135,7 +135,7 @@ function computeColumnDef(row: Row, def: NctAggregateDef, config: NctAggregatesC
       return null
     }
     const argValues = def.args.map(arg => resolveArgValue(row, arg))
-    if (argValues.some(v => v === null)) return null // any missing input -> whole result is missing
+    if (argValues.includes(null)) return null // any missing input -> whole result is missing
     return rowFn(...argValues as number[])
   }
 

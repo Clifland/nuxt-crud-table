@@ -69,7 +69,6 @@ function toggleExpand(id: number) {
   }
 }
 
-
 const appConfig = useAppConfig().crud as NctCrudTableConfig
 const aggregatesConfig = appConfig?.aggregates ?? {}
 
@@ -213,12 +212,12 @@ const paginatedItems = ref<Record<string, unknown>[]>([])
               v-for="col in visibleColumns"
               :key="col"
             >
-            <th
-              scope="col"
-              class="px-3 py-3.5 text-left text-sm font-semibold text-gray-900 dark:text-white"
-            >
-              {{ getColumnLabel(col) }}
-            </th>
+              <th
+                scope="col"
+                class="px-3 py-3.5 text-left text-sm font-semibold text-gray-900 dark:text-white"
+              >
+                {{ getColumnLabel(col) }}
+              </th>
             </template>
             <th
               scope="col"
