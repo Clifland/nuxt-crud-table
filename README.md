@@ -188,6 +188,75 @@ export default defineAppConfig({
 
 ---
 
+## Relations & Aggregates
+
+NAC can automatically display relations.
+
+Once the API returns data in this shape:
+
+```json
+// orders
+[
+  {
+    "id": 1,
+    ...
+    // parent table (belongsTo relation)
+    "customer": {
+      "name": "John Doe",
+      "email": "ha.doe@example.com"
+    },
+    // child table (hasMany relation)
+    "orderitems": [
+      {
+        "id": 1,
+        ...
+        "product": {
+          "name": "micro computer",
+          "price": 100.05
+        }
+      }
+    ]
+  }
+]
+```
+
+`customer.name` and `customer.email` will be displayed alongside the main columns. `orderitems` will be displayed as a toggleable child table.
+
+### Aggregate functions
+
+NAC supports common aggregate functions — **sum**, **count**, **avg**, **min**, **max** — applied vertically (across rows), and arithmetic functions — **multiply**, **add**, **subtract**, **divide** — applied horizontally (across columns within a row).
+
+These can be configured as shown in this example billing app config:
+
+```ts
+export default defineAppConfig({
+  crud: {
+    aggregates: {
+      orderitems: {
+        // row-level virtual columns (computed for each row)
+        columns: [
+          // fn: multiply | add | subtract | divide
+          { name: 'linetotal', label: 'Line total', fn: 'multiply', args: ['price', 'quantity'] },
+        ],
+        // column-level footer reductions (computed over the array of rows)
+        footer: [
+          // fn: sum | count | avg | min | max
+          { name: 'total_amount', label: 'Total Amount', fn: 'sum', args: ['linetotal'] },
+        ],
+      },
+    },
+  },
+})
+```
+
+This means that when `orderitems` is displayed as a child table, its `price` and `quantity` are multiplied together and shown as the last column, named `linetotal` with the label "Line Total". The footer then displays the total of that `linetotal` column.
+
+**Note:** the `args` value in a footer entry refers to the name of the virtual column created above it (`linetotal`), not a raw field from the API response.
+
+**Note:** aggregates currently work on child tables only. This is a deliberate design decision for performance reasons, and will be revisited once NCT supports backend pagination.
+
+---
+
 ## Limitations
 
 * Global search querying, filtering, and pagination states are executed client-side via JavaScript.
