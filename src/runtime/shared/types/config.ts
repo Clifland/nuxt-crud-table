@@ -2,23 +2,21 @@
  * The global layout configuration architecture driving data table, visibility, and export policies.
  */
 
-export interface NctVirtualColumn {
+export interface NctAggregateDef {
   name: string
   label?: string
-  fn: 'multiply' | 'add' | 'subtract' | 'divide' | (string & {}) // extensible
-  args: string[] // dot-paths, resolved against each row
-}
-
-export interface NctFooterAggregate {
-  column: string // name of a real OR virtual column
-  fn: 'sum' | 'avg' | 'min' | 'max' | 'count' | (string & {})
-  label?: string
+  fn: string
+  args: string[]
+  showInParent?: boolean // default true; only meaningful on `footer` entries
 }
 
 export interface NctResourceAggregateConfig {
-  columns?: NctVirtualColumn[]
-  footer?: NctFooterAggregate[]
+  columns?: NctAggregateDef[]
+  footer?: NctAggregateDef[]
+  footerInParent?: boolean | string[] // default true (all). false = none. string[] = only these footer names.
 }
+
+export type NctAggregatesConfig = Record<string, NctResourceAggregateConfig>
 
 export interface NctCrudTableConfig {
   /** A collection of field database names that will be globally hidden across all tables. */

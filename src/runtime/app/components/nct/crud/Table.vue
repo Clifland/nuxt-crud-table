@@ -69,11 +69,27 @@ function toggleExpand(id: number) {
   }
 }
 
+
+const appConfig = useAppConfig().crud as NctCrudTableConfig
+const aggregatesConfig = appConfig?.aggregates ?? {}
+
+const { withParentFooterColumns } = useNctAggregates(records, aggregatesConfig)
+const augmentedRecords = withParentFooterColumns() // records + any rolled-up child footer columns
+
+// resolves a header label for a rolled-up footer column (e.g. 'total_amount' -> 'Total Amount')
+function getColumnLabel(col: string): string {
+  for (const childConfig of Object.values(aggregatesConfig)) {
+    const def = childConfig.footer?.find(f => f.name === col)
+    if (def) return def.label ?? def.fn
+  }
+  return nctDbFieldToLabel(col.replace('.', ' '))
+}
+
 const visibleColumns = computed(() => {
-  if (!records.value?.length) return []
+  if (!augmentedRecords.value?.length) return []
   const hideList = crudConfig?.globalHide ?? []
   const hideForeignKeys = crudConfig?.hideForeignKeys ?? true
-  const firstRow = records.value[0] as Record<string, unknown>
+  const firstRow = augmentedRecords.value[0] as Record<string, unknown>
 
   const fkColumns = hideForeignKeys ? getForeignKeyColumns(firstRow) : []
 
@@ -93,39 +109,38 @@ function getChildColumns(row: Record<string, unknown>, arrCol: string): string[]
   )
 }
 
-const appConfig = useAppConfig().crud as NctCrudTableConfig
-
-function getChildColumnLabel(arrCol: string, childCol: string): string {
-  const config = getAggregateConfig(arrCol)
-  const virtualCol = config?.columns?.find(c => c.name === childCol)
-  return virtualCol?.label ?? nctDbFieldToLabel(childCol.replace('.', ' '))
+// --- child (expanded) table columns ---
+function getChildColumnLabel(arrCol: string, col: string): string {
+  const def = aggregatesConfig[arrCol]?.columns?.find(c => c.name === col)
+  return def?.label ?? nctDbFieldToLabel(col.replace('.', ' '))
 }
 
-function getAggregateConfig(resourceOrArrCol: string) {
-  return appConfig?.aggregates?.[resourceOrArrCol]
-}
-
-function getChildRowsWithVirtualColumns(row: Record<string, unknown>, arrCol: string) {
-  const rawRows = row[arrCol] as Record<string, unknown>[]
-  const config = getAggregateConfig(arrCol) // e.g. 'orderitems'
-  const { withVirtualColumns } = useNctAggregates(rawRows)
-  return config?.columns ? withVirtualColumns(config.columns).value : rawRows
-}
-
-function getChildColumnsIncludingVirtual(row: Record<string, unknown>, arrCol: string): string[] {
-  const baseCols = getChildColumns(row, arrCol) // your existing logic
-  const config = getAggregateConfig(arrCol)
-  const virtualNames = config?.columns?.map(c => c.name) ?? []
+function getChildColumnNames(row: Record<string, unknown>, arrCol: string): string[] {
+  const baseCols = getChildColumns(row, arrCol)
+  const virtualNames = aggregatesConfig[arrCol]?.columns?.map(c => c.name) ?? []
   return [...baseCols, ...virtualNames]
 }
 
-function getFooterValue(row: Record<string, unknown>, arrCol: string, column: string) {
-  const config = getAggregateConfig(arrCol)
-  const footerDef = config?.footer?.find(f => f.column === column)
-  if (!footerDef) return null
-  const rows = getChildRowsWithVirtualColumns(row, arrCol)
-  const { aggregateColumn } = useNctAggregates(rows)
-  return aggregateColumn(rows, column, footerDef.fn)
+function getChildRowsWithVirtualColumns(row: Record<string, unknown>, arrCol: string) {
+  const { withVirtualColumns } = useNctAggregates(row[arrCol] as Record<string, unknown>[], aggregatesConfig)
+  return withVirtualColumns(arrCol).value
+}
+
+// --- child table footer: map footer defs onto the columns they target ---
+function getFooterCellsByColumn(row: Record<string, unknown>, arrCol: string) {
+  const { footerValues } = useNctAggregates(row[arrCol] as Record<string, unknown>[], aggregatesConfig)
+  const map = new Map<string, { label: string, value: number }[]>()
+  for (const entry of footerValues(arrCol)) {
+    for (const col of entry.args) {
+      if (!map.has(col)) map.set(col, [])
+      map.get(col)!.push({ label: entry.label, value: entry.value })
+    }
+  }
+  return map
+}
+
+function hasFooter(arrCol: string): boolean {
+  return !!aggregatesConfig[arrCol]?.footer?.length
 }
 
 const paginatedItems = ref<Record<string, unknown>[]>([])
@@ -144,24 +159,24 @@ const paginatedItems = ref<Record<string, unknown>[]>([])
     <!-- Filters / Pagination Area -->
     <div class="flex items-center justify-between px-4 py-3 bg-white dark:bg-gray-900 border-b border-gray-200 dark:border-gray-700">
       <NctCommonPagination
-        :data="records || []"
+        :data="augmentedRecords || []"
         :items-per-page="10"
         @update:paginated="paginatedItems = $event"
       />
       <div class="flex items-center gap-2">
         <UDropdownMenu
-          v-if="isExportEnabled && records?.length"
+          v-if="isExportEnabled && augmentedRecords?.length"
           :items="[
             [
               {
                 label: 'Excel',
                 icon: 'i-lucide-file-spreadsheet',
-                onSelect: () => exportToExcel(records || [], props.resource, visibleColumns),
+                onSelect: () => exportToExcel(augmentedRecords || [], props.resource, visibleColumns),
               },
               {
                 label: 'PDF',
                 icon: 'i-lucide-file-text',
-                onSelect: () => exportToPDF(records || [], props.resource, visibleColumns),
+                onSelect: () => exportToPDF(augmentedRecords || [], props.resource, visibleColumns),
               },
             ],
           ]"
@@ -185,7 +200,7 @@ const paginatedItems = ref<Record<string, unknown>[]>([])
     <div class="overflow-x-auto">
       <table class="min-w-full divide-y divide-gray-300 dark:divide-gray-700">
         <thead
-          v-if="records?.length"
+          v-if="augmentedRecords?.length"
           class="bg-gray-50 dark:bg-gray-800"
         >
           <tr>
@@ -198,12 +213,12 @@ const paginatedItems = ref<Record<string, unknown>[]>([])
               v-for="col in visibleColumns"
               :key="col"
             >
-              <th
-                scope="col"
-                class="px-3 py-3.5 text-left text-sm font-semibold text-gray-900 dark:text-white"
-              >
-                {{ nctDbFieldToLabel(col.replace('.', ' ')) }}
-              </th>
+            <th
+              scope="col"
+              class="px-3 py-3.5 text-left text-sm font-semibold text-gray-900 dark:text-white"
+            >
+              {{ getColumnLabel(col) }}
+            </th>
             </template>
             <th
               scope="col"
@@ -310,8 +325,8 @@ const paginatedItems = ref<Record<string, unknown>[]>([])
                   <table class="min-w-full text-sm divide-y divide-gray-200 dark:divide-gray-700">
                     <thead>
                       <tr>
-                       <th
-                          v-for="childCol in getChildColumnsIncludingVirtual(row, arrCol)"
+                        <th
+                          v-for="childCol in getChildColumnNames(row, arrCol)"
                           :key="childCol"
                           class="px-3 py-2 text-left font-semibold text-gray-900 dark:text-white"
                         >
@@ -319,13 +334,14 @@ const paginatedItems = ref<Record<string, unknown>[]>([])
                         </th>
                       </tr>
                     </thead>
+
                     <tbody class="divide-y divide-gray-200 dark:divide-gray-700">
                       <tr
                         v-for="child in getChildRowsWithVirtualColumns(row, arrCol)"
                         :key="String(child.id)"
                       >
                         <td
-                          v-for="childCol in getChildColumnsIncludingVirtual(row, arrCol)"
+                          v-for="childCol in getChildColumnNames(row, arrCol)"
                           :key="childCol"
                           class="whitespace-nowrap px-3 py-2 text-gray-500 dark:text-gray-400"
                         >
@@ -333,14 +349,23 @@ const paginatedItems = ref<Record<string, unknown>[]>([])
                         </td>
                       </tr>
                     </tbody>
-                    <tfoot v-if="getAggregateConfig(arrCol)?.footer?.length">
+
+                    <tfoot v-if="hasFooter(arrCol)">
                       <tr class="font-semibold border-t border-gray-300 dark:border-gray-600">
                         <td
-                          v-for="childCol in getChildColumnsIncludingVirtual(row, arrCol)"
+                          v-for="childCol in getChildColumnNames(row, arrCol)"
                           :key="childCol"
                           class="px-3 py-2 text-right"
                         >
-                          {{ formatCellValue(getFooterValue(row, arrCol, childCol)) }}
+                          <template
+                            v-for="cell in (getFooterCellsByColumn(row, arrCol).get(childCol) ?? [])"
+                            :key="cell.label"
+                          >
+                            <span>{{ formatCellValue(cell.value) }}</span>
+                            <span class="block text-[10px] font-normal uppercase tracking-wide text-gray-400">
+                              {{ cell.label }}
+                            </span>
+                          </template>
                         </td>
                       </tr>
                     </tfoot>

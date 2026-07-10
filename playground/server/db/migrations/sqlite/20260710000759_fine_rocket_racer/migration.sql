@@ -21,7 +21,6 @@ CREATE TABLE `orders` (
 	`id` integer PRIMARY KEY AUTOINCREMENT,
 	`num` text NOT NULL UNIQUE,
 	`customer_id` integer NOT NULL,
-	`total_amount` numeric NOT NULL,
 	`status` text DEFAULT 'pending' NOT NULL,
 	`created_at` integer NOT NULL,
 	`updated_at` integer NOT NULL,

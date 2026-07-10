@@ -1,7 +1,7 @@
 {
   "version": "7",
   "dialect": "sqlite",
-  "id": "a52433eb-b30f-417f-ab23-e65371cead81",
+  "id": "b0388905-c717-4498-aac2-e74705bd4fbe",
   "prevIds": [
     "00000000-0000-0000-0000-000000000000"
   ],
@@ -159,16 +159,6 @@
       "default": null,
       "generated": null,
       "name": "customer_id",
-      "entityType": "columns",
-      "table": "orders"
-    },
-    {
-      "type": "numeric",
-      "notNull": true,
-      "autoincrement": false,
-      "default": null,
-      "generated": null,
-      "name": "total_amount",
       "entityType": "columns",
       "table": "orders"
     },

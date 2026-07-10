@@ -3,18 +3,14 @@ export default defineAppConfig({
     globalHide: ['updated_at'],
     aggregates: {
       orderitems: {
-        // row-level virtual columns
+        // row-level virtual columns (runs for each row)
         columns: [
-          {
-            name: 'subtotal',
-            label: 'Subtotal',
-            fn: 'multiply',
-            args: ['price', 'quantity'], // dot-paths into each row
-          },
+          // dot-paths into each row
+          { name: 'subtotal', label: 'Subtotal', fn: 'multiply', args: ['price', 'quantity'] },
         ],
         // column-level footer reductions (runs over the array of rows)
         footer: [
-          { column: 'subtotal', fn: 'sum' },
+          { name: 'total_amount', label: 'Total', column: 'subtotal', fn: 'sum', args: ['subtotal'] },
         ],
       },
     },
