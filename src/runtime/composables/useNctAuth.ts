@@ -1,22 +1,17 @@
 import { computed } from 'vue'
 import { useCookie, useRuntimeConfig, useState } from '#app'
 import { useNctHeaders } from '#imports'
-
-/**
- * Represents the authenticated user identity schema.
- */
-interface AuthUser {
-  /** The unique identifier for the user. */
-  id: number
-  /** The display name of the user. */
-  name: string
-  /** The primary email address of the user. */
-  email: string
-}
+import type { NctUser } from '../shared/types/auth'
 
 /**
  * A Nuxt composable providing authentication states and actions for the `nuxt-crud-table` workspace.
  * Handles token storage, user session persistence, SSR-safe states, and request headers.
+ * @remarks
+ * `user` is typed as the shared {@link NctUser} contract (the same type `$nctUser` expects) so that
+ * a plugin can `provide: { nctUser: user }` directly with no widening/casting. If your backend's
+ * `/auth/login`, `/auth/register`, or `/auth/user` responses don't include `role`/`permissions`,
+ * those fields simply resolve to `undefined` — permission-gated UI (`nctIsAdmin`, `nctHasPermission`)
+ * will treat that as "no elevated access", same as before.
  * @example
  * ```ts
  * const { user, isAuthenticated, login, logout } = useNctAuth()
@@ -32,7 +27,7 @@ export function useNctAuth() {
   const token = useState<string | null>('nct_auth_token', () => tokenCookie.value || null)
 
   /** The profile information of the currently authenticated user. */
-  const user = useState<AuthUser | null>('nct_auth_user', () => null)
+  const user = useState<NctUser | null>('nct_auth_user', () => null)
 
   /** Computed boolean indicating whether a valid auth token exists. */
   const isAuthenticated = computed(() => !!token.value)
@@ -50,7 +45,7 @@ export function useNctAuth() {
    */
   async function login(credentials: Record<string, string>) {
     try {
-      const data = await $fetch<{ token: string, user: AuthUser }>(`${apiBase}/auth/login`, {
+      const data = await $fetch<{ token: string, user: NctUser }>(`${apiBase}/auth/login`, {
         method: 'POST',
         body: credentials,
       })
@@ -74,7 +69,7 @@ export function useNctAuth() {
   async function register(registrationDetails: Record<string, string>) {
     try {
       // Typically Sanctum registration return structures issue a token/user payload immediately on success
-      const data = await $fetch<{ token: string, user: AuthUser }>(`${apiBase}/auth/register`, {
+      const data = await $fetch<{ token: string, user: NctUser }>(`${apiBase}/auth/register`, {
         method: 'POST',
         body: registrationDetails,
       })
@@ -122,7 +117,7 @@ export function useNctAuth() {
   async function fetchUser() {
     if (!token.value) return
     try {
-      user.value = await $fetch<AuthUser>(`${apiBase}/auth/user`, {
+      user.value = await $fetch<NctUser>(`${apiBase}/auth/user`, {
         headers: useNctHeaders(),
       })
     }
