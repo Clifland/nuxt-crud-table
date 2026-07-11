@@ -16,8 +16,11 @@ const loading = ref(false)
 async function onSubmit(data: Record<string, unknown>) {
   loading.value = true
   try {
-    await useNctCrudFetch('POST', props.resource, null, data)
-    open.value = false
+    const success = await useNctCrudFetch('POST', props.resource, null, data)
+
+    if (success) {
+      open.value = false
+    }
   }
   finally {
     loading.value = false

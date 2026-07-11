@@ -29,12 +29,15 @@ export function useNctFormState(
     if (field.type === 'date' && value) {
       const date = new Date(value as string | number | Date)
 
-      // Convert to local datetime format suitable for <input type="datetime-local">
-      const local = new Date(date.getTime() - date.getTimezoneOffset() * 60000)
-        .toISOString()
-        .slice(0, 16)
-
-      value = local
+      if (!Number.isNaN(date.getTime())) {
+        const local = new Date(date.getTime() - date.getTimezoneOffset() * 60000)
+          .toISOString()
+          .slice(0, 16)
+        value = local
+      }
+      else {
+        value = ''
+      }
     }
 
     state[field.name] = value

@@ -8,22 +8,25 @@ import { useNctHeaders, useToast } from '#imports'
  * @example
  * ```ts
  * // Create a record
- * await useNctCrudFetch('POST', 'users', null, { name: 'John Doe' })
- * // Update a record
- * await useNctCrudFetch('PATCH', 'users', 42, { name: 'Jane Doe' })
+ * const success = await useNctCrudFetch('POST', 'users', null, { name: 'John Doe' })
+ * if (success) {
+ *   // e.g. close a modal, reset a form
+ * }
  * ```
  * @param {'POST' | 'PATCH' | 'DELETE'} method - The structural mutation HTTP request method to execute.
  * @param {string} resource - The name of the target resource endpoint (e.g., 'users', 'posts').
  * @param {number | null} [id] - The record unique ID identifier (required for 'PATCH' and 'DELETE').
  * @param {Record<string, unknown> | null} [data] - The payload body data to pass to the request server context.
- * @returns {Promise<void>} Resolves once the mutation completes and cache tags are invalidated.
+ * @returns {Promise<boolean>} Resolves to `true` once the mutation completes and cache tags are invalidated,
+ * or `false` if the request failed — a toast is shown either way, but callers that need to gate follow-up
+ * behavior (e.g. only closing a modal on success) should check this return value rather than assuming success.
  */
 export async function useNctCrudFetch(
   method: 'POST' | 'PATCH' | 'DELETE',
   resource: string,
   id: number | null = null,
   data: Record<string, unknown> | null = null,
-) {
+): Promise<boolean> {
   const { apiBase } = useRuntimeConfig().public.crudTable
 
   const toastMessage: Record<
@@ -66,6 +69,7 @@ export async function useNctCrudFetch(
     })
 
     await refreshNuxtData()
+    return true
   }
   catch {
     useToast().add({
@@ -73,5 +77,6 @@ export async function useNctCrudFetch(
       description: toastMessage[method].errorMessage,
       color: 'error',
     })
+    return false
   }
 }

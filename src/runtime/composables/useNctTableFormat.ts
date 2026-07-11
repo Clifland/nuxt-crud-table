@@ -20,12 +20,20 @@ const ISO_DATE_REGEX = /^\d{4}-\d{2}-\d{2}T\d{2}:\d{2}:\d{2}(?:\.\d+)?Z$/
 export function useNctTableFormat() {
   /**
    * Evaluates a dynamic field value and transforms it into a localized readable string if an ISO date signature is detected.
+   * @remarks
+   * The regex only checks digit-shape, not calendar validity — a string can match the pattern
+   * (e.g. `'9999-99-99T99:99:99Z'`) without being a real date. Guards against `new Date(...)`
+   * producing an `Invalid Date` by falling back to the original raw value in that case, rather
+   * than silently rendering the literal text `"Invalid Date"` in a table cell.
    * @param {unknown} value - The cell primitive or variable data to evaluate.
-   * @returns {unknown} The formatted string if an ISO date format is matched; otherwise, the original value.
+   * @returns {unknown} The formatted string if an ISO date format is matched and calendar-valid; otherwise, the original value.
    */
   function formatCellValue(value: unknown): unknown {
     if (typeof value === 'string' && ISO_DATE_REGEX.test(value)) {
-      return new Date(value).toLocaleString()
+      const date = new Date(value)
+      if (!Number.isNaN(date.getTime())) {
+        return date.toLocaleString()
+      }
     }
     return value
   }
@@ -78,19 +86,26 @@ export function useNctTableFormat() {
   }
 
   /**
-   * Identifies foreign key columns by matching properties ending with `_id` against paired side-loaded relation objects.
+   * Identifies foreign key columns by matching properties ending with `_id` (snake_case) or `Id`
+   * (camelCase) against paired side-loaded relation objects — mirrors the dual-suffix convention
+   * used elsewhere in the module (e.g. `Form.vue`'s relation-field detection).
    * @example
    * ```ts
    * // If row contains { customer_id: 5, customer: { name: 'Acme Corp' } }
    * getForeignKeyColumns(row) // Returns: ['customer_id']
+   * // Also detects the camelCase convention:
+   * // { customerId: 5, customer: { name: 'Acme Corp' } } -> ['customerId']
    * ```
    * @param {Record<string, unknown>} row - The single domain row item.
    * @returns {string[]} A list of column names that are confirmed to act as structural foreign key values.
    */
   function getForeignKeyColumns(row: Record<string, unknown>): string[] {
     return Object.keys(row).filter((key) => {
-      if (!key.endsWith('_id')) return false
-      const relationKey = key.slice(0, -3) // 'customer_id' -> 'customer'
+      let relationKey: string | null = null
+      if (key.endsWith('_id')) relationKey = key.slice(0, -3) // 'customer_id' -> 'customer'
+      else if (key.endsWith('Id')) relationKey = key.slice(0, -2) // 'customerId' -> 'customer'
+
+      if (!relationKey) return false
       return relationKey in row && typeof row[relationKey] === 'object' && row[relationKey] !== null
     })
   }
@@ -99,6 +114,9 @@ export function useNctTableFormat() {
    * Searches a child object record to extract keys that act as backward reference indicators to its parent record instance.
    * @remarks
    * Helps filter out redundant operational foreign key bindings from rendering when browsing an embedded sub-table.
+   * Values are compared via `Number()` coercion (matching {@link nctIsOwner}'s convention elsewhere in the module),
+   * so a string-typed child FK (`"1"`) still matches a numeric parent id (`1`) — relevant for backends
+   * (e.g. some Laravel/JSON serialization paths) that emit IDs as strings.
    * @param {Record<string, unknown>} childRow - The sub-table row entry metadata to evaluate.
    * @param {Record<string, unknown>} parentRow - The active parent table row instance serving as context root.
    * @returns {string[]} An array of field strings that mirror parent unique identity parameters.
@@ -108,7 +126,7 @@ export function useNctTableFormat() {
     parentRow: Record<string, unknown>,
   ): string[] {
     return Object.keys(childRow).filter(key =>
-      key.endsWith('_id') && childRow[key] === parentRow.id,
+      key.endsWith('_id') && Number(childRow[key]) === Number(parentRow.id),
     )
   }
 
