@@ -1,29 +1,15 @@
 import '@nuxt/schema'
-import type { ModuleOptions } from '../module'
 import type { NctUser } from './shared/types/auth'
+import type { NctCrudTableConfig } from './shared/types/config'
 
 declare module '@nuxt/schema' {
-  interface PublicRuntimeConfig {
+  interface AppConfig {
     /**
-     * Runtime configuration options for the Nuxt Crud Table environment.
-     * Maps schema defaults, visibility guidelines, and authorization gates across the application.
-     * @remarks
-     * These options originate from your inline keys or `crudTable` configuration blocks
-     * defined directly inside `nuxt.config.ts`.
-     * @example
-     * ```ts
-     * export default defineNuxtConfig({
-     * runtimeConfig: {
-     * public: {
-     * crudTable: {
-     * auth: true
-     * }
-     * }
-     * }
-     * })
-     * ```
+     * Field-visibility, export, and aggregate configuration for nct tables/forms.
+     * Set via `app.config.ts`'s `crud` key. Hot-reloadable at runtime, unlike
+     * `crudTable` (module options), which requires a rebuild to change.
      */
-    crudTable: ModuleOptions
+    crud?: NctCrudTableConfig
   }
 }
 
@@ -34,4 +20,4 @@ declare module '#app' {
   }
 }
 
-export {}
+export { }

@@ -1,10 +1,9 @@
 <script setup lang="ts">
 import { computed, ref } from 'vue'
 import { useRuntimeConfig, useAppConfig, useFetch, useNuxtApp } from '#app'
-import { useNctAggregates, useNctHeaders, nctDbFieldToLabel, nctHasRowPermission, nctHasPermission, useNctExport, useNctCrudFetch, useNctTableFormat, useToast } from '#imports'
+import { useNctAggregates, useNctHeaders, nctDbFieldToLabel, nctHasRowPermission, nctHasPermission, useNctExport, useNctCrudFetch, useNctTableFormat, useToast, resolveHiddenFields, isFieldHidden, NCT_TABLE_HIDDEN_FIELDS } from '#imports'
 
 import type { NctSchemaDefinition } from '../../../../shared/types/schema'
-import type { NctCrudTableConfig } from '../../../../shared/types/config'
 
 const { $nctUser } = useNuxtApp()
 const user = $nctUser ?? null
@@ -54,7 +53,7 @@ async function onDelete(id: number) {
 }
 
 const { exportToExcel, exportToPDF } = useNctExport()
-const crudConfig = useAppConfig().crud as NctCrudTableConfig
+const crudConfig = useAppConfig().crud
 const isExportEnabled = !!crudConfig?.exports
 
 const { formatCellValue, getColumnValue, flattenKeys, getArrayColumns, getForeignKeyColumns, getParentBackReferenceColumns } = useNctTableFormat()
@@ -69,8 +68,7 @@ function toggleExpand(id: number) {
   }
 }
 
-const appConfig = useAppConfig().crud as NctCrudTableConfig
-const aggregatesConfig = appConfig?.aggregates ?? {}
+const aggregatesConfig = crudConfig?.aggregates ?? {}
 
 const { withParentFooterColumns } = useNctAggregates(records, aggregatesConfig)
 const augmentedRecords = withParentFooterColumns() // records + any rolled-up child footer columns
@@ -86,13 +84,13 @@ function getColumnLabel(col: string): string {
 
 const visibleColumns = computed(() => {
   if (!augmentedRecords.value?.length) return []
-  const hideList = crudConfig?.globalHide ?? []
+  const hideList = resolveHiddenFields(crudConfig?.tableHiddenFields, props.resource, NCT_TABLE_HIDDEN_FIELDS)
   const hideForeignKeys = crudConfig?.hideForeignKeys ?? true
   const firstRow = augmentedRecords.value[0] as Record<string, unknown>
 
   const fkColumns = hideForeignKeys ? getForeignKeyColumns(firstRow) : []
 
-  return flattenKeys(firstRow).filter(key => !hideList.includes(key) && !fkColumns.includes(key))
+  return flattenKeys(firstRow).filter(key => !isFieldHidden(key, hideList) && !fkColumns.includes(key))
 })
 
 function getChildColumns(row: Record<string, unknown>, arrCol: string): string[] {

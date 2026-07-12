@@ -1,8 +1,8 @@
 <script setup lang="ts">
 import { computed, reactive } from 'vue'
 import type { FormSubmitEvent } from '@nuxt/ui'
-import { useRuntimeConfig, useNuxtApp } from '#app'
-import { useNctDynamicZodSchema, nctHasPermission } from '#imports'
+import { useAppConfig, useNuxtApp } from '#app'
+import { useNctDynamicZodSchema, nctHasPermission, resolveHiddenFields, isFieldHidden, NCT_FORM_HIDDEN_FIELDS } from '#imports'
 import { useChangeCase } from '@vueuse/integrations/useChangeCase'
 
 import type { NctSchemaDefinition } from '../../../../shared/types/schema'
@@ -18,13 +18,14 @@ const emit = defineEmits<{
   (e: 'close'): void
 }>()
 
-// filter out system fields
-const config = useRuntimeConfig()
-const { formHiddenFields } = config.public.crudTable
+// filter out system fields — resolved from app.config.ts's crud.formHiddenFields
+// (hot-reloadable at runtime), falling back to nct's built-in default when unset
+const crudConfig = useAppConfig().crud
+const hiddenFields = resolveHiddenFields(crudConfig?.formHiddenFields, props.schema.resource, NCT_FORM_HIDDEN_FIELDS)
 
 const filteredFields = props.schema.fields.filter((field) => {
-  // Hide globally restricted form fields
-  if (formHiddenFields.includes(field.name)) return false
+  // Hide globally/per-resource restricted form fields
+  if (isFieldHidden(field.name, hiddenFields)) return false
 
   // Hide status field during initial record creation stages
   if (field.name === 'status' && !props.initialState) return false

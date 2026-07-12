@@ -1,4 +1,4 @@
-import { describe, it, expect, vi, beforeEach } from 'vitest'
+import { describe, it, expect, vi, beforeEach, afterEach } from 'vitest'
 import { mockNuxtImport, mountSuspended } from '@nuxt/test-utils/runtime'
 import { nextTick } from 'vue'
 import CreateRow from '../../src/runtime/app/components/nct/crud/CreateRow.vue'
@@ -16,11 +16,6 @@ const schema: NctSchemaDefinition = {
   fields: [{ name: 'name', type: 'string', required: true }],
 }
 
-// CreateRow's own <script setup> bindings (open, loading, onSubmit) are
-// accessed directly via wrapper.vm, the same pattern already used in
-// Table.spec.ts — this lets us drive/assert the component's logic without
-// needing NctCrudForm to actually render (it only mounts once the modal is
-// open, which these tests never trigger via the UI).
 interface CreateRowInstance {
   open: boolean
   loading: boolean
@@ -31,6 +26,14 @@ describe('CreateRow.vue', () => {
   beforeEach(() => {
     vi.clearAllMocks()
     hoisted.crudFetch.mockResolvedValue(true)
+  })
+
+  afterEach(() => {
+    // UModal's #content slot is teleported to document.body (outside the
+    // mounted wrapper's own DOM tree) and isn't cleaned up automatically —
+    // clear it between tests so leftover teleported markup from one test
+    // can't leak into another's assertions.
+    document.body.innerHTML = ''
   })
 
   it('derives a singular, capitalized resource name for the "Add New X" button label', async () => {
@@ -95,10 +98,6 @@ describe('CreateRow.vue', () => {
   })
 
   it('shows a fallback message when schema is falsy, even though the prop is typed as required', async () => {
-    // TS marks `schema` as required, but nothing prevents a caller from
-    // passing a falsy value at runtime — the v-else fallback exists for
-    // exactly that case. The fallback text lives inside UModal's #content
-    // slot, which only mounts once the modal is open, so we open it first.
     const wrapper = await mountSuspended(CreateRow, {
       props: { resource: 'users', schema: undefined as unknown as NctSchemaDefinition },
     })
@@ -106,6 +105,6 @@ describe('CreateRow.vue', () => {
     instance.open = true
     await nextTick()
 
-    expect(wrapper.text()).toContain('No schema provided for users')
+    expect(document.body.textContent).toContain('No schema provided for users')
   })
 })

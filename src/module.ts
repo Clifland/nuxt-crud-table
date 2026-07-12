@@ -1,7 +1,5 @@
 import { defineNuxtModule, addComponentsDir, createResolver, addImportsDir, addVitePlugin } from '@nuxt/kit'
 
-import { NCT_FORM_HIDDEN_FIELDS } from './runtime/app/utils/constants'
-
 /**
  * TypeScript definitions mapping configurable initialization options for the Nuxt Crud Table module.
  */
@@ -19,12 +17,6 @@ export interface ModuleOptions {
   auth: false | { authentication: 'nuxt-auth-utils' | 'sanctum' }
 
   /**
-   * Global array mapping property key terms omitted from generating operational fields in form states.
-   * @default NCT_FORM_HIDDEN_FIELDS
-   */
-  formHiddenFields: string[]
-
-  /**
    * An optional functional evaluator supplying a structured dictionary map of network authorization headers.
    * @remarks Useful for extracting localized browser cookies or dynamic authorization bearers safely.
    * @default () => ({})
@@ -37,6 +29,9 @@ declare module '@nuxt/schema' {
     /**
      * Public runtime options mapping parameters across client components and global composables.
      * @note Excludes the `headers` method interceptor to protect structural configuration environments.
+     * @note Field-visibility settings (`tableHiddenFields`/`formHiddenFields`) live in `app.config.ts`'s
+     * `crud` key instead of here — see {@link NctCrudTableConfig} — since those are the kind of setting
+     * a host app tends to iterate on without wanting a rebuild.
      */
     crudTable: Omit<ModuleOptions, 'headers'>
   }
@@ -57,7 +52,6 @@ export default defineNuxtModule<ModuleOptions>({
   defaults: {
     apiBase: '/api/_nac',
     auth: false,
-    formHiddenFields: NCT_FORM_HIDDEN_FIELDS,
     headers: () => ({}),
   },
 
@@ -68,7 +62,6 @@ export default defineNuxtModule<ModuleOptions>({
     _nuxt.options.runtimeConfig.public.crudTable = {
       apiBase: _options.apiBase,
       auth: _options.auth,
-      formHiddenFields: _options.formHiddenFields,
     }
 
     // Register module directories containing runtime components, helpers, and plugins

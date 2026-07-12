@@ -1,6 +1,16 @@
 export default defineAppConfig({
   crud: {
-    globalHide: ['updated_at'],
+    tableHiddenFields: {
+      default: ['updated_at'],
+    },
+    formHiddenFields: {
+      // nct's built-in defaults (id, timestamps, etc.) still apply unless
+      // you set `default` explicitly here — this only adds a per-resource
+      // extra, on top of the built-in default.
+      resources: {
+        products: ['sku'], // e.g. sku is set once at creation and never edited again
+      },
+    },
     aggregates: {
       orderitems: {
         // row-level virtual columns (runs for each row)

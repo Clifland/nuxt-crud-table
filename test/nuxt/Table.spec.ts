@@ -7,7 +7,7 @@ const { hoistedMocks } = vi.hoisted(() => {
   return {
     hoistedMocks: {
       toastAdd: vi.fn(),
-      crudFetch: vi.fn(() => Promise.resolve({ success: true })),
+      crudFetch: vi.fn(() => Promise.resolve(true)),
     },
   }
 })
@@ -17,8 +17,8 @@ vi.mock('#app', async (importOriginal) => {
   const actual = await importOriginal<typeof import('#app')>()
   return {
     ...actual,
-    useRuntimeConfig: () => ({ public: { crudTable: { apiBase: '/api/_nac', formHiddenFields: [] } } }),
-    useAppConfig: () => ({ crud: { globalHide: ['password'], exports: true } }),
+    useRuntimeConfig: () => ({ public: { crudTable: { apiBase: '/api/_nac' } } }),
+    useAppConfig: () => ({ crud: { tableHiddenFields: ['password'], exports: true } }),
   }
 })
 

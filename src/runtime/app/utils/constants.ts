@@ -1,40 +1,57 @@
 /**
- * A collection of field names that represent strictly internal or sensitive data.
+ * @internal
+ * Categorization only — documents which fields a backend implementation (e.g. nac)
+ * should never serialize over the API in the first place. NOT consumed by any of
+ * nct's client-side filtering logic, and not exported: hiding a field client-side
+ * after it has already arrived in an API response provides no actual protection —
+ * that's the backend's responsibility (Laravel's `$hidden`/`$guarded`, or simply
+ * never selecting the column in the first place).
  * @remarks
- * These fields are designated for backend consumption and should never be exposed
- * or leaked beyond the server context.
+ * Deliberately snake_case, as a reminder that these correspond to raw DB columns,
+ * not a casing convention nct itself enforces elsewhere.
  * @type {string[]}
  */
-export const NCT_API_HIDDEN_FIELDS: string[] = [
+// eslint-disable-next-line @typescript-eslint/no-unused-vars
+const API_HIDDEN_FIELDS: string[] = [
   'password', 'secret', 'token',
-  'resetToken', 'resetExpires',
-  'githubId', 'googleId',
+  'reset_token', 'reset_expires',
+  'github_id', 'google_id',
 ]
 
 /**
- * An array of field keys that must be omitted automatically when rendering
- * entry or modification forms.
+ * Default structural/system fields hidden from forms — fields that are
+ * server-managed and never meant to be hand-edited through a generic CRUD form.
  * @remarks
- * Inherits all fields from {@link NCT_API_HIDDEN_FIELDS} and appends standard metadata
- * properties (like IDs and timestamps) that should not be manually modified by users.
+ * Deliberately excludes anything from {@link API_HIDDEN_FIELDS} — if the API
+ * contract is respected, those fields never reach the frontend at all, so
+ * there's nothing here for `formHiddenFields` to hide.
+ * @remarks
+ * Case-convention-agnostic by design — comparisons against this list go through
+ * {@link isFieldHidden}, which normalizes both sides to snake_case, so listing
+ * `created_at` here also matches a `createdAt` field arriving from a
+ * camelCase-convention API. No need to list both variants.
+ * @remarks
+ * This is the *default* used when `app.config.ts`'s `crud.formHiddenFields`
+ * is unset. A host app's own `default` array (if provided) replaces this
+ * entirely rather than merging with it — see {@link resolveHiddenFields}.
  * @type {string[]}
  */
 export const NCT_FORM_HIDDEN_FIELDS: string[] = [
-  ...NCT_API_HIDDEN_FIELDS,
   'id', 'uuid',
-  'createdAt', 'updatedAt', 'deletedAt', 'createdBy', 'updatedBy', 'deletedBy', 'resetToken',
-  'created_at', 'updated_at', 'deleted_at', 'created_by', 'updated_by', 'deleted_by', 'reset_token',
+  'created_at', 'updated_at', 'deleted_at',
+  'created_by', 'updated_by', 'deleted_by',
 ]
 
 /**
- * Fields that are hidden by default from being rendered as columns in the main data grid view.
+ * Default fields hidden from the main data table/list view.
  * @remarks
- * Typically includes operational timestamps or tracking metrics that crowd the UI,
- * but remain accessible under the hood.
+ * Same case-agnostic matching behavior as {@link NCT_FORM_HIDDEN_FIELDS} — see
+ * {@link isFieldHidden}. This is the default used when `app.config.ts`'s
+ * `crud.tableHiddenFields` is unset.
  * @type {string[]}
  */
-export const NCT_DATA_TABLE_HIDDEN_FIELDS: string[] = [
-  'updatedAt', 'deletedAt', 'createdBy', 'updatedBy',
+export const NCT_TABLE_HIDDEN_FIELDS: string[] = [
+  'updated_at', 'deleted_at', 'created_by', 'updated_by',
 ]
 
 /**

@@ -1,4 +1,4 @@
-import { describe, it, expect, vi, beforeEach } from 'vitest'
+import { describe, it, expect, vi, beforeEach, afterEach } from 'vitest'
 import { mockNuxtImport, mountSuspended } from '@nuxt/test-utils/runtime'
 import { nextTick } from 'vue'
 import EditRow from '../../src/runtime/app/components/nct/crud/EditRow.vue'
@@ -33,6 +33,14 @@ describe('EditRow.vue', () => {
   beforeEach(() => {
     vi.clearAllMocks()
     hoisted.crudFetch.mockResolvedValue(true)
+  })
+
+  afterEach(() => {
+    // UModal's #content slot is teleported to document.body, outside the
+    // mounted wrapper's own DOM tree, and isn't cleaned up automatically —
+    // clear it between tests so leftover teleported markup from one test
+    // can't leak into another's assertions.
+    document.body.innerHTML = ''
   })
 
   describe('state hydration', () => {
@@ -139,6 +147,6 @@ describe('EditRow.vue', () => {
     instance.open = true
     await nextTick()
 
-    expect(wrapper.text()).toContain('No schema provided for users')
+    expect(document.body.textContent).toContain('No schema provided for users')
   })
 })

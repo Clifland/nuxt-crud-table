@@ -96,6 +96,9 @@ export interface NctSchemaDefinition {
 
 ```
 
+> [!IMPORTANT]
+> Your API should never serialize security-sensitive fields (passwords, tokens, third-party OAuth ids, password-reset tokens, etc.) in the first place — `nct` is a rendering layer and has no way to un-leak a field that's already crossed the network. Hiding such a field client-side via `formHiddenFields` provides no protection; that's strictly the backend's responsibility (e.g. Laravel's `$hidden`/`$guarded`, or simply not selecting the column).
+
 ---
 
 ### 2. Frontend Application Setup
@@ -109,29 +112,26 @@ NUXT_PUBLIC_CRUD_TABLE_API_BASE=http://localhost:8000/api
 
 ```
 
-### Step B: Providing Authentication Context via Plugin (Optional)
+#### Step B: Define Global Request Headers (Optional)
 
-If your application uses authentication, you can "provide" your ***authenticated user*** and ***request headers*** globally to the `nuxt-crud-table` module by creating a Nuxt plugin as shown below.
-
-```typescript
-// eg: plugins/nct-auth.ts
-export default defineNuxtPlugin(() => {
-  const { user, authHeaders } = useNctAuth() // Or your own auth logic
-
-  return {
-    provide: {
-      nctAuthHeaders: () => authHeaders.value, // Must return a flat object of headers, e.g., { Authorization: 'Bearer ...' }
-      nctUser: user,
-    }
-  }
-})
-
-```
-
+If your app uses authentication, you can supply a `headers` function in your module config to attach auth tokens (or any other metadata) to internal engine fetch requests.
 
 > [!NOTE]
-> You are **not forced** to use any specific authentication library. You can use your own custom logic, `useCookie`, or third-party modules. The module only requires that your plugin `provide` the `nctAuthHeaders` function and the `nctUser` state as shown above.
+> This step is **optional**. If you don't set `headers`, requests are sent without any extra headers by default — no dummy function or extra file required.
 
+```ts
+// nuxt.config.ts
+export default defineNuxtConfig({
+  crudTable: {
+    headers: () => ({
+      Authorization: `Bearer ${useCookie('token').value || ''}`
+    })
+  }
+})
+```
+
+> [!IMPORTANT]
+> The `headers` function must be self-contained — it can't reference variables from outside its own body (e.g. imported constants or module-level variables), since it's serialized at build time. You can safely use Nuxt auto-imports like `useCookie` or `useRuntimeConfig` inside it, since those resolve globally.
 
 #### Step C: Mount the Unified Table Layout Workspace
 
@@ -157,19 +157,34 @@ const resource = route.params.slug as string
 
 #### Step D: Optional Customization Rules (`app.config.ts`)
 
-Override field visibility parameters, structural presentation rules, or data extraction exclusions directly using your root runtime configurations layout:
+Override field visibility, structural presentation rules, or data extraction exclusions via your `app.config.ts`'s `crud` key. Unlike `nuxt.config.ts`'s `crudTable` module options (which require a rebuild to change), everything here is hot-reloadable at runtime.
 
 ```ts
 // app.config.ts
 export default defineAppConfig({
   crud: {
-    // Columns globally filtered from UI layouts
-    globalHide: ['updatedAt', 'deletedAt', 'createdBy', 'updatedBy', 'resetToken'],
+    // Fields hidden from the main data table/list view.
+    // Either a bare array (applied to every resource), or an object with an
+    // optional `default` (replaces nct's built-in default entirely, if given)
+    // plus per-resource `resources` additions.
+    tableHiddenFields: {
+      default: ['updated_at', 'deleted_at', 'created_by', 'updated_by'],
+    },
+
+    // Fields hidden from create/edit forms. Same shape as tableHiddenFields.
+    // Field-name matching is case-convention-agnostic — listing `created_at`
+    // also matches a `createdAt` field arriving from a camelCase API, so
+    // there's no need to list both variants.
+    formHiddenFields: {
+      resources: {
+        users: ['password_confirmation'], // an extra on top of nct's built-in default
+      },
+    },
 
     // Export layout targeting metrics
     exports: {
       pdf: {
-        globalExclude: ['avatar', 'resetToken', 'resetExpires'],
+        globalExclude: ['avatar'],
         resourceExclude: {
           users: ['password', 'googleId', 'githubId']
         }
@@ -185,75 +200,6 @@ export default defineAppConfig({
 })
 
 ```
-
----
-
-## Relations & Aggregates
-
-NAC can automatically display relations.
-
-Once the API returns data in this shape:
-
-```json
-// orders
-[
-  {
-    "id": 1,
-    ...
-    // parent table (belongsTo relation)
-    "customer": {
-      "name": "John Doe",
-      "email": "ha.doe@example.com"
-    },
-    // child table (hasMany relation)
-    "orderitems": [
-      {
-        "id": 1,
-        ...
-        "product": {
-          "name": "micro computer",
-          "price": 100.05
-        }
-      }
-    ]
-  }
-]
-```
-
-`customer.name` and `customer.email` will be displayed alongside the main columns. `orderitems` will be displayed as a toggleable child table.
-
-### Aggregate functions
-
-NAC supports common aggregate functions — **sum**, **count**, **avg**, **min**, **max** — applied vertically (across rows), and arithmetic functions — **multiply**, **add**, **subtract**, **divide** — applied horizontally (across columns within a row).
-
-These can be configured as shown in this example billing app config:
-
-```ts
-export default defineAppConfig({
-  crud: {
-    aggregates: {
-      orderitems: {
-        // row-level virtual columns (computed for each row)
-        columns: [
-          // fn: multiply | add | subtract | divide
-          { name: 'linetotal', label: 'Line total', fn: 'multiply', args: ['price', 'quantity'] },
-        ],
-        // column-level footer reductions (computed over the array of rows)
-        footer: [
-          // fn: sum | count | avg | min | max
-          { name: 'total_amount', label: 'Total Amount', fn: 'sum', args: ['linetotal'] },
-        ],
-      },
-    },
-  },
-})
-```
-
-This means that when `orderitems` is displayed as a child table, its `price` and `quantity` are multiplied together and shown as the last column, named `linetotal` with the label "Line Total". The footer then displays the total of that `linetotal` column.
-
-**Note:** the `args` value in a footer entry refers to the name of the virtual column created above it (`linetotal`), not a raw field from the API response.
-
-**Note:** aggregates currently work on child tables only. This is a deliberate design decision for performance reasons, and will be revisited once NCT supports backend pagination.
 
 ---
 
