@@ -1,5 +1,5 @@
 <script setup lang="ts">
-import { ref, computed } from 'vue'
+import { ref } from 'vue'
 import type { NctSchemaDefinition } from '../../../../shared/types/schema'
 import { useChangeCase } from '@vueuse/integrations/useChangeCase'
 import { useNctCrudFetch } from '#imports'
@@ -27,10 +27,8 @@ async function onSubmit(data: Record<string, unknown>) {
   }
 }
 
-const singularResourceName = computed(() => {
-  const singular = pluralize.singular(props.resource)
-  return useChangeCase(singular, 'capitalCase').value
-})
+const singular = pluralize.singular(props.resource)
+const singularResourceName = useChangeCase(singular, 'capitalCase').value
 </script>
 
 <template>
