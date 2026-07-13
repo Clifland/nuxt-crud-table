@@ -98,8 +98,6 @@ describe('useNctDynamicZodSchema', () => {
 
     it('documents that z.date() rejects the "YYYY-MM-DDTHH:mm" string Form.vue actually submits', () => {
       const schema = useNctDynamicZodSchema(fields, false)
-      // useNctFormState() and <UInput type="datetime-local"> both produce/consume
-      // plain strings like "2026-07-08T14:26" — never a real JS Date instance.
       const result = schema.safeParse({ publishedAt: '2026-07-08T14:26' })
       // THIS CURRENTLY FAILS (success === false). If/when the date rule is fixed
       // (e.g. z.coerce.date() or a string-based ISO validator), flip this assertion

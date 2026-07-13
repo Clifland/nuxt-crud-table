@@ -39,7 +39,6 @@ Pagination is delegated to `NctCommonPagination` (outside `crud/` scope) via an 
 ### 3. Internal Composable Wiring Within `crud/`
 
 - **`useNctCrudFetch`** — the only path for mutations (`POST`/`PATCH`/`DELETE`). Centralizes endpoint construction, `useNctHeaders()` injection, toast feedback, and `refreshNuxtData()` cache-busting. Called from `Table.vue` (delete), `CreateRow.vue`, and `EditRow.vue` (create/update) — none of these components hit `$fetch` directly.
-- **`useNctFormState`** — used exclusively by `EditRow.vue` inside a `watch(open, ...)` handler to build the `ref`-backed initial state.
 - **`useNctDynamicZodSchema`** — consumed by `Form.vue` only, translating `NctField[]` into a live Zod object gating `UForm`'s `:schema`.
 - **`useNctHeaders`** — thin auth-header accessor, consumed by every fetch call across `Table.vue`, `NameList.vue`, and `useNctCrudFetch`.
 - **`nctHasPermission` / `nctHasRowPermission`** (from `abilities.ts` utils) — gate every action-button's visibility in `Table.vue`; `nctIsOwner`-style row checks are what let `EditRow`/`ViewRow`/delete diverge per-row rather than per-resource.
