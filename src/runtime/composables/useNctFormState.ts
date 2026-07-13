@@ -3,9 +3,11 @@ import { reactive } from 'vue'
 /**
  * A composable utility that creates a reactive form state object initialized with
  * fields metadata and an optional seed dataset.
+ *
  * @remarks
  * This function processes field defaults and automatically standardizes date metrics into local time
  * strings formatted for compatibility with structural forms (`YYYY-MM-DDTHH:mm`).
+ *
  * @example
  * ```ts
  * const fields = [{ name: 'publishedAt', type: 'date' }]
@@ -13,9 +15,10 @@ import { reactive } from 'vue'
  * const formState = useNctFormState(fields, initial)
  * // formState.publishedAt will be formatted as: "2026-07-08T14:26"
  * ```
- * @param {{ name: string, type: string, required?: boolean }[]} fields - An array of metadata configurations representing form field items.
- * @param {Record<string, unknown>} [initialState] - Optional payload object containing pre-existing values used to hydrate form modifications.
- * @returns {Record<string, unknown>} A reactive Vue object map holding stateful properties key-value indicators.
+ *
+ * @param fields - An array of metadata configurations representing form field items.
+ * @param initialState - Optional payload object containing pre-existing values used to hydrate form modifications.
+ * @returns A reactive Vue object map holding stateful properties key-value indicators.
  */
 export function useNctFormState(
   fields: { name: string, type: string, required?: boolean }[],

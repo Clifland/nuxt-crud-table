@@ -1,9 +1,21 @@
 <script setup lang="ts">
 import { ref, computed } from 'vue'
 
+/**
+ * Two-way binding macro handling the user's password string value.
+ */
 const modelValue = defineModel<string>()
+
+/**
+ * Local flag toggling visibility profile of the raw password input text masks.
+ */
 const show = ref(false)
 
+/**
+ * Checks a string sequence against standard complexity criteria matrices.
+ * * @param str - The raw password string sequence under validation checks.
+ * @returns An array containing evaluation flags paired with descriptive string rules.
+ */
 function checkStrength(str: string) {
   const requirements = [
     { regex: /.{8,}/, text: 'At least 8 characters' },
@@ -18,9 +30,22 @@ function checkStrength(str: string) {
   }))
 }
 
+/**
+ * Computed validation array mapping which rule parameters have been satisfied.
+ * * @returns An array list of dynamic checklist status objects.
+ */
 const strength = computed(() => checkStrength(modelValue.value || ''))
+
+/**
+ * Computed aggregate integer ranking complexity from `0` to `4`.
+ * * @returns The final summation tally indicating passed requirement rules.
+ */
 const score = computed(() => strength.value.filter(req => req.met).length)
 
+/**
+ * Computed theme color profile mappings mapped directly into Nuxt UI component frameworks.
+ * * @returns A string semantic matching `neutral`, `error`, `warning`, or `success`.
+ */
 const color = computed(() => {
   if (score.value === 0) return 'neutral'
   if (score.value <= 1) return 'error'
@@ -29,6 +54,10 @@ const color = computed(() => {
   return 'success'
 })
 
+/**
+ * Computed evaluation assigning localized warning string tags based upon scoring metrics.
+ * * @returns The visual feedback evaluation string.
+ */
 const text = computed(() => {
   if (score.value === 0) return 'Enter a password'
   if (score.value <= 2) return 'Weak password'

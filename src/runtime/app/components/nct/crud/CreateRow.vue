@@ -5,14 +5,35 @@ import { useChangeCase } from '@vueuse/integrations/useChangeCase'
 import { useNctCrudFetch } from '#imports'
 import pluralize from 'pluralize'
 
+/**
+ * Component properties configuration.
+ */
 const props = defineProps<{
+  /**
+   * The target plural identifier mapping the backend resource endpoint.
+   */
   resource: string
+  /**
+   * The metadata structural layout definition utilized to populate and validate the internal dynamic form.
+   */
   schema: NctSchemaDefinition
 }>()
 
+/**
+ * Local visibility flag regulating the activation status profile of the layout dialog modal framework.
+ */
 const open = ref(false)
+
+/**
+ * Local asynchronous network state tracking when an API network write request block is active.
+ */
 const loading = ref(false)
 
+/**
+ * Dispatches an asynchronous request block containing modified payload details toward backend data layers.
+ * * @param data - The parsed field key-value pairs captured from the form workspace layout.
+ * @returns A promise resolving when the form submission lifecycle routine completes.
+ */
 async function onSubmit(data: Record<string, unknown>) {
   loading.value = true
   try {
@@ -27,7 +48,14 @@ async function onSubmit(data: Record<string, unknown>) {
   }
 }
 
+/**
+ * The singularized variation of the plural parameter string sequence.
+ */
 const singular = pluralize.singular(props.resource)
+
+/**
+ * Computed title string converting raw database tags into readable text representations.
+ */
 const singularResourceName = useChangeCase(singular, 'capitalCase').value
 </script>
 
@@ -41,14 +69,12 @@ const singularResourceName = useChangeCase(singular, 'capitalCase').value
 
     <template #content>
       <div class="p-6 w-[400px] rounded-lg shadow-lg">
-        <!-- Modal header -->
         <h2 class="text-lg font-semibold mb-4">
           Add New {{ singularResourceName }}
         </h2>
         <hr>
 
         <div class="mt-4">
-          <!-- Dynamic form -->
           <div v-if="schema">
             <NctCrudForm
               :schema="schema"
@@ -57,7 +83,6 @@ const singularResourceName = useChangeCase(singular, 'capitalCase').value
             />
           </div>
 
-          <!-- Fallback -->
           <p
             v-else
             class="text-gray-500"

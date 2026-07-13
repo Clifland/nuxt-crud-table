@@ -1,4 +1,8 @@
 <script setup lang="ts">
+/**
+ * Two-way data binding macro representing the search query string value.
+ * Controlled by the input state and reset dynamically when the clear button is clicked.
+ */
 const value = defineModel<string>()
 </script>
 

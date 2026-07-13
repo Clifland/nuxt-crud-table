@@ -6,16 +6,19 @@ import type { NctUser } from '../shared/types/auth'
 /**
  * A Nuxt composable providing authentication states and actions for the `nuxt-crud-table` workspace.
  * Handles token storage, user session persistence, SSR-safe states, and request headers.
+ *
  * @remarks
  * `user` is typed as the shared {@link NctUser} contract (the same type `$nctUser` expects) so that
  * a plugin can `provide: { nctUser: user }` directly with no widening/casting. If your backend's
  * `/auth/login`, `/auth/register`, or `/auth/user` responses don't include `role`/`permissions`,
  * those fields simply resolve to `undefined` — permission-gated UI (`nctIsAdmin`, `nctHasPermission`)
  * will treat that as "no elevated access", same as before.
+ *
  * @example
  * ```ts
  * const { user, isAuthenticated, login, logout } = useNctAuth()
  * ```
+ *
  * @returns An object containing reactive authentication state and action utilities.
  */
 export function useNctAuth() {
@@ -40,6 +43,7 @@ export function useNctAuth() {
   /**
    * Authenticates a user using provided credentials.
    * On success, updates local cookies, local state, and session profiles.
+   *
    * @param credentials - Key-value payload consisting of user credentials (e.g., email, password).
    * @returns A promise resolving to an object indicating operations success status, accompanied by error messages if applicable.
    */
@@ -63,6 +67,7 @@ export function useNctAuth() {
 
   /**
    * Registers a new user identity and automatically establishes an active session on success.
+   *
    * @param registrationDetails - Form inputs containing registration fields (e.g., name, email, password, password_confirmation).
    * @returns A promise resolving to an object indicating operations success status, accompanied by error messages if applicable.
    */

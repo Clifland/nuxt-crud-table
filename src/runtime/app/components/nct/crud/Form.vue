@@ -7,18 +7,42 @@ import { useChangeCase } from '@vueuse/integrations/useChangeCase'
 
 import type { NctSchemaDefinition } from '../../../../shared/types/schema'
 
+/**
+ * Component properties configuration.
+ */
 const props = defineProps<{
+  /**
+   * The comprehensive metadata structural schema configuration tracking input properties and validations.
+   */
   schema: NctSchemaDefinition
+  /**
+   * Optional default record data mapped to populate form states during edit lifecycle states.
+   */
   initialState?: Record<string, unknown>
+  /**
+   * Boolean flag tracking network runtime updates to signal submission progress spinners.
+   */
   loading?: boolean
 }>()
 
+/**
+ * Component custom events emitter definition.
+ */
 const emit = defineEmits<{
+  /**
+   * Emitted upon successful form verification, yielding formatted workspace payloads.
+   * @param e - The name of the event being triggered.
+   * @param event - The verified, cleaned payload dictionary reflecting structural data updates.
+   */
   (e: 'submit', event: Record<string, unknown>): void
+  /**
+   * Emitted to trigger parent container closing cycles when actions complete.
+   * @param e - The name of the event being triggered.
+   */
   (e: 'close'): void
 }>()
 
-// filter out system fields — resolved from app.config.ts's crud.formHiddenFields
+// Filter out system fields — resolved from app.config.ts's crud.formHiddenFields
 // (hot-reloadable at runtime), falling back to nct's built-in default when unset.
 // Note: there's no more create-vs-edit special-casing here (e.g. the old
 // "hide status on create" rule) — if you want a field hidden only in certain
@@ -27,12 +51,21 @@ const emit = defineEmits<{
 const crudConfig = useAppConfig().crud
 const hiddenFields = resolveHiddenFields(crudConfig?.formHiddenFields, props.schema.resource, NCT_FORM_HIDDEN_FIELDS)
 
+/**
+ * The array subset of schema elements following runtime visibility filtering loops.
+ */
 const filteredFields = props.schema.fields.filter(field => !isFieldHidden(field.name, hiddenFields))
 
-// dynamically build zod schema
+/**
+ * The dynamically built Zod validation schema block mapped from active input constraints.
+ */
 const formSchema = useNctDynamicZodSchema(filteredFields, !!props.initialState)
 
-// reactive state for form data
+/**
+ * Reactive data repository reflecting structural input key-value attributes.
+ * @remarks
+ * Recursively standardizes initialization schemas, relational structures, and foreign key pointers.
+ */
 const state = reactive<Record<string, unknown>>(
   filteredFields.reduce(
     (acc, field) => {
@@ -58,7 +91,12 @@ const state = reactive<Record<string, unknown>>(
   ),
 )
 
-// processedFields with capitalized label for display
+/**
+ * Computed evaluation transforming field metadata attributes into formatted, readable label tags.
+ * @remarks
+ * Slices trailing relational database symbols and formats names into clean layout representations.
+ * @returns A computed list containing enhanced UI schema definitions.
+ */
 const processedFields = computed(() =>
   filteredFields.map((field) => {
     let label = field.name
@@ -76,6 +114,10 @@ const processedFields = computed(() =>
   }),
 )
 
+/**
+ * Intercepts form validation success cycles, sanitizing payloads before passing data upward.
+ * @param event - The validated Nuxt UI Form submission context object.
+ */
 function handleSubmit(event: FormSubmitEvent<Record<string, unknown>>) {
   const data = { ...event.data }
   if (props.initialState && 'password' in data) {

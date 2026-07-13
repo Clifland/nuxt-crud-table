@@ -5,9 +5,10 @@ type Row = Record<string, unknown>
 
 /**
  * Safely resolves a nested property from a row via a dot-notation path.
- * @param {Row} row - The source row object.
- * @param {string} path - Dot-separated property path (e.g. 'product.price').
- * @returns {unknown} The resolved value, or `undefined` if any segment is missing.
+ *
+ * @param row - The source row object.
+ * @param path - Dot-separated property path (e.g. 'product.price').
+ * @returns The resolved value, or `undefined` if any segment is missing.
  */
 function resolvePath(row: Row, path: string): unknown {
   return path.split('.').reduce<unknown>((acc, key) => {
@@ -29,9 +30,12 @@ const rowFns: Record<string, (...vals: number[]) => number> = {
 
 /**
  * Filters out nullish entries from a value set, narrowing to `number[]`.
- * @remarks Deliberately nullish-only (not falsy-only, unlike `_.compact`) — a real `0` is valid data and must survive this filter.
- * @param {(number | null)[]} values - Values that may include nulls for missing data.
- * @returns {number[]} Only the present (non-null) numeric values.
+ *
+ * @remarks
+ * Deliberately nullish-only (not falsy-only, unlike `_.compact`) — a real `0` is valid data and must survive this filter.
+ *
+ * @param values - Values that may include nulls for missing data.
+ * @returns Only the present (non-null) numeric values.
  */
 function nonNullable(values: (number | null)[]): number[] {
   return values.filter((v): v is number => v !== null)
@@ -39,8 +43,9 @@ function nonNullable(values: (number | null)[]): number[] {
 
 /**
  * Sums a value set, treating missing (null) entries as 0 — matches spreadsheet SUM semantics.
- * @param {(number | null)[]} values - Values that may include nulls for missing data.
- * @returns {number} The sum of all present values.
+ *
+ * @param values - Values that may include nulls for missing data.
+ * @returns The sum of all present values.
  */
 function sumValues(values: (number | null)[]): number {
   return values.reduce((a: number, b) => a + (b ?? 0), 0)
@@ -48,8 +53,9 @@ function sumValues(values: (number | null)[]): number {
 
 /**
  * Counts how many entries in a value set are present (non-null) — matches spreadsheet COUNT semantics.
- * @param {(number | null)[]} values - Values that may include nulls for missing data.
- * @returns {number} The count of present values.
+ *
+ * @param values - Values that may include nulls for missing data.
+ * @returns The count of present values.
  */
 function countValues(values: (number | null)[]): number {
   return nonNullable(values).length
@@ -57,7 +63,9 @@ function countValues(values: (number | null)[]): number {
 
 /**
  * Reduce-level operations: aggregate a pooled set of column values across multiple rows.
- * @remarks `min`/`max` must filter nulls before calling `Math.min`/`Math.max` — passing `null`
+ *
+ * @remarks
+ * `min`/`max` must filter nulls before calling `Math.min`/`Math.max` — passing `null`
  * directly would coerce to `0` (JS numeric coercion), fabricating a phantom minimum/maximum.
  */
 const reduceFns: Record<string, (values: (number | null)[]) => number> = {
@@ -79,11 +87,12 @@ const reduceFns: Record<string, (values: (number | null)[]) => number> = {
 
 /**
  * Resolves a single column's value (real field or virtual/aggregate column) for one row.
- * @param {Row} row - The row to resolve the column against.
- * @param {string} columnName - The column name, matched first against `columnDefs` (virtual), then as a real field path.
- * @param {NctAggregateDef[]} columnDefs - Virtual column defs belonging to this row's own resource.
- * @param {NctAggregatesConfig} config - The full aggregates config, needed to recurse into nested resources.
- * @returns {number | null} The resolved numeric value, or `null` if the underlying data is missing.
+ *
+ * @param row - The row to resolve the column against.
+ * @param columnName - The column name, matched first against `columnDefs` (virtual), then as a real field path.
+ * @param columnDefs - Virtual column defs belonging to this row's own resource.
+ * @param config - The full aggregates config, needed to recurse into nested resources.
+ * @returns The resolved numeric value, or `null` if the underlying data is missing.
  */
 function resolveColumnValue(row: Row, columnName: string, columnDefs: NctAggregateDef[], config: NctAggregatesConfig): number | null {
   const def = columnDefs.find(d => d.name === columnName)
@@ -96,9 +105,10 @@ function resolveColumnValue(row: Row, columnName: string, columnDefs: NctAggrega
 
 /**
  * Resolves a single row-op argument (a sibling field referenced by a `columns` def) to a number or null.
- * @param {Row} row - The row to resolve against.
- * @param {string} arg - The field path to resolve.
- * @returns {number | null} The numeric value, or `null` if the field is missing.
+ *
+ * @param row - The row to resolve against.
+ * @param arg - The field path to resolve.
+ * @returns The numeric value, or `null` if the field is missing.
  */
 function resolveArgValue(row: Row, arg: string): number | null {
   const raw = resolvePath(row, arg)
@@ -108,8 +118,9 @@ function resolveArgValue(row: Row, arg: string): number | null {
 /**
  * Warns once per malformed def in development, so a misconfigured aggregate fails loudly
  * (in the console) instead of silently resolving to 0/null with no trace of why.
- * @param {string} context - Short description of which computation triggered the warning.
- * @param {NctAggregateDef} def - The offending aggregate definition.
+ *
+ * @param context - Short description of which computation triggered the warning.
+ * @param def - The offending aggregate definition.
  */
 function warnMissingArgs(context: string, def: NctAggregateDef): void {
   if (import.meta.dev) {
@@ -119,13 +130,16 @@ function warnMissingArgs(context: string, def: NctAggregateDef): void {
 
 /**
  * Computes a single `columns` entry for one row.
- * @remarks Two shapes, disambiguated by `fn`:
+ *
+ * @remarks
+ * Two shapes, disambiguated by `fn`:
  * - **Row-op** (`multiply`, `add`, ...): each `arg` is a sibling field on this row.
  * - **Reduce-op rollup** (`sum`, `avg`, ...): each `arg` is a dotted `nestedResource.column` path — resolves into a nested array field on this row and reduces across it.
- * @param {Row} row - The row to compute the column for.
- * @param {NctAggregateDef} def - The column definition (`name`, `fn`, `args`).
- * @param {NctAggregatesConfig} config - The full aggregates config, needed to resolve nested resource column defs.
- * @returns {number | null} The computed value, or `null` if any required input is missing.
+ *
+ * @param row - The row to compute the column for.
+ * @param def - The column definition (`name`, `fn`, `args`).
+ * @param config - The full aggregates config, needed to resolve nested resource column defs.
+ * @returns The computed value, or `null` if any required input is missing.
  */
 function computeColumnDef(row: Row, def: NctAggregateDef, config: NctAggregatesConfig): number | null {
   const rowFn = rowFns[def.fn]
@@ -161,11 +175,12 @@ function computeColumnDef(row: Row, def: NctAggregateDef, config: NctAggregatesC
 
 /**
  * Computes a `footer` entry — reduces a named column across all sibling rows of a resource.
- * @param {Row[]} rows - The full row set to reduce over (already augmented with virtual columns).
- * @param {NctAggregateDef} def - The footer definition (`name`, `fn`, `args` naming target column(s)).
- * @param {NctAggregateDef[]} columnDefs - Virtual column defs for this resource, so `args` can target virtual columns too.
- * @param {NctAggregatesConfig} config - The full aggregates config.
- * @returns {number} The reduced footer value, or `0` if the def is malformed or its `fn` is unrecognized.
+ *
+ * @param rows - The full row set to reduce over (already augmented with virtual columns).
+ * @param def - The footer definition (`name`, `fn`, `args` naming target column(s)).
+ * @param columnDefs - Virtual column defs for this resource, so `args` can target virtual columns too.
+ * @param config - The full aggregates config.
+ * @returns The reduced footer value, or `0` if the def is malformed or its `fn` is unrecognized.
  */
 function computeFooterDef(rows: Row[], def: NctAggregateDef, columnDefs: NctAggregateDef[], config: NctAggregatesConfig): number {
   const reducer = reduceFns[def.fn]
@@ -180,10 +195,11 @@ function computeFooterDef(rows: Row[], def: NctAggregateDef, columnDefs: NctAggr
 
 /**
  * Augments each row of `resourceKey` with its configured virtual (`columns`) values.
- * @param {Row[]} rows - The raw rows for this resource.
- * @param {string} resourceKey - The resource key used to look up `config[resourceKey].columns`.
- * @param {NctAggregatesConfig} config - The full aggregates config.
- * @returns {Row[]} Rows spread with additional virtual-column keys.
+ *
+ * @param rows - The raw rows for this resource.
+ * @param resourceKey - The resource key used to look up `config[resourceKey].columns`.
+ * @param config - The full aggregates config.
+ * @returns Rows spread with additional virtual-column keys.
  */
 function computeWithVirtualColumns(rows: Row[], resourceKey: string, config: NctAggregatesConfig): Row[] {
   const defs = config[resourceKey]?.columns ?? []
@@ -195,10 +211,11 @@ function computeWithVirtualColumns(rows: Row[], resourceKey: string, config: Nct
 
 /**
  * Computes all `footer` results for a resource's row set.
- * @param {Row[]} rows - The raw rows for this resource.
- * @param {string} resourceKey - The resource key used to look up `config[resourceKey].footer`.
- * @param {NctAggregatesConfig} config - The full aggregates config.
- * @returns {{ name: string, label: string, args: string[], value: number }[]} One entry per configured footer def.
+ *
+ * @param rows - The raw rows for this resource.
+ * @param resourceKey - The resource key used to look up `config[resourceKey].footer`.
+ * @param config - The full aggregates config.
+ * @returns One entry per configured footer def.
  */
 function computeFooterValues(rows: Row[], resourceKey: string, config: NctAggregatesConfig) {
   const resourceConfig = config[resourceKey]
@@ -217,13 +234,16 @@ function computeFooterValues(rows: Row[], resourceKey: string, config: NctAggreg
  * For each row, finds configured child array fields (e.g. `orderitems` on an `orders` row)
  * and injects that child resource's footer aggregate(s) as flat scalar columns on the row —
  * so a child-table total (e.g. `total_amount`) can appear as an ordinary column on the master table.
- * @remarks Governed per child resource by `footerInParent`:
+ *
+ * @remarks
+ * Governed per child resource by `footerInParent`:
  * - `true` / omitted → every footer def rolls up.
  * - `false` → none roll up.
  * - `string[]` → only the named footer def(s) roll up.
- * @param {Row[]} rows - The master resource's rows (each possibly containing nested child arrays).
- * @param {NctAggregatesConfig} config - The full aggregates config.
- * @returns {Row[]} Rows spread with injected rollup columns, per `footerInParent` rules.
+ *
+ * @param rows - The master resource's rows (each possibly containing nested child arrays).
+ * @param config - The full aggregates config.
+ * @returns Rows spread with injected rollup columns, per `footerInParent` rules.
  */
 function computeParentFooterColumns(rows: Row[], config: NctAggregatesConfig): Row[] {
   return rows.map((row) => {
@@ -249,14 +269,16 @@ function computeParentFooterColumns(rows: Row[], config: NctAggregatesConfig): R
  * Composable providing dynamic, config-driven aggregate computation for `nct` tables —
  * row-level virtual columns, per-resource footer reductions, and parent-table rollups
  * of a child resource's footer totals.
+ *
  * @example
  * ```ts
  * const { withVirtualColumns, footerValues } = useNctAggregates(orderitems, aggregatesConfig)
  * const rowsWithLineTotal = withVirtualColumns('orderitems').value
  * const footer = footerValues('orderitems') // [{ name: 'nettotal', label: 'Net Total', value: 143.5, args: ['linetotal'] }]
  * ```
- * @param {Row[] | undefined | Ref<Row[] | undefined>} targetArray - The row set to operate on; accepts a raw array or a `useFetch`-style ref that may still be `undefined` while loading.
- * @param {NctAggregatesConfig} config - The full `aggregates` config from `app.config.ts`.
+ *
+ * @param targetArray - The row set to operate on; accepts a raw array or a `useFetch`-style ref that may still be `undefined` while loading.
+ * @param config - The full `aggregates` config from `app.config.ts`.
  * @returns An object exposing `withVirtualColumns`, `footerValues`, and `withParentFooterColumns`.
  */
 export function useNctAggregates(
@@ -267,7 +289,8 @@ export function useNctAggregates(
 
   /**
    * Computed rows for `resourceKey`, augmented with its configured virtual columns.
-   * @param {string} resourceKey - The resource key to look up `columns` defs for.
+   *
+   * @param resourceKey - The resource key to look up `columns` defs for.
    */
   function withVirtualColumns(resourceKey: string) {
     return computed(() => computeWithVirtualColumns(dataRef.value, resourceKey, config))
@@ -275,7 +298,8 @@ export function useNctAggregates(
 
   /**
    * Computes all footer aggregate results for `resourceKey`'s current row set.
-   * @param {string} resourceKey - The resource key to look up `footer` defs for.
+   *
+   * @param resourceKey - The resource key to look up `footer` defs for.
    */
   function footerValues(resourceKey: string) {
     return computeFooterValues(dataRef.value, resourceKey, config)

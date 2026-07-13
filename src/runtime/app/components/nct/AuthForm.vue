@@ -2,6 +2,10 @@
 import { ref, reactive } from 'vue'
 import { useNctAuth } from '#imports'
 
+/**
+ * Array configuration representing the multi-tab layout structure.
+ * Maps individual component slots to navigation headers and icons.
+ */
 const items = [
   {
     slot: 'login',
@@ -15,16 +19,35 @@ const items = [
   },
 ]
 
+/**
+ * Destructured authentication methods extracted from the core Nuxt Crud Table authentication composable.
+ */
 const { login, register } = useNctAuth()
 
 // --- Login State & Logic ---
+
+/**
+ * Reactive toggle tracking whether a login transaction is actively executing.
+ */
 const loginLoading = ref(false)
+
+/**
+ * String response placeholder that captures and reflects any server-side authentication error payloads.
+ */
 const loginError = ref('')
+
+/**
+ * The reactive submission state payload representing individual user login inputs.
+ */
 const loginState = reactive({
   email: '',
   password: '',
 })
 
+/**
+ * Asynchronously dispatches the captured credentials state to the login provider, handling loading toggles and validation exception alerts.
+ * * @returns A promise that resolves when the form submission routine completes.
+ */
 async function onLoginSubmit() {
   loginLoading.value = true
   loginError.value = ''
@@ -38,8 +61,20 @@ async function onLoginSubmit() {
 }
 
 // --- Register State & Logic ---
+
+/**
+ * Reactive toggle tracking whether a new user account registration transaction is actively executing.
+ */
 const registerLoading = ref(false)
+
+/**
+ * String response placeholder that captures and reflects any server-side validation or creation error payloads.
+ */
 const registerError = ref('')
+
+/**
+ * The reactive submission state payload representing new identity profile inputs.
+ */
 const registerState = reactive({
   name: '',
   email: '',
@@ -47,6 +82,10 @@ const registerState = reactive({
   password_confirmation: '',
 })
 
+/**
+ * Asynchronously dispatches the new user profile state payload to the registration endpoint, handling loading toggles and form constraint violations.
+ * * @returns A promise that resolves when the registration submission routine completes.
+ */
 async function onRegisterSubmit() {
   registerLoading.value = true
   registerError.value = ''

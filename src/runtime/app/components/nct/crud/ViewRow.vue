@@ -3,13 +3,31 @@ import { ref } from 'vue'
 import type { NctSchemaDefinition } from '../../../../shared/types/schema'
 import { nctDbFieldToLabel } from '#imports'
 
+/**
+ * Component properties configuration layout definitions.
+ */
 const props = defineProps<{
+  /**
+   * The targeted record payload item containing current database entity row values.
+   */
   row: Record<string, unknown>
+  /**
+   * Optional structural metadata schema layout properties corresponding to this resource context.
+   */
   schema?: NctSchemaDefinition
 }>()
 
+/**
+ * A reactive state tracking property determining if the preview details viewport dialog overlay is displayed.
+ */
 const isOpen = ref(false)
 
+/**
+ * Assesses structural keys and string records to classify whether a field value should render as an image preview.
+ * @param key - The attribute field identity tag string reference.
+ * @param value - The actual underlying data asset content.
+ * @returns A boolean expression indicating whether the parameter points to an image resource URL locator.
+ */
 function isImage(key: string, value: unknown) {
   if (typeof value !== 'string') return false
   const k = key.toLowerCase()

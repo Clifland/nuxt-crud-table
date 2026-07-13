@@ -5,19 +5,21 @@ import { useNctHeaders, useToast } from '#imports'
  * A shared utility composable for handling state-mutating HTTP requests (`POST`, `PATCH`, `DELETE`)
  * against backend resource endpoints. Handles automatic endpoint resolution, injection of global headers,
  * UI toast alerts for successes or errors, and reactive data cache busting via `refreshNuxtData`.
+ *
  * @example
  * ```ts
  * // Create a record
  * const success = await useNctCrudFetch('POST', 'users', null, { name: 'John Doe' })
  * if (success) {
- *   // e.g. close a modal, reset a form
+ * // e.g. close a modal, reset a form
  * }
  * ```
- * @param {'POST' | 'PATCH' | 'DELETE'} method - The structural mutation HTTP request method to execute.
- * @param {string} resource - The name of the target resource endpoint (e.g., 'users', 'posts').
- * @param {number | null} [id] - The record unique ID identifier (required for 'PATCH' and 'DELETE').
- * @param {Record<string, unknown> | null} [data] - The payload body data to pass to the request server context.
- * @returns {Promise<boolean>} Resolves to `true` once the mutation completes and cache tags are invalidated,
+ *
+ * @param method - The structural mutation HTTP request method to execute.
+ * @param resource - The name of the target resource endpoint (e.g., 'users', 'posts').
+ * @param id - The record unique ID identifier (required for 'PATCH' and 'DELETE').
+ * @param data - The payload body data to pass to the request server context.
+ * @returns Resolves to `true` once the mutation completes and cache tags are invalidated,
  * or `false` if the request failed — a toast is shown either way, but callers that need to gate follow-up
  * behavior (e.g. only closing a modal on success) should check this return value rather than assuming success.
  */
