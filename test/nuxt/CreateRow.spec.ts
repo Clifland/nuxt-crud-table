@@ -73,7 +73,9 @@ describe('CreateRow.vue', () => {
 
   it('sets loading to true while the request is in flight, and false once it settles', async () => {
     let resolveFetch!: (value: boolean) => void
-    hoisted.crudFetch.mockImplementation(() => new Promise<boolean>((resolve) => { resolveFetch = resolve }))
+    hoisted.crudFetch.mockImplementation(() => new Promise<boolean>((resolve) => {
+      resolveFetch = resolve
+    }))
 
     const wrapper = await mountSuspended(CreateRow, { props: { resource: 'users', schema } })
     const instance = wrapper.vm as unknown as CreateRowInstance
