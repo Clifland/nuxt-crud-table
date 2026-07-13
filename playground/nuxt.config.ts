@@ -10,8 +10,6 @@ export default defineNuxtConfig({
     relationsPath: 'server/db/relations',
   },
   crudTable: {
-    apiBase: '/api/_nac',
-    auth: false,
-    formHiddenFields: [],
+    apiBase: '/api/_nac'
   },
 })

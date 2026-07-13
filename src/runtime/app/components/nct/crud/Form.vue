@@ -1,8 +1,8 @@
 <script setup lang="ts">
 import { computed, reactive } from 'vue'
 import type { FormSubmitEvent } from '@nuxt/ui'
-import { useAppConfig, useNuxtApp } from '#app'
-import { useNctDynamicZodSchema, nctHasPermission, resolveHiddenFields, isFieldHidden, NCT_FORM_HIDDEN_FIELDS } from '#imports'
+import { useAppConfig } from '#app'
+import { useNctDynamicZodSchema, resolveHiddenFields, isFieldHidden, NCT_FORM_HIDDEN_FIELDS } from '#imports'
 import { useChangeCase } from '@vueuse/integrations/useChangeCase'
 
 import type { NctSchemaDefinition } from '../../../../shared/types/schema'
@@ -19,24 +19,15 @@ const emit = defineEmits<{
 }>()
 
 // filter out system fields — resolved from app.config.ts's crud.formHiddenFields
-// (hot-reloadable at runtime), falling back to nct's built-in default when unset
+// (hot-reloadable at runtime), falling back to nct's built-in default when unset.
+// Note: there's no more create-vs-edit special-casing here (e.g. the old
+// "hide status on create" rule) — if you want a field hidden only in certain
+// contexts, use formHiddenFields.resources per-resource, or vary it
+// server-side in the _schemas/:resource response itself.
 const crudConfig = useAppConfig().crud
 const hiddenFields = resolveHiddenFields(crudConfig?.formHiddenFields, props.schema.resource, NCT_FORM_HIDDEN_FIELDS)
 
-const filteredFields = props.schema.fields.filter((field) => {
-  // Hide globally/per-resource restricted form fields
-  if (isFieldHidden(field.name, hiddenFields)) return false
-
-  // Hide status field during initial record creation stages
-  if (field.name === 'status' && !props.initialState) return false
-
-  return true
-})
-
-const { $nctUser } = useNuxtApp()
-const user = $nctUser
-
-const canUpdateStatus = computed(() => nctHasPermission(user.value, props.schema.resource, 'update_status'))
+const filteredFields = props.schema.fields.filter(field => !isFieldHidden(field.name, hiddenFields))
 
 // dynamically build zod schema
 const formSchema = useNctDynamicZodSchema(filteredFields, !!props.initialState)
@@ -115,6 +106,7 @@ function handleSubmit(event: FormSubmitEvent<Record<string, unknown>>) {
             v-if="field.type === 'boolean'"
             :id="field.name"
             v-model="state[field.name] as boolean"
+            :disabled="field.readonly"
           />
 
           <NctCrudNameList
@@ -122,6 +114,7 @@ function handleSubmit(event: FormSubmitEvent<Record<string, unknown>>) {
             v-model="state[field.name] as string | number | null"
             :field-name="field.name"
             :table-name="field.references"
+            :disabled="field.readonly"
           />
 
           <template v-else-if="field.name === 'password'">
@@ -141,6 +134,7 @@ function handleSubmit(event: FormSubmitEvent<Record<string, unknown>>) {
             v-else-if="field.type === 'date'"
             v-model="state[field.name] as string"
             type="datetime-local"
+            :disabled="field.readonly"
           />
 
           <USelect
@@ -149,13 +143,14 @@ function handleSubmit(event: FormSubmitEvent<Record<string, unknown>>) {
             :items="field.selectOptions"
             placeholder="Select "
             class="w-full"
-            :disabled="field.name === 'status' && !canUpdateStatus"
+            :disabled="field.readonly"
           />
 
           <UTextarea
             v-else-if="field.type === 'textarea'"
             v-model="state[field.name] as string"
             :required="field.required"
+            :disabled="field.readonly"
             autoresize
           />
 
@@ -164,7 +159,7 @@ function handleSubmit(event: FormSubmitEvent<Record<string, unknown>>) {
             v-model="state[field.name] as string"
             :type="field.type"
             :required="field.required"
-            :disabled="field.name === 'status' && !canUpdateStatus"
+            :disabled="field.readonly"
           />
         </UFormField>
       </template>
