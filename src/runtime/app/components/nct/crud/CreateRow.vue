@@ -31,7 +31,7 @@ const loading = ref(false)
 
 /**
  * Dispatches an asynchronous request block containing modified payload details toward backend data layers.
- * * @param data - The parsed field key-value pairs captured from the form workspace layout.
+ * @param data - The parsed field key-value pairs captured from the form workspace layout.
  * @returns A promise resolving when the form submission lifecycle routine completes.
  */
 async function onSubmit(data: Record<string, unknown>) {

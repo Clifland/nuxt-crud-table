@@ -33,7 +33,7 @@ const loading = ref(false)
 
 /**
  * Dispatches an asynchronous `PATCH` network request containing modified payload details to update data layers.
- * * @param data - The fields and updated values captured directly from the form workspace layout.
+ * @param data - The fields and updated values captured directly from the form workspace layout.
  * @returns A promise resolving when the update submission lifecycle routine completes.
  */
 async function onSubmit(data: Record<string, unknown>) {

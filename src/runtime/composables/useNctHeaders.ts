@@ -1,11 +1,11 @@
 import { useNuxtApp } from '#app'
 
 /**
- * A utility composable that aggregates mandatory network headers alongside 
+ * A utility composable that aggregates mandatory network headers alongside
  * dynamic runtime authentication headers injected into the Nuxt application context.
  *
  * @remarks
- * This parser retrieves authorization payload tokens or custom tenant tags by safely invoking the 
+ * This parser retrieves authorization payload tokens or custom tenant tags by safely invoking the
  * module's registered `$nctAuthHeaders` extension provider hook without interrupting the pipeline footprint.
  *
  * @example

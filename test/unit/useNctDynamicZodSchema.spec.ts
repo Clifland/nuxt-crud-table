@@ -154,4 +154,3 @@ describe('useNctDynamicZodSchema', () => {
     expect(schema.safeParse({ name: '' }).success).toBe(true)
   })
 })
-  

@@ -13,7 +13,7 @@ const show = ref(false)
 
 /**
  * Checks a string sequence against standard complexity criteria matrices.
- * * @param str - The raw password string sequence under validation checks.
+ * @param str - The raw password string sequence under validation checks.
  * @returns An array containing evaluation flags paired with descriptive string rules.
  */
 function checkStrength(str: string) {
@@ -32,19 +32,19 @@ function checkStrength(str: string) {
 
 /**
  * Computed validation array mapping which rule parameters have been satisfied.
- * * @returns An array list of dynamic checklist status objects.
+ * @returns An array list of dynamic checklist status objects.
  */
 const strength = computed(() => checkStrength(modelValue.value || ''))
 
 /**
  * Computed aggregate integer ranking complexity from `0` to `4`.
- * * @returns The final summation tally indicating passed requirement rules.
+ * @returns The final summation tally indicating passed requirement rules.
  */
 const score = computed(() => strength.value.filter(req => req.met).length)
 
 /**
  * Computed theme color profile mappings mapped directly into Nuxt UI component frameworks.
- * * @returns A string semantic matching `neutral`, `error`, `warning`, or `success`.
+ * @returns A string semantic matching `neutral`, `error`, `warning`, or `success`.
  */
 const color = computed(() => {
   if (score.value === 0) return 'neutral'
@@ -56,7 +56,7 @@ const color = computed(() => {
 
 /**
  * Computed evaluation assigning localized warning string tags based upon scoring metrics.
- * * @returns The visual feedback evaluation string.
+ * @returns The visual feedback evaluation string.
  */
 const text = computed(() => {
   if (score.value === 0) return 'Enter a password'

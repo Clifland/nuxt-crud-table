@@ -46,7 +46,7 @@ const loginState = reactive({
 
 /**
  * Asynchronously dispatches the captured credentials state to the login provider, handling loading toggles and validation exception alerts.
- * * @returns A promise that resolves when the form submission routine completes.
+ * @returns A promise that resolves when the form submission routine completes.
  */
 async function onLoginSubmit() {
   loginLoading.value = true
@@ -84,7 +84,7 @@ const registerState = reactive({
 
 /**
  * Asynchronously dispatches the new user profile state payload to the registration endpoint, handling loading toggles and form constraint violations.
- * * @returns A promise that resolves when the registration submission routine completes.
+ * @returns A promise that resolves when the registration submission routine completes.
  */
 async function onRegisterSubmit() {
   registerLoading.value = true

@@ -45,7 +45,7 @@ describe('EditRow.vue', () => {
   describe('state hydration', () => {
     it('passes the row directly to the props config mapping structure', async () => {
       const wrapper = await mountSuspended(EditRow, { props: { resource: 'users', row, schema } })
-      
+
       // Asserts that the component accepts and holds the prop correctly
       expect(wrapper.props('row')).toEqual(row)
       expect(wrapper.props('schema')).toEqual(schema)

@@ -10,6 +10,6 @@ export default defineNuxtConfig({
     relationsPath: 'server/db/relations',
   },
   crudTable: {
-    apiBase: '/api/_nac'
+    apiBase: '/api/_nac',
   },
 })

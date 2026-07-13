@@ -88,8 +88,9 @@ export interface NctCrudTableConfig {
    * @defaultValue NCT_FORM_HIDDEN_FIELDS
    */
   formHiddenFields?: NctFieldVisibility
-  /** * If set to true, columns ending with `_id` that map to structural relationships are automatically omitted from rendering. 
-   * * @defaultValue false
+  /**
+   * If set to true, columns ending with `_id` that map to structural relationships are automatically omitted from rendering.
+   * @defaultValue false
    */
   hideForeignKeys?: boolean
   /** Configuration policies detailing structural access parameters for document export engines. */
