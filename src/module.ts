@@ -69,10 +69,7 @@ export default defineNuxtModule<ModuleOptions>({
     addImportsDir(resolver.resolve('runtime/composables'))
     addImportsDir(resolver.resolve('runtime/app/utils'))
 
-    // Global print-isolation stylesheet for NctCrudChildTable's "Print" button —
-    // registered once here rather than duplicated as a <style> block inside a
-    // component that may be instantiated many times on one page. See the file
-    // itself for why this needs to be global rather than scoped.
+    // Global print-isolation stylesheet for NctCrudChildTable's "Print" button
     _nuxt.options.css.push(resolver.resolve('runtime/app/assets/print.css'))
 
     // Hook to append module declarations directly into the project's compilation references (.nuxt/tsconfig.json)

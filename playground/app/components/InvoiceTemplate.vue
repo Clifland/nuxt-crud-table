@@ -1,13 +1,3 @@
-<!--
-  Example print template for the `orderitems` child resource. Drop a file like
-  this in your own app's `components/` folder (flat, so Nuxt registers it under
-  a predictable global name — here, `InvoiceTemplate`), then point
-  `crud.printTemplates.orderitems` at that name in app.config.ts.
-
-  This file lives outside nct's runtime — it's plain host-app code, using
-  nct's exported NctPrintTemplateProps contract (a global ambient type, no
-  import needed) for typing only.
--->
 <script setup lang="ts">
 import type { NctPrintTemplateProps } from 'nuxt-crud-table'
 
