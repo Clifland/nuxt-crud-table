@@ -2,6 +2,9 @@ export default defineNuxtConfig({
   modules: ['../src/module', '@nuxthub/core', 'nuxt-auto-crud', '@nuxt/ui'],
   devtools: { enabled: true },
   css: ['~/assets/css/main.css'],
+  alias: {
+    'nuxt-crud-table': '../src/module',
+  },
   compatibilityDate: 'latest',
   hub: {
     db: 'sqlite',
@@ -11,8 +14,5 @@ export default defineNuxtConfig({
   },
   crudTable: {
     apiBase: '/api/_nac',
-  },
-  alias: {
-    'nuxt-crud-table': '../src/module',
   },
 })

@@ -52,7 +52,10 @@ async function onSubmit(data: Record<string, unknown>) {
             :loading="loading"
             @submit="onSubmit"
           />
-          <p v-else class="text-gray-500">
+          <p
+            v-else
+            class="text-gray-500"
+          >
             No schema provided for {{ resource }}
           </p>
         </div>

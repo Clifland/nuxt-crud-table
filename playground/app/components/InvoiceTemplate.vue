@@ -34,7 +34,11 @@ const order = props.parentRow as {
       </div>
     </header>
 
-    <NctCrudPrintItems :columns="columns" :rows="rows" :footer="footer" />
+    <NctCrudPrintItems
+      :columns="columns"
+      :rows="rows"
+      :footer="footer"
+    />
 
     <footer class="mt-8 pt-4 border-t border-gray-300 text-xs text-gray-500 text-center">
       Thank you for your business.

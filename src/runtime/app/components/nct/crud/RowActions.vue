@@ -22,7 +22,12 @@ const { onDelete } = useNctRowDelete(() => props.resource)
 
 <template>
   <UPopover :content="{ align: 'end', side: 'bottom' }">
-    <UButton icon="i-lucide-more-vertical" color="neutral" variant="ghost" size="xs" />
+    <UButton
+      icon="i-lucide-more-vertical"
+      color="neutral"
+      variant="ghost"
+      size="xs"
+    />
     <template #content>
       <div class="p-1 flex flex-col gap-1 min-w-[120px]">
         <NctCrudViewRow

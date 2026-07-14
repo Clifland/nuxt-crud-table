@@ -217,8 +217,15 @@ async function triggerPrint() {
             {{ formatCellValue(getColumnValue(row, col.key)) }}
           </td>
 
-          <td v-if="showActions" class="relative whitespace-nowrap px-3 py-2 text-right text-sm font-medium">
-            <NctCrudRowActions :resource="resource!" :row="row" :schema="schema" />
+          <td
+            v-if="showActions"
+            class="relative whitespace-nowrap px-3 py-2 text-right text-sm font-medium"
+          >
+            <NctCrudRowActions
+              :resource="resource!"
+              :row="row"
+              :schema="schema"
+            />
           </td>
         </tr>
       </tbody>

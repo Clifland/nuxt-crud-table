@@ -22,7 +22,11 @@ const singularResourceName = useChangeCase(singular, 'capitalCase').value
     :title="`Add New ${singularResourceName}`"
   >
     <template #trigger>
-      <UButton :label="`Add New ${singularResourceName}`" color="neutral" variant="subtle" />
+      <UButton
+        :label="`Add New ${singularResourceName}`"
+        color="neutral"
+        variant="subtle"
+      />
     </template>
   </NctCrudRowFormModal>
 </template>

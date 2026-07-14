@@ -1,7 +1,7 @@
 <script setup lang="ts">
 import { computed, reactive, ref } from 'vue'
 import { useRuntimeConfig, useAppConfig, useFetch, useNuxtApp } from '#app'
-import { useNctAggregates, useNctHeaders, nctDbFieldToLabel, nctHasRowPermission, nctHasPermission, useNctExport, useNctCrudFetch, useNctTableFormat, useToast, resolveHiddenFields, isFieldHidden, NCT_TABLE_HIDDEN_FIELDS } from '#imports'
+import { useNctAggregates, useNctHeaders, nctDbFieldToLabel, nctHasPermission, useNctExport, useNctTableFormat, resolveHiddenFields, isFieldHidden, NCT_TABLE_HIDDEN_FIELDS } from '#imports'
 
 import type { NctSchemaDefinition } from '../../../../shared/types/schema'
 import type { NctPrintTemplateProps } from '../../../../shared/types/print'
@@ -377,7 +377,7 @@ const paginatedItems = ref<Record<string, unknown>[]>([])
               <td class="relative whitespace-nowrap py-4 pl-3 pr-4 text-right text-sm font-medium sm:pr-6">
                 <NctCrudRowActions
                   :resource="resource"
-                  :row="row"  
+                  :row="row"
                   :schema="schema"
                 />
               </td>
@@ -407,7 +407,10 @@ const paginatedItems = ref<Record<string, unknown>[]>([])
                     :parent-row="row"
                   >
                     <template #print-template="slotProps">
-                      <slot name="print-template" v-bind="slotProps" />
+                      <slot
+                        name="print-template"
+                        v-bind="slotProps"
+                      />
                     </template>
                   </NctCrudChildTable>
                 </div>
