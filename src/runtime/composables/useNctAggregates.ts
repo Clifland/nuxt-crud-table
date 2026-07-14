@@ -1,21 +1,8 @@
 import { computed, isRef, type Ref } from 'vue'
 import type { NctAggregateDef, NctAggregatesConfig } from '../shared/types/config'
+import { resolveDotPath } from '../app/utils/dot-path'
 
 type Row = Record<string, unknown>
-
-/**
- * Safely resolves a nested property from a row via a dot-notation path.
- *
- * @param row - The source row object.
- * @param path - Dot-separated property path (e.g. 'product.price').
- * @returns The resolved value, or `undefined` if any segment is missing.
- */
-function resolvePath(row: Row, path: string): unknown {
-  return path.split('.').reduce<unknown>((acc, key) => {
-    if (acc && typeof acc === 'object') return (acc as Row)[key]
-    return undefined
-  }, row)
-}
 
 /**
  * Row-level operations: combine sibling field values on a single row.
@@ -97,7 +84,7 @@ const reduceFns: Record<string, (values: (number | null)[]) => number> = {
 function resolveColumnValue(row: Row, columnName: string, columnDefs: NctAggregateDef[], config: NctAggregatesConfig): number | null {
   const def = columnDefs.find(d => d.name === columnName)
   if (!def) {
-    const raw = resolvePath(row, columnName)
+    const raw = resolveDotPath(row, columnName)
     return raw === null || raw === undefined ? null : Number(raw)
   }
   return computeColumnDef(row, def, config)
@@ -111,7 +98,7 @@ function resolveColumnValue(row: Row, columnName: string, columnDefs: NctAggrega
  * @returns The numeric value, or `null` if the field is missing.
  */
 function resolveArgValue(row: Row, arg: string): number | null {
-  const raw = resolvePath(row, arg)
+  const raw = resolveDotPath(row, arg)
   return raw === null || raw === undefined ? null : Number(raw)
 }
 

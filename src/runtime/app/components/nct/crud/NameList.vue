@@ -1,7 +1,7 @@
 <script setup lang="ts">
 import { computed } from 'vue'
 import pluralize from 'pluralize'
-import { useNctHeaders, useFetch } from '#imports'
+import { useNctHeaders, useFetch, stripRelationSuffix } from '#imports'
 import { useRuntimeConfig } from '#app'
 
 /**
@@ -42,7 +42,7 @@ if (props.tableName) {
   urlPath = props.tableName
 }
 else if (props.fieldName) {
-  const baseName = props.fieldName.replace(/(_id|Id)$/, '')
+  const baseName = stripRelationSuffix(props.fieldName)
   urlPath = pluralize(baseName) // e.g., user_id → users
 }
 

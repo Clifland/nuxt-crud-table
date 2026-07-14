@@ -97,6 +97,19 @@ function getVisibleChildColumns(key: string): string[] {
 }
 
 /**
+ * Combines a child array's visible column keys with their resolved display labels —
+ * mirrors Table.vue's `getChildColumnDefs`, feeding the same shared `NctCrudChildTable`.
+ * @param key - The child array field key.
+ * @returns Column definitions ready to hand to the shared child-table renderer.
+ */
+function getVisibleChildColumnDefs(key: string): { key: string, label: string }[] {
+  return getVisibleChildColumns(key).map(col => ({
+    key: col,
+    label: getFormattedLabel(col),
+  }))
+}
+
+/**
  * Flattens a parent relation object into dot-notated { key, value } rows for
  * the sub-table — reuses flattenKeys/getColumnValue rather than
  * JSON.stringify-ing nested values, so a parent relation with its own
@@ -249,35 +262,11 @@ function getParentSubRows(parentKey: string): { path: string, label: string }[] 
                 v-show="expandedSections[`child:${key}`]"
                 class="overflow-x-auto border border-gray-200 dark:border-gray-700 rounded-lg shadow-sm max-w-full"
               >
-                <table class="min-w-full divide-y divide-gray-200 dark:divide-gray-700 text-xs">
-                  <thead class="bg-gray-50 dark:bg-gray-800/50">
-                    <tr>
-                      <th
-                        v-for="colName in getVisibleChildColumns(key)"
-                        :key="colName"
-                        scope="col"
-                        class="px-3 py-2 text-left font-semibold text-gray-700 dark:text-gray-300 whitespace-nowrap"
-                      >
-                        {{ getFormattedLabel(colName) }}
-                      </th>
-                    </tr>
-                  </thead>
-                  <tbody class="divide-y divide-gray-100 dark:divide-gray-800 bg-white dark:bg-gray-900">
-                    <tr
-                      v-for="(childRow, idx) in (props.row[key] as Array<Record<string, unknown>>)"
-                      :key="String(childRow.id ?? idx)"
-                      class="hover:bg-gray-50 dark:hover:bg-gray-800/30"
-                    >
-                      <td
-                        v-for="colName in getVisibleChildColumns(key)"
-                        :key="colName"
-                        class="px-3 py-2 text-gray-900 dark:text-gray-300 font-sans whitespace-nowrap"
-                      >
-                        {{ formatCellValue(getColumnValue(childRow, colName)) }}
-                      </td>
-                    </tr>
-                  </tbody>
-                </table>
+                <NctCrudChildTable
+                  :columns="getVisibleChildColumnDefs(key)"
+                  :rows="(props.row[key] as Array<Record<string, unknown>>)"
+                  size="xs"
+                />
               </div>
             </div>
           </div>

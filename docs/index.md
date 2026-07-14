@@ -1,47 +1,208 @@
-# NCT Technical Documentation
+# nuxt-crud-table (nct) — Technical Documentation
 
-## `crud/` Domain Architecture — Technical Breakdown
+## 1. Purpose
 
-### 1. Component Orchestration: `Table.vue` as the Root Controller
+`nct` is a Nuxt 4 module that renders CRUD tables and forms dynamically from an API's
+schema definition, rather than from hand-written table/form components per resource.
+It is backend-agnostic: the reference implementation targets Laravel and Drizzle ORM,
+but any backend that satisfies the contract in §6 works.
 
-`Table.vue` is the single entry point mounted by the host app (`[slug].vue` → `<NctCrudTable :resource="resource" />`). It owns **two parallel fetches** — data and schema — and fans out rendering/mutation responsibility to four sibling components it imports implicitly via Nuxt's auto-registered `crud/` components dir:
+Two concerns are deliberately kept separate:
 
-| Component | Trigger condition | Responsibility |
+- **Reading/displaying data** — Table.vue, ViewRow.vue, useNctTableFormat, useNctAggregates.
+- **Writing data** — CreateRow.vue, EditRow.vue, Form.vue, useNctDynamicZodSchema, useNctCrudFetch, NameList.vue.
+
+This split matters for the NameList question in §8 — the two paths have different data
+requirements and one does not obsolete the other.
+
+---
+
+## 2. Module Bootstrap (`module.ts`)
+
+`defineNuxtModule<ModuleOptions>()`:
+
+| Option | Type | Notes |
 |---|---|---|
-| `CreateRow.vue` | `schema && nctHasPermission(user, resource, 'create')` | Renders "Add New X" modal + delegates to `Form.vue` |
-| `ViewRow.vue` | `nctHasRowPermission(..., 'read', row)` | Read-only `<dl>` dump of a row, no `Form.vue` involvement |
-| `EditRow.vue` | `nctHasRowPermission(..., 'update', row)` | Edit modal, pre-hydrates `Form.vue` via `initial-state` |
-| *(Delete)* | `nctHasRowPermission(..., 'delete', row)` | Inline `useNctCrudFetch('DELETE', ...)` — no sub-component, just a `UButton` + toast confirmation |
+| `apiBase` | `string` | Backend controller root, default `/api/_nac` |
+| `auth` | `false \| { authentication: 'nuxt-auth-utils' \| 'sanctum' }` | Toggles auth layer |
+| `headers` | `() => Record<string,string>` | Must be self-contained (serialized at build time) |
 
-`CreateRow.vue` and `EditRow.vue` are both thin **modal shells**: they own `open`/`loading` state and an `onSubmit` handler that calls `useNctCrudFetch`, but neither renders form fields itself — both project a `schema` (and optionally `initial-state`) into `Form.vue`, which is the actual field-rendering engine (checkbox/select/textarea/date/relation-picker switch based on `field.type`).
+Setup responsibilities:
 
-`NameList.vue` is a dependant of `Form.vue`, not `Table.vue` directly — it's invoked whenever a field name ends in `_id`/`Id`, turning a raw foreign key into a `USelectMenu` backed by its own `useFetch` against `apiBase/{pluralized relation}`.
+1. Writes `apiBase`/`auth` (not `headers`, intentionally excluded — see the `PublicRuntimeConfig`
+   augmentation comment) into `runtimeConfig.public.crudTable`.
+2. `addComponentsDir('runtime/app/components')` — auto-registers `Nct*` components.
+3. `addImportsDir` for composables and utils — auto-imports `useNct*`/`nct*` functions.
+4. Hooks `prepare:types` to inject shared type files (`auth`, `config`, `schema`,
+   `validation-rules`) into `.nuxt/tsconfig.json` references.
+5. Adds a Vite plugin forcing client-side pre-bundling of heavy deps
+   (`zod`, `xlsx`, `jspdf`, `jspdf-autotable`, `pluralize`, `useChangeCase`).
 
-### 2. State & Data Handling: Backend-Agnostic Payload Normalization
+Config lives in two places, at two different lifecycles:
 
-Since `nct` targets both raw-array backends (Drizzle/Nitro) and Laravel-style wrapped responses, `Table.vue`'s primary `useFetch` uses a defensive `transform`:
+| Layer | File | Reload | Content |
+|---|---|---|---|
+| Module options | `nuxt.config.ts` | Requires rebuild | `apiBase`, `auth`, `headers` |
+| App config | `app.config.ts` (`crud` key) | Hot-reloadable | `tableHiddenFields`, `formHiddenFields`, `hideForeignKeys`, `exports`, `aggregates` |
+
+---
+
+## 3. Read Path
+
+```
+Table.vue
+ ├─ useFetch(`${apiBase}/${resource}`)              → records
+ ├─ useFetch(`${apiBase}/_schemas/${resource}`)     → schema
+ ├─ useNctTableFormat()
+ │    ├─ flattenKeys()            dot-path column discovery, skips arrays
+ │    ├─ getColumnValue()         dot-path resolution
+ │    ├─ formatCellValue()        ISO-date → locale string, guards Invalid Date
+ │    ├─ getForeignKeyColumns()   suffix + sibling-relation-object match
+ │    └─ getParentBackReferenceColumns()  child FK that points back at the open parent row
+ ├─ useNctAggregates(records, crudConfig.aggregates)
+ │    ├─ withVirtualColumns()     per-row computed columns (multiply/add/subtract/divide)
+ │    ├─ footerValues()           per-array reductions (sum/count/avg/min/max)
+ │    └─ withParentFooterColumns()  rolls a child array's footer total up as a parent column
+ ├─ resolveHiddenFields() + isFieldHidden()   tableHiddenFields filtering
+ └─ NctCommonPagination            client-side search + slice
+```
+
+`ViewRow.vue` reuses `useNctTableFormat` (flattenKeys/getColumnValue/formatCellValue/
+getForeignKeyColumns/getParentBackReferenceColumns) against a **single already-fetched
+row**, and buckets its keys into three groups:
+
+- root primitives (rendered as a definition list)
+- parent objects (one-to-one side-loaded relation, e.g. `order.customer`) → collapsible sub-table
+- child arrays (one-to-many side-loaded relation, e.g. `order.orderitems`) → collapsible sub-table
+
+It does **not** use `useNctAggregates` — footer totals only appear in `Table.vue`'s expanded
+rows, not in the `ViewRow` modal. (Candidate refactor — see §9.)
+
+Row/column visibility is entirely dependent on the API embedding relation data in the
+`GET` response (`row.customer`, `row.orderitems`, etc.) — this is what `relations.ts` /
+`nacTableQueryConfig` produce on the Drizzle side, or an eager-loaded Eloquent relation
+on the Laravel side.
+
+---
+
+## 4. Write Path
+
+```
+CreateRow.vue / EditRow.vue
+ └─ UModal
+      └─ Form.vue
+           ├─ resolveHiddenFields(crud.formHiddenFields, resource, NCT_FORM_HIDDEN_FIELDS)
+           ├─ useNctDynamicZodSchema(filteredFields, isEdit)
+           │     → per-field zod validator via nctValidationRules[field.type]
+           │     → optional()/nullable() when !required || isEdit
+           ├─ state: reactive record seeded from initialState
+           │     → unwraps relation objects on *_id/Id fields (`{id: 1, ...}` → `1`)
+           ├─ per-field control resolution:
+           │     boolean     → UCheckbox
+           │     *_id / *Id  → NctCrudNameList   (relation picker)
+           │     password    → NctCommonPassword (create only)
+           │     date        → UInput type=datetime-local
+           │     enum        → USelect
+           │     textarea    → UTextarea
+           │     default     → UInput
+           └─ emits 'submit' → useNctCrudFetch('POST'|'PATCH', resource, id, data)
+                  → $fetch with useNctHeaders()
+                  → toast (success/error)
+                  → refreshNuxtData() on success
+                  → returns Promise<boolean>, used by Create/EditRow to gate `open.value = false`
+```
+
+`NameList.vue` is the relation **picker** used inside `Form.vue` for any `*_id`/`*Id`
+field. It independently fetches `GET ${apiBase}/${pluralizedRelationName}` to populate a
+`USelectMenu` with every selectable row (label = `name || title || num || '#id'`).
+
+---
+
+## 5. Auth & Permissions
+
+```
+useNctAuth()          token/user state (useState, cookie-synced), login/register/logout/fetchUser
+abilities.ts
+ ├─ nctIsAuthEnabled()          reads runtimeConfig.public.crudTable.auth
+ ├─ nctIsAdmin(user)            role === 'admin'
+ ├─ nctIsOwner(user, record, ownerKey='createdBy')   Number() coercion both sides
+ ├─ nctHasPermission(user, model, action)            admin/auth-disabled short-circuit
+ ├─ nctHasRowPermission(user, model, action, record) falls back to `${action}_own` + nctIsOwner
+ └─ nctIsAllowedToSeeResourceMenu(user, model)        list | list_all | list_own
+```
+
+`Table.vue` gates the create button and each row's view/edit/delete actions through
+`nctHasPermission`/`nctHasRowPermission` against `$nctUser` (injected via a host-provided
+Nuxt plugin, typed in `types.d.ts`).
+
+---
+
+## 6. Backend Contract
+
+```
+GET    apiBase/:resource                 → array | { data: array }
+GET    apiBase/:resource/:id             → single record
+POST   apiBase/:resource                 → create
+PATCH  apiBase/:resource/:id             → partial update
+DELETE apiBase/:resource/:id             → delete
+GET    apiBase/_schemas/:resource        → NctSchemaDefinition
+```
 
 ```ts
-transform: (res) => {
-  if (res && typeof res === 'object' && 'data' in res) return res.data
-  return res ?? []
+interface NctField {
+  name: string
+  type: string           // string | number | email | password | boolean | date | enum | textarea | ...
+  required?: boolean
+  selectOptions?: string[]
+  references?: string
+  readonly?: boolean
+}
+
+interface NctSchemaDefinition {
+  resource: string
+  labelField: string
+  fields: NctField[]
 }
 ```
 
-This is the **single normalization point** — everything downstream (`visibleColumns`, `paginatedItems`, child components) assumes a flat `Record<string, unknown>[]`, regardless of backend shape. A second, independent `useFetch` pulls `NctSchemaDefinition` from `apiBase/_schemas/:resource` — this schema object is what's threaded down into `CreateRow`, `EditRow`, and `Form.vue` as a prop, driving both column rendering and Zod validation.
+Security-sensitive fields (`password`, `secret`, `token`, `github_id`, `google_id`, ...)
+must never be serialized by the backend in the first place — `nct` has no way to
+un-leak a field that already crossed the wire. `formHiddenFields`/`tableHiddenFields`
+are UX conveniences, not a security boundary (documented directly in `constants.ts`).
 
-Two more composables enrich the raw records before rendering:
-- **`useNctAggregates`** — computes row-level virtual columns and child-array footer rollups (config-driven via `app.config.ts`'s `aggregates` key), producing `augmentedRecords`.
-- **`useNctTableFormat`** — supplies `flattenKeys`/`getColumnValue` (dot-path flattening + FK/array detection) and `formatCellValue` (ISO date prettifying) used to derive `visibleColumns` and render each cell.
+---
 
-Pagination is delegated to `NctCommonPagination` (outside `crud/` scope) via an `@update:paginated` event feeding `paginatedItems`, which is what's actually iterated in the `<tbody>`.
+## 7. Config Reference (`app.config.ts` → `crud`)
 
-### 3. Internal Composable Wiring Within `crud/`
+| Key | Shape | Default | Notes |
+|---|---|---|---|
+| `tableHiddenFields` | `NctFieldVisibility` | `NCT_TABLE_HIDDEN_FIELDS` | list view only |
+| `formHiddenFields` | `NctFieldVisibility` | `NCT_FORM_HIDDEN_FIELDS` | create/edit forms only |
+| `hideForeignKeys` | `boolean` | `true` (per Table.vue usage) | drops `*_id`/`*Id` columns that have a matching side-loaded relation object |
+| `exports.excel/pdf` | `{ globalExclude, resourceExclude }` | — | client-side XLSX/PDF export column exclusion |
+| `aggregates` | `Record<resource, { columns?, footer?, footerInParent? }>` | — | virtual + footer aggregate defs, see `useNctAggregates` |
 
-- **`useNctCrudFetch`** — the only path for mutations (`POST`/`PATCH`/`DELETE`). Centralizes endpoint construction, `useNctHeaders()` injection, toast feedback, and `refreshNuxtData()` cache-busting. Called from `Table.vue` (delete), `CreateRow.vue`, and `EditRow.vue` (create/update) — none of these components hit `$fetch` directly.
-- **`useNctDynamicZodSchema`** — consumed by `Form.vue` only, translating `NctField[]` into a live Zod object gating `UForm`'s `:schema`.
-- **`useNctHeaders`** — thin auth-header accessor, consumed by every fetch call across `Table.vue`, `NameList.vue`, and `useNctCrudFetch`.
-- **`nctHasPermission` / `nctHasRowPermission`** (from `abilities.ts` utils) — gate every action-button's visibility in `Table.vue`; `nctIsOwner`-style row checks are what let `EditRow`/`ViewRow`/delete diverge per-row rather than per-resource.
-- **`nctDbFieldToLabel`** (formatter util) — used both in `Table.vue` (column headers, child-table headers) and `ViewRow.vue` (field labels), keeping label-casing logic in one place.
+`NctFieldVisibility` = bare `string[]` **or** `{ default?, resources? }`. An object's
+`default` *replaces* the built-in default entirely; `resources[resource]` always
+*appends* to whichever default applies. Matching is case-convention-agnostic
+(`isFieldHidden` normalizes both sides to snake_case).
 
-**Net flow:** `Table.vue` fetches+normalizes data and schema → augments via aggregates/table-format composables → renders grid + delegates row actions to `CreateRow`/`EditRow`/`ViewRow` → those forward `schema`/`initial-state` into `Form.vue` → `Form.vue` builds Zod validation + reactive state, resolving `_id` fields through `NameList.vue` → submissions funnel back through `useNctCrudFetch`, which triggers a global `refreshNuxtData()` that re-runs `Table.vue`'s `useFetch` and closes the loop.
+---
+
+## 8. Quick File Map
+
+```
+src/runtime/
+  app/components/nct/
+    common/  Pagination.vue  Password.vue  SearchButton.vue
+    crud/    CreateRow.vue  EditRow.vue  Form.vue  NameList.vue  Table.vue  ViewRow.vue
+    AuthForm.vue
+  app/utils/  abilities.ts  constants.ts  field-visibility.ts  formatter.ts
+  composables/
+    useNctAggregates.ts  useNctAuth.ts  useNctCrudFetch.ts  useNctDynamicZodSchema.ts
+    useNctExport.ts  useNctFormState.ts  useNctHeaders.ts  useNctTableFormat.ts
+  server/
+  shared/types/  auth.ts  config.ts  schema.ts  validation-rules.ts
+  types.d.ts
+module.ts
+```

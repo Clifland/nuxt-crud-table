@@ -1,3 +1,5 @@
+import { resolveDotPath } from '../app/utils/dot-path'
+
 /**
  * Regular expression pattern to detect ISO 8601 extended format date-time strings.
  * @type RegExp
@@ -49,10 +51,7 @@ export function useNctTableFormat() {
    * @returns The resolved property value, or `undefined` if any reference segment fails to resolve.
    */
   function getColumnValue(row: Record<string, unknown>, path: string): unknown {
-    return path.split('.').reduce<unknown>((acc, key) => {
-      if (acc && typeof acc === 'object') return (acc as Record<string, unknown>)[key]
-      return undefined
-    }, row)
+    return resolveDotPath(row, path)
   }
 
   /**

@@ -1,3 +1,5 @@
+import { stripRelationSuffix } from './relation-fields'
+
 /**
  * Transforms a database column name or object key into a human-readable display label.
  * Strips relational ID suffixes, breaks casing boundaries, and capitalizes the result.
@@ -14,8 +16,7 @@
  * @internal
  */
 export const nctDbFieldToLabel = (str: string): string => {
-  return String(str)
-    .replace(/(_id|Id)$/, '') // Strip ID suffixes
+  return stripRelationSuffix(String(str))
     .replace(/[_-]/g, ' ') // Convert underscores/hyphens to spaces
     .replace(/([A-Z])/g, ' $1') // Split CamelCase
     .replace(/\s+/g, ' ') // Collapse double spaces

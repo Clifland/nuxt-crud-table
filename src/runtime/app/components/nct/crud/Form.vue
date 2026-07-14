@@ -2,7 +2,7 @@
 import { computed, reactive } from 'vue'
 import type { FormSubmitEvent } from '@nuxt/ui'
 import { useAppConfig } from '#app'
-import { useNctDynamicZodSchema, resolveHiddenFields, isFieldHidden, NCT_FORM_HIDDEN_FIELDS } from '#imports'
+import { useNctDynamicZodSchema, resolveHiddenFields, isFieldHidden, NCT_FORM_HIDDEN_FIELDS, isRelationFieldName, stripRelationSuffix } from '#imports'
 import { useChangeCase } from '@vueuse/integrations/useChangeCase'
 
 import type { NctSchemaDefinition } from '../../../../shared/types/schema'
@@ -65,6 +65,8 @@ const formSchema = useNctDynamicZodSchema(filteredFields, !!props.initialState)
  * Reactive data repository reflecting structural input key-value attributes.
  * @remarks
  * Recursively standardizes initialization schemas, relational structures, and foreign key pointers.
+ * Relation-field detection/suffix-stripping goes through {@link isRelationFieldName}/
+ * {@link stripRelationSuffix} rather than reimplementing the `_id`/`Id` convention locally.
  */
 const state = reactive<Record<string, unknown>>(
   filteredFields.reduce(
@@ -73,11 +75,11 @@ const state = reactive<Record<string, unknown>>(
 
       // Handle relation fields that might be objects
       // Case 1: value is an object with id (e.g. customer_id: { id: 1, ... })
-      if ((field.name.endsWith('_id') || field.name.endsWith('Id')) && value && typeof value === 'object' && 'id' in value) {
+      if (isRelationFieldName(field.name) && value && typeof value === 'object' && 'id' in value) {
         value = (value as { id: unknown }).id
       }
-      else if ((field.name.endsWith('_id') || field.name.endsWith('Id')) && value === undefined) {
-        const relationName = field.name.endsWith('_id') ? field.name.replace('_id', '') : field.name.replace('Id', '')
+      else if (isRelationFieldName(field.name) && value === undefined) {
+        const relationName = stripRelationSuffix(field.name)
         const relationValue = props.initialState?.[relationName]
         if (relationValue && typeof relationValue === 'object' && 'id' in relationValue) {
           value = (relationValue as { id: unknown }).id
@@ -99,14 +101,7 @@ const state = reactive<Record<string, unknown>>(
  */
 const processedFields = computed(() =>
   filteredFields.map((field) => {
-    let label = field.name
-    if (label.endsWith('_id')) {
-      label = label.replace('_id', '')
-    }
-    else if (label.endsWith('Id')) {
-      label = label.replace('Id', '')
-    }
-    label = useChangeCase(label, 'capitalCase').value
+    const label = useChangeCase(stripRelationSuffix(field.name), 'capitalCase').value
     return {
       ...field,
       label,
@@ -152,7 +147,7 @@ function handleSubmit(event: FormSubmitEvent<Record<string, unknown>>) {
           />
 
           <NctCrudNameList
-            v-else-if="field.name.endsWith('_id') || field.name.endsWith('Id')"
+            v-else-if="isRelationFieldName(field.name)"
             v-model="state[field.name] as string | number | null"
             :field-name="field.name"
             :table-name="field.references"

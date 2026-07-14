@@ -172,6 +172,20 @@ function getChildColumnNames(row: Record<string, unknown>, arrCol: string): stri
 }
 
 /**
+ * Combines a child array's visible column keys with their resolved display labels, in the
+ * `{ key, label }[]` shape the shared `NctCrudChildTable` renderer expects.
+ * @param row - The active primary data entry tracking item.
+ * @param arrCol - The nested target identifier string array indicator key.
+ * @returns Column definitions ready to hand to the shared child-table renderer.
+ */
+function getChildColumnDefs(row: Record<string, unknown>, arrCol: string): { key: string, label: string }[] {
+  return getChildColumnNames(row, arrCol).map(col => ({
+    key: col,
+    label: getChildColumnLabel(arrCol, col),
+  }))
+}
+
+/**
  * Resolves sub-grid record array sequences updated to contain calculated virtual parameter items.
  * @param row - The reference base dataset record container block.
  * @param arrCol - The target database array key string identifier tag.
@@ -386,54 +400,11 @@ const paginatedItems = ref<Record<string, unknown>[]>([])
                   <p class="font-medium text-sm mb-2 text-gray-700 dark:text-gray-300">
                     {{ nctDbFieldToLabel(arrCol) }}
                   </p>
-                  <table class="min-w-full text-sm divide-y divide-gray-200 dark:divide-gray-700">
-                    <thead>
-                      <tr>
-                        <th
-                          v-for="childCol in getChildColumnNames(row, arrCol)"
-                          :key="childCol"
-                          class="px-3 py-2 text-left font-semibold text-gray-900 dark:text-white"
-                        >
-                          {{ getChildColumnLabel(arrCol, childCol) }}
-                        </th>
-                      </tr>
-                    </thead>
-
-                    <tbody class="divide-y divide-gray-200 dark:divide-gray-700">
-                      <tr
-                        v-for="child in getChildRowsWithVirtualColumns(row, arrCol)"
-                        :key="String(child.id)"
-                      >
-                        <td
-                          v-for="childCol in getChildColumnNames(row, arrCol)"
-                          :key="childCol"
-                          class="whitespace-nowrap px-3 py-2 text-gray-500 dark:text-gray-400"
-                        >
-                          {{ formatCellValue(getColumnValue(child, childCol)) }}
-                        </td>
-                      </tr>
-                    </tbody>
-
-                    <tfoot v-if="hasFooter(arrCol)">
-                      <tr class="font-semibold border-t border-gray-300 dark:border-gray-600">
-                        <td
-                          v-for="childCol in getChildColumnNames(row, arrCol)"
-                          :key="childCol"
-                          class="px-3 py-2 text-right"
-                        >
-                          <template
-                            v-for="cell in (getFooterCellsByColumn(row, arrCol).get(childCol) ?? [])"
-                            :key="cell.label"
-                          >
-                            <span>{{ formatCellValue(cell.value) }}</span>
-                            <span class="block text-[10px] font-normal uppercase tracking-wide text-gray-400">
-                              {{ cell.label }}
-                            </span>
-                          </template>
-                        </td>
-                      </tr>
-                    </tfoot>
-                  </table>
+                  <NctCrudChildTable
+                    :columns="getChildColumnDefs(row, arrCol)"
+                    :rows="getChildRowsWithVirtualColumns(row, arrCol)"
+                    :footer="hasFooter(arrCol) ? getFooterCellsByColumn(row, arrCol) : undefined"
+                  />
                 </div>
               </td>
             </tr>
