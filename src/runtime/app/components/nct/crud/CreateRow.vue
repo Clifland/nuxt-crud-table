@@ -17,6 +17,13 @@ const props = defineProps<{
    * The metadata structural layout definition utilized to populate and validate the internal dynamic form.
    */
   schema: NctSchemaDefinition
+  /**
+   * Optional pre-filled field values for the create form — e.g. a parent foreign
+   * key when this create button is invoked from a child-table context (see
+   * `NctCrudChildTable`'s "Add New" button), so the new row is created under the
+   * correct parent without the user having to pick it again from a relation picker.
+   */
+  initialState?: Record<string, unknown>
 }>()
 
 /**
@@ -78,6 +85,7 @@ const singularResourceName = useChangeCase(singular, 'capitalCase').value
           <div v-if="schema">
             <NctCrudForm
               :schema="schema"
+              :initial-state="initialState"
               :loading="loading"
               @submit="onSubmit"
             />

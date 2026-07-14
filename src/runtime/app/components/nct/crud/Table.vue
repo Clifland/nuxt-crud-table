@@ -444,6 +444,8 @@ const paginatedItems = ref<Record<string, unknown>[]>([])
                     :footer="hasFooter(arrCol) ? getFooterCellsByColumn(row, arrCol) : undefined"
                     :resource="arrCol"
                     :schema="childSchemas[arrCol]"
+                    :parent-resource="resource"
+                    :parent-row-id="row.id as number"
                   />
                 </div>
               </td>

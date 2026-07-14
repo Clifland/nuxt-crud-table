@@ -1,7 +1,7 @@
 <script setup lang="ts">
 import { computed } from 'vue'
 import { useNuxtApp } from '#app'
-import { useNctTableFormat, useNctCrudFetch, useToast, nctHasRowPermission } from '#imports'
+import { useNctTableFormat, useNctCrudFetch, useToast, nctHasRowPermission, nctHasPermission } from '#imports'
 import type { NctSchemaDefinition } from '../../../../shared/types/schema'
 
 /**
@@ -46,19 +46,34 @@ const props = withDefaults(defineProps<{
   size?: 'xs' | 'sm'
   /**
    * The child resource's plural API name (e.g. 'orderitems'). Required, alongside
-   * `schema`, to render the per-row action popover.
+   * `schema`, to render the per-row action popover and the "Add New" button.
    */
   resource?: string
   /**
-   * The child resource's own schema, needed to populate NctCrudViewRow/EditRow's
-   * forms. Omit to render a plain read-only table.
+   * The child resource's own schema, needed to populate NctCrudViewRow/EditRow/
+   * CreateRow's forms. Omit to render a plain read-only table.
    */
   schema?: NctSchemaDefinition
+  /**
+   * The parent resource's plural API name (e.g. 'orders'). Used to find which
+   * field on `schema` points back at the parent (`field.references ===
+   * parentResource`), so a newly created child row is pre-filled with the
+   * correct foreign key. Required, alongside `parentRowId`, to show the
+   * "Add New" button — without a way to identify the FK field, there's no
+   * safe default to create against, so the button is simply omitted.
+   */
+  parentResource?: string
+  /**
+   * The specific parent row's id, pre-filled into the matched foreign-key field.
+   */
+  parentRowId?: string | number
 }>(), {
   footer: undefined,
   size: 'sm',
   resource: undefined,
   schema: undefined,
+  parentResource: undefined,
+  parentRowId: undefined,
 })
 
 const { formatCellValue, getColumnValue } = useNctTableFormat()
@@ -72,6 +87,37 @@ const user = $nctUser ?? null
  * view/edit forms) are required.
  */
 const showActions = computed(() => !!(props.resource && props.schema))
+
+/**
+ * Resolves the child schema's field that references the parent resource, if any.
+ * @remarks
+ * Matched via `field.references`, which the schema contract already carries per
+ * field (see `NctField`) — no naming-convention guessing required.
+ */
+const parentFkField = computed(() => {
+  if (!props.schema || !props.parentResource) return undefined
+  return props.schema.fields.find(f => f.references === props.parentResource)
+})
+
+/**
+ * Pre-filled state for the "Add New" child-row form: just the resolved parent
+ * FK field set to this section's parent row id. The field stays a normal,
+ * editable relation picker in the form (nct has no per-instance readonly
+ * override today) — pre-filled with the right default, but not locked.
+ */
+const createInitialState = computed<Record<string, unknown> | undefined>(() => {
+  if (!parentFkField.value || props.parentRowId === undefined) return undefined
+  return { [parentFkField.value.name]: props.parentRowId }
+})
+
+/**
+ * Whether to show the "Add New" button: same requirements as the action
+ * popover, plus a resolvable parent FK field and permission to create.
+ */
+const canCreate = computed(() =>
+  !!(showActions.value && parentFkField.value && props.parentRowId !== undefined
+    && nctHasPermission(user, props.resource!, 'create')),
+)
 
 const toast = useToast()
 
@@ -106,105 +152,118 @@ async function onDelete(id: number) {
 </script>
 
 <template>
-  <table
-    class="min-w-full divide-y divide-gray-200 dark:divide-gray-700"
-    :class="size === 'xs' ? 'text-xs' : 'text-sm'"
-  >
-    <thead>
-      <tr>
-        <th
-          v-for="col in columns"
-          :key="col.key"
-          scope="col"
-          class="px-3 py-2 text-left font-semibold text-gray-900 dark:text-white whitespace-nowrap"
-        >
-          {{ col.label }}
-        </th>
-        <th
-          v-if="showActions"
-          scope="col"
-          class="relative py-2 pl-3 pr-3"
-        >
-          <span class="sr-only">Actions</span>
-        </th>
-      </tr>
-    </thead>
+  <div>
+    <div
+      v-if="canCreate"
+      class="flex justify-end mb-2"
+    >
+      <NctCrudCreateRow
+        :resource="resource!"
+        :schema="schema!"
+        :initial-state="createInitialState"
+      />
+    </div>
 
-    <tbody class="divide-y divide-gray-200 dark:divide-gray-700">
-      <tr
-        v-for="(row, idx) in rows"
-        :key="String(row.id ?? idx)"
-        class="hover:bg-gray-50 dark:hover:bg-gray-800/30"
-      >
-        <td
-          v-for="col in columns"
-          :key="col.key"
-          class="whitespace-nowrap px-3 py-2 text-gray-500 dark:text-gray-400"
-        >
-          {{ formatCellValue(getColumnValue(row, col.key)) }}
-        </td>
-
-        <td
-          v-if="showActions"
-          class="relative whitespace-nowrap px-3 py-2 text-right text-sm font-medium"
-        >
-          <UPopover :content="{ align: 'end', side: 'bottom' }">
-            <UButton
-              icon="i-lucide-more-vertical"
-              color="neutral"
-              variant="ghost"
-              size="xs"
-            />
-
-            <template #content>
-              <div class="p-1 flex flex-col gap-1 min-w-[120px]">
-                <NctCrudViewRow
-                  v-if="schema && nctHasRowPermission(user, resource!, 'read', row)"
-                  :row="row"
-                  :schema="schema"
-                />
-                <NctCrudEditRow
-                  v-if="schema && nctHasRowPermission(user, resource!, 'update', row)"
-                  :resource="resource!"
-                  :row="row"
-                  :schema="schema"
-                />
-                <UButton
-                  v-if="nctHasRowPermission(user, resource!, 'delete', row)"
-                  label="Delete"
-                  color="error"
-                  variant="ghost"
-                  size="xs"
-                  icon="i-lucide-trash"
-                  class="justify-start"
-                  @click="onDelete(row.id as number)"
-                />
-              </div>
-            </template>
-          </UPopover>
-        </td>
-      </tr>
-    </tbody>
-
-    <tfoot v-if="footer">
-      <tr class="font-semibold border-t border-gray-300 dark:border-gray-600">
-        <td
-          v-for="col in columns"
-          :key="col.key"
-          class="px-3 py-2 text-right"
-        >
-          <template
-            v-for="cell in (footer.get(col.key) ?? [])"
-            :key="cell.label"
+    <table
+      class="min-w-full divide-y divide-gray-200 dark:divide-gray-700"
+      :class="size === 'xs' ? 'text-xs' : 'text-sm'"
+    >
+      <thead>
+        <tr>
+          <th
+            v-for="col in columns"
+            :key="col.key"
+            scope="col"
+            class="px-3 py-2 text-left font-semibold text-gray-900 dark:text-white whitespace-nowrap"
           >
-            <span>{{ formatCellValue(cell.value) }}</span>
-            <span class="block text-[10px] font-normal uppercase tracking-wide text-gray-400">
-              {{ cell.label }}
-            </span>
-          </template>
-        </td>
-        <td v-if="showActions" />
-      </tr>
-    </tfoot>
-  </table>
+            {{ col.label }}
+          </th>
+          <th
+            v-if="showActions"
+            scope="col"
+            class="relative py-2 pl-3 pr-3"
+          >
+            <span class="sr-only">Actions</span>
+          </th>
+        </tr>
+      </thead>
+
+      <tbody class="divide-y divide-gray-200 dark:divide-gray-700">
+        <tr
+          v-for="(row, idx) in rows"
+          :key="String(row.id ?? idx)"
+          class="hover:bg-gray-50 dark:hover:bg-gray-800/30"
+        >
+          <td
+            v-for="col in columns"
+            :key="col.key"
+            class="whitespace-nowrap px-3 py-2 text-gray-500 dark:text-gray-400"
+          >
+            {{ formatCellValue(getColumnValue(row, col.key)) }}
+          </td>
+
+          <td
+            v-if="showActions"
+            class="relative whitespace-nowrap px-3 py-2 text-right text-sm font-medium"
+          >
+            <UPopover :content="{ align: 'end', side: 'bottom' }">
+              <UButton
+                icon="i-lucide-more-vertical"
+                color="neutral"
+                variant="ghost"
+                size="xs"
+              />
+
+              <template #content>
+                <div class="p-1 flex flex-col gap-1 min-w-[120px]">
+                  <NctCrudViewRow
+                    v-if="schema && nctHasRowPermission(user, resource!, 'read', row)"
+                    :row="row"
+                    :schema="schema"
+                  />
+                  <NctCrudEditRow
+                    v-if="schema && nctHasRowPermission(user, resource!, 'update', row)"
+                    :resource="resource!"
+                    :row="row"
+                    :schema="schema"
+                  />
+                  <UButton
+                    v-if="nctHasRowPermission(user, resource!, 'delete', row)"
+                    label="Delete"
+                    color="error"
+                    variant="ghost"
+                    size="xs"
+                    icon="i-lucide-trash"
+                    class="justify-start"
+                    @click="onDelete(row.id as number)"
+                  />
+                </div>
+              </template>
+            </UPopover>
+          </td>
+        </tr>
+      </tbody>
+
+      <tfoot v-if="footer">
+        <tr class="font-semibold border-t border-gray-300 dark:border-gray-600">
+          <td
+            v-for="col in columns"
+            :key="col.key"
+            class="px-3 py-2 text-right"
+          >
+            <template
+              v-for="cell in (footer.get(col.key) ?? [])"
+              :key="cell.label"
+            >
+              <span>{{ formatCellValue(cell.value) }}</span>
+              <span class="block text-[10px] font-normal uppercase tracking-wide text-gray-400">
+                {{ cell.label }}
+              </span>
+            </template>
+          </td>
+          <td v-if="showActions" />
+        </tr>
+      </tfoot>
+    </table>
+  </div>
 </template>
