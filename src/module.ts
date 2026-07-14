@@ -110,3 +110,5 @@ export default defineNuxtModule<ModuleOptions>({
     }))
   },
 })
+
+export type { NctPrintTemplateProps } from './runtime/shared/types/print'

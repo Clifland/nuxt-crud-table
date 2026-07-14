@@ -9,6 +9,8 @@
   import needed) for typing only.
 -->
 <script setup lang="ts">
+import type { NctPrintTemplateProps } from 'nuxt-crud-table'
+
 const props = defineProps<NctPrintTemplateProps>()
 
 // useNctTableFormat is one of nct's own composables, auto-imported project-wide

@@ -46,27 +46,14 @@ import type { NctSchemaDefinition } from './schema'
  * })
  * ```
  */
-declare global {
-  interface NctPrintTemplateProps {
-    /** The child resource's plural API name (e.g. 'orderitems'). */
-    resource: string
-    /** The child resource's own schema, if it was available when printing was triggered. */
-    schema?: NctSchemaDefinition
-    /** Ordered column definitions: the raw field key plus its resolved display label. */
-    columns: { key: string, label: string }[]
-    /** The child row records being printed, already resolved (including any virtual columns). */
-    rows: Record<string, unknown>[]
-    /** Optional footer aggregate cells, keyed by column key — same shape `NctCrudChildTable` itself uses. */
-    footer?: Map<string, { label: string, value: number }[]>
-    /** The parent resource's plural API name (e.g. 'orders'), if this child table has one. */
-    parentResource?: string
-    /**
-     * The full parent row record — not just its id — so a template can show
-     * parent-level context (e.g. an invoice's order number and customer)
-     * alongside the child rows themselves.
-     */
-    parentRow?: Record<string, unknown>
-  }
+export interface NctPrintTemplateProps {
+  resource?: string
+  schema?: NctSchemaDefinition
+  columns: { key: string, label: string }[]
+  rows: Record<string, unknown>[]
+  footer?: Map<string, { label: string, value: number }[]>
+  parentResource?: string
+  parentRow?: Record<string, unknown>
 }
 
 // Required so TypeScript treats this file as a module (needed for `declare

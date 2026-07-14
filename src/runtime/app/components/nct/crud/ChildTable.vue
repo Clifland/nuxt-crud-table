@@ -3,6 +3,7 @@ import { computed, nextTick, ref } from 'vue'
 import { useAppConfig, useNuxtApp } from '#app'
 import { useNctTableFormat, useNctCrudFetch, useToast, nctHasRowPermission, nctHasPermission } from '#imports'
 import type { NctSchemaDefinition } from '../../../../shared/types/schema'
+import type { NctPrintTemplateProps } from '../../../../shared/types/print'
 
 /**
  * Shared renderer for a child (one-to-many) relation array, rendered as a small
@@ -85,6 +86,10 @@ const props = withDefaults(defineProps<{
   parentRow: undefined,
 })
 
+defineSlots<{
+  'print-template'(props: NctPrintTemplateProps): void
+}>()
+
 const { formatCellValue, getColumnValue } = useNctTableFormat()
 
 const { $nctUser } = useNuxtApp()
@@ -131,18 +136,6 @@ const canCreate = computed(() =>
 const toast = useToast()
 
 const crudConfig = useAppConfig().crud
-
-/**
- * The Nuxt-global component name configured for this child resource's print
- * template (`crud.printTemplates[resource]`), if any. A plain string, resolved
- * at render time via `<component :is="...">` against Nuxt's global component
- * registry — nct never imports the template directly, so any component the
- * host app has registered under that name (typically just by dropping a file
- * in their own `components/` folder) works with no further wiring.
- */
-const printTemplateName = computed(() =>
-  props.resource ? crudConfig?.printTemplates?.[props.resource] : undefined,
-)
 
 /**
  * Whether this child table's print area is currently teleported into `<body>`
@@ -227,68 +220,11 @@ async function onDelete(id: number) {
         v-if="isPrinting"
         class="nct-print-area p-8"
       >
-        <component
-          :is="printTemplateName"
-          v-if="printTemplateName"
-          :resource="resource"
-          :schema="schema"
-          :columns="columns"
-          :rows="rows"
-          :footer="footer"
-          :parent-resource="parentResource"
-          :parent-row="parentRow"
+        <slot
+          v-if="resource"
+          name="print-template"
+          v-bind="{ resource, schema, columns, rows, footer, parentResource, parentRow }"
         />
-
-        <table
-          v-else
-          class="min-w-full text-sm border-collapse"
-        >
-          <thead>
-            <tr>
-              <th
-                v-for="col in columns"
-                :key="col.key"
-                class="border border-gray-300 px-2 py-1 text-left font-semibold"
-              >
-                {{ col.label }}
-              </th>
-            </tr>
-          </thead>
-          <tbody>
-            <tr
-              v-for="(row, idx) in rows"
-              :key="String(row.id ?? idx)"
-            >
-              <td
-                v-for="col in columns"
-                :key="col.key"
-                class="border border-gray-300 px-2 py-1"
-              >
-                {{ formatCellValue(getColumnValue(row, col.key)) }}
-              </td>
-            </tr>
-          </tbody>
-
-          <tfoot v-if="footer">
-            <tr class="font-semibold border-t-2 border-gray-800">
-              <td
-                v-for="col in columns"
-                :key="col.key"
-                class="border border-gray-300 px-2 py-1 text-right"
-              >
-                <template
-                  v-for="cell in (footer.get(col.key) ?? [])"
-                  :key="cell.label"
-                >
-                  <span>{{ formatCellValue(cell.value) }}</span>
-                  <span class="block text-[10px] font-normal uppercase tracking-wide text-gray-500">
-                    {{ cell.label }}
-                  </span>
-                </template>
-              </td>
-            </tr>
-          </tfoot>
-        </table>
       </div>
     </Teleport>
 

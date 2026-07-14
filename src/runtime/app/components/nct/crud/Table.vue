@@ -4,6 +4,7 @@ import { useRuntimeConfig, useAppConfig, useFetch, useNuxtApp } from '#app'
 import { useNctAggregates, useNctHeaders, nctDbFieldToLabel, nctHasRowPermission, nctHasPermission, useNctExport, useNctCrudFetch, useNctTableFormat, useToast, resolveHiddenFields, isFieldHidden, NCT_TABLE_HIDDEN_FIELDS } from '#imports'
 
 import type { NctSchemaDefinition } from '../../../../shared/types/schema'
+import type { NctPrintTemplateProps } from '../../../../shared/types/print'
 
 const { $nctUser } = useNuxtApp()
 const user = $nctUser ?? null
@@ -16,6 +17,10 @@ const props = defineProps<{
    * The explicit database resource table or route endpoint handle identifier.
    */
   resource: string
+}>()
+
+defineSlots<{
+  'print-template'(props: NctPrintTemplateProps): void
 }>()
 
 const { apiBase } = useRuntimeConfig().public.crudTable
@@ -447,7 +452,11 @@ const paginatedItems = ref<Record<string, unknown>[]>([])
                     :parent-resource="resource"
                     :parent-row-id="row.id as number"
                     :parent-row="row"
-                  />
+                  >
+                    <template #print-template="slotProps">
+                      <slot name="print-template" v-bind="slotProps" />
+                    </template>
+                  </NctCrudChildTable>
                 </div>
               </td>
             </tr>

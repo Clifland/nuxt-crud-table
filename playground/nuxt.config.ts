@@ -12,4 +12,7 @@ export default defineNuxtConfig({
   crudTable: {
     apiBase: '/api/_nac',
   },
+  alias: {
+    'nuxt-crud-table': '../src/module',
+  },
 })
