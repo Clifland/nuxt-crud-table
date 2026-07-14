@@ -155,109 +155,108 @@ describe('ChildTable.vue', () => {
     })
   })
 
-
   describe('print', () => {
     let wrapper: Awaited<ReturnType<typeof mountSuspended>> | undefined
 
     afterEach(() => {
-        // Unmount first so Vue tears down the Teleport (and its anchor nodes
-        // inside document.body) through its own lifecycle, rather than us
-        // ripping the DOM out from under it via innerHTML — that leaves Vue's
-        // internal vnode/anchor tracking pointing at nodes that no longer
-        // exist, corrupting the *next* test's teleport (manifests as
-        // "insertBefore on null" one test later, not in the test that
-        // actually caused it).
-        wrapper?.unmount()
-        wrapper = undefined
+      // Unmount first so Vue tears down the Teleport (and its anchor nodes
+      // inside document.body) through its own lifecycle, rather than us
+      // ripping the DOM out from under it via innerHTML — that leaves Vue's
+      // internal vnode/anchor tracking pointing at nodes that no longer
+      // exist, corrupting the *next* test's teleport (manifests as
+      // "insertBefore on null" one test later, not in the test that
+      // actually caused it).
+      wrapper?.unmount()
+      wrapper = undefined
     })
 
     it('shows the Print button when there are rows', async () => {
-        wrapper = await mountSuspended(ChildTable, { props: { columns, rows } })
-        expect(wrapper.text()).toContain('Print')
+      wrapper = await mountSuspended(ChildTable, { props: { columns, rows } })
+      expect(wrapper.text()).toContain('Print')
     })
 
     it('hides the Print button when there are no rows and no "Add New" button', async () => {
-        wrapper = await mountSuspended(ChildTable, { props: { columns, rows: [] } })
-        expect(wrapper.text()).not.toContain('Print')
+      wrapper = await mountSuspended(ChildTable, { props: { columns, rows: [] } })
+      expect(wrapper.text()).not.toContain('Print')
     })
 
     it('reveals the teleported print area and calls window.print on trigger', async () => {
-        wrapper = await mountSuspended(ChildTable, { props: { columns, rows, resource: 'orderitems' } })
+      wrapper = await mountSuspended(ChildTable, { props: { columns, rows, resource: 'orderitems' } })
 
-        const instance = wrapper.vm as unknown as { triggerPrint: () => Promise<void>, isPrinting: boolean }
-        await instance.triggerPrint()
+      const instance = wrapper.vm as unknown as { triggerPrint: () => Promise<void>, isPrinting: boolean }
+      await instance.triggerPrint()
 
-        expect(instance.isPrinting).toBe(true)
-        expect(window.print).toHaveBeenCalledTimes(1)
+      expect(instance.isPrinting).toBe(true)
+      expect(window.print).toHaveBeenCalledTimes(1)
     })
 
     it('hides the print area again after the afterprint event fires', async () => {
-        wrapper = await mountSuspended(ChildTable, { props: { columns, rows, resource: 'orderitems' } })
+      wrapper = await mountSuspended(ChildTable, { props: { columns, rows, resource: 'orderitems' } })
 
-        const instance = wrapper.vm as unknown as { triggerPrint: () => Promise<void>, isPrinting: boolean }
-        await instance.triggerPrint()
-        expect(instance.isPrinting).toBe(true)
+      const instance = wrapper.vm as unknown as { triggerPrint: () => Promise<void>, isPrinting: boolean }
+      await instance.triggerPrint()
+      expect(instance.isPrinting).toBe(true)
 
-        window.dispatchEvent(new Event('afterprint'))
-        await nextTick()
+      window.dispatchEvent(new Event('afterprint'))
+      await nextTick()
 
-        expect(instance.isPrinting).toBe(false)
+      expect(instance.isPrinting).toBe(false)
     })
 
     it('forwards resource, schema, columns, rows, footer, parentResource, and parentRow to the print-template slot', async () => {
-    const footer = new Map([['linetotal', [{ label: 'Total', value: 55 }]]])
-    const parentRow = { id: 10, num: 'ORD-1' }
+      const footer = new Map([['linetotal', [{ label: 'Total', value: 55 }]]])
+      const parentRow = { id: 10, num: 'ORD-1' }
 
-    wrapper = await mountSuspended(ChildTable, {
+      wrapper = await mountSuspended(ChildTable, {
         props: {
-        columns,
-        rows,
-        footer,
-        resource: 'orderitems',
-        schema: orderitemsSchema,
-        parentResource: 'orders',
-        parentRowId: 10,
-        parentRow,
+          columns,
+          rows,
+          footer,
+          resource: 'orderitems',
+          schema: orderitemsSchema,
+          parentResource: 'orders',
+          parentRowId: 10,
+          parentRow,
         },
         slots: {
-        'print-template': (slotProps: NctPrintTemplateProps) =>
+          'print-template': (slotProps: NctPrintTemplateProps) =>
             h('div', { 'data-testid': 'print-slot' }, JSON.stringify({
-            resource: slotProps.resource,
-            rowCount: slotProps.rows.length,
-            parentResource: slotProps.parentResource,
-            parentRowNum: (slotProps.parentRow as { num?: string } | undefined)?.num,
-            hasFooter: !!slotProps.footer,
+              resource: slotProps.resource,
+              rowCount: slotProps.rows.length,
+              parentResource: slotProps.parentResource,
+              parentRowNum: (slotProps.parentRow as { num?: string } | undefined)?.num,
+              hasFooter: !!slotProps.footer,
             })),
         },
-    })
+      })
 
-    const instance = wrapper.vm as unknown as { triggerPrint: () => Promise<void> }
-    await instance.triggerPrint()
+      const instance = wrapper.vm as unknown as { triggerPrint: () => Promise<void> }
+      await instance.triggerPrint()
 
-    const printed = document.body.querySelector('[data-testid="print-slot"]')
-    expect(printed).not.toBeNull()
-    const payload = JSON.parse(printed!.textContent!)
-    expect(payload).toEqual({
+      const printed = document.body.querySelector('[data-testid="print-slot"]')
+      expect(printed).not.toBeNull()
+      const payload = JSON.parse(printed!.textContent!)
+      expect(payload).toEqual({
         resource: 'orderitems',
         rowCount: 2,
         parentResource: 'orders',
         parentRowNum: 'ORD-1',
         hasFooter: true,
-    })
+      })
     })
 
     it('does not render the print-template slot at all when no resource is provided', async () => {
-        wrapper = await mountSuspended(ChildTable, {
-            props: { columns, rows },
-            slots: {
-                'print-template': () => '<div data-testid="print-slot" />',
-            },
-        })
+      wrapper = await mountSuspended(ChildTable, {
+        props: { columns, rows },
+        slots: {
+          'print-template': () => '<div data-testid="print-slot" />',
+        },
+      })
 
-        const instance = wrapper.vm as unknown as { triggerPrint: () => Promise<void> }
-        await instance.triggerPrint()
+      const instance = wrapper.vm as unknown as { triggerPrint: () => Promise<void> }
+      await instance.triggerPrint()
 
-        expect(document.body.querySelector('[data-testid="print-slot"]')).toBeNull()
+      expect(document.body.querySelector('[data-testid="print-slot"]')).toBeNull()
     })
   })
 })
