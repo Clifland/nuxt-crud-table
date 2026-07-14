@@ -1,5 +1,5 @@
 <script setup lang="ts">
-import { computed, ref } from 'vue'
+import { computed, reactive, ref } from 'vue'
 import { useRuntimeConfig, useAppConfig, useFetch, useNuxtApp } from '#app'
 import { useNctAggregates, useNctHeaders, nctDbFieldToLabel, nctHasRowPermission, nctHasPermission, useNctExport, useNctCrudFetch, useNctTableFormat, useToast, resolveHiddenFields, isFieldHidden, NCT_TABLE_HIDDEN_FIELDS } from '#imports'
 
@@ -100,6 +100,44 @@ const { withParentFooterColumns } = useNctAggregates(records, aggregatesConfig)
  * The array repository combining raw dataset values alongside dynamic child summary column rows.
  */
 const augmentedRecords = withParentFooterColumns() // records + any rolled-up child footer columns
+
+/**
+ * Child resource schemas, fetched once so `NctCrudChildTable`'s action popover
+ * (view/edit/delete) can render inside expanded rows. Keyed by the child
+ * array's field name, which nct already treats elsewhere (aggregatesConfig,
+ * relations.ts) as equivalent to the child's plural API resource name.
+ * @remarks
+ * Derived from the union of array columns across *all* loaded rows, not just
+ * the first — `getArrayColumns` only counts a field as present when its array
+ * is non-empty, so keying off row 0 alone would silently skip a child
+ * resource whenever that particular row happened to have zero related items,
+ * starving every other row's action popover for a schema that was never
+ * fetched. Fetched eagerly at setup time alongside the table's own data/schema,
+ * rather than lazily on first expand — simpler, at the cost of one schema
+ * request per distinct child resource type present, even if a user never
+ * actually expands one.
+ */
+const childSchemas = reactive<Record<string, NctSchemaDefinition | undefined>>({})
+
+const allChildArrayColumns = (() => {
+  const cols = new Set<string>()
+  for (const row of augmentedRecords.value ?? []) {
+    for (const col of getArrayColumns(row as Record<string, unknown>)) {
+      cols.add(col)
+    }
+  }
+  return [...cols]
+})()
+
+if (allChildArrayColumns.length) {
+  await Promise.all(allChildArrayColumns.map(async (arrCol) => {
+    const { data } = await useFetch<NctSchemaDefinition>(`${apiBase}/_schemas/${arrCol}`, {
+      key: `crud-schema-${arrCol}`,
+      headers: useNctHeaders(),
+    })
+    childSchemas[arrCol] = data.value ?? undefined
+  }))
+}
 
 /**
  * Formats a localized header label configuration string for rolled-up database layout headers.
@@ -404,6 +442,8 @@ const paginatedItems = ref<Record<string, unknown>[]>([])
                     :columns="getChildColumnDefs(row, arrCol)"
                     :rows="getChildRowsWithVirtualColumns(row, arrCol)"
                     :footer="hasFooter(arrCol) ? getFooterCellsByColumn(row, arrCol) : undefined"
+                    :resource="arrCol"
+                    :schema="childSchemas[arrCol]"
                   />
                 </div>
               </td>
