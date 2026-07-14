@@ -187,16 +187,28 @@ function getChildColumnNames(row: Record<string, unknown>, arrCol: string): stri
 }
 
 /**
+ * Reports whether a column name corresponds to an aggregate definition, which
+ * should typically render right-aligned in a child-table display.
+ * @param arrCol - The array-field key (used to index `aggregatesConfig`).
+ * @param col - The column name to test.
+ * @returns `true` if the column is an aggregate-configured virtual column.
+ */
+function isAggregateColumn(arrCol: string, col: string): boolean {
+  return !!aggregatesConfig[arrCol]?.columns?.some(c => c.name === col)
+}
+
+/**
  * Combines a child array's visible column keys with their resolved display labels, in the
  * `{ key, label }[]` shape the shared `NctCrudChildTable` renderer expects.
  * @param row - The active primary data entry tracking item.
  * @param arrCol - The nested target identifier string array indicator key.
  * @returns Column definitions ready to hand to the shared child-table renderer.
  */
-function getChildColumnDefs(row: Record<string, unknown>, arrCol: string): { key: string, label: string }[] {
+function getChildColumnDefs(row: Record<string, unknown>, arrCol: string): { key: string, label: string, align?: 'left' | 'right' }[] {
   return getChildColumnNames(row, arrCol).map(col => ({
     key: col,
     label: getChildColumnLabel(arrCol, col),
+    align: isAggregateColumn(arrCol, col) ? 'right' : undefined,
   }))
 }
 

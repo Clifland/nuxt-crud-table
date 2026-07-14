@@ -12,7 +12,7 @@ import type { NctPrintTemplateProps } from '../../../../shared/types/print'
  */
 const props = withDefaults(defineProps<{
   /** Ordered column definitions: the raw field key plus its resolved display label. */
-  columns: { key: string, label: string }[]
+  columns: { key: string, label: string, align?: 'left' | 'right' }[]
   /** The child row records to render, already resolved (including any virtual columns). */
   rows: Record<string, unknown>[]
   /**
@@ -187,7 +187,8 @@ async function triggerPrint() {
             v-for="col in columns"
             :key="col.key"
             scope="col"
-            class="px-3 py-2 text-left font-semibold text-gray-900 dark:text-white whitespace-nowrap"
+            class="px-3 py-2 font-semibold text-gray-900 dark:text-white whitespace-nowrap"
+            :class="col.align === 'right' ? 'text-right' : 'text-left'"
           >
             {{ col.label }}
           </th>
@@ -211,6 +212,7 @@ async function triggerPrint() {
             v-for="col in columns"
             :key="col.key"
             class="whitespace-nowrap px-3 py-2 text-gray-500 dark:text-gray-400"
+            :class="col.align === 'right' ? 'text-right' : 'text-left'"
           >
             {{ formatCellValue(getColumnValue(row, col.key)) }}
           </td>
@@ -226,7 +228,8 @@ async function triggerPrint() {
           <td
             v-for="col in columns"
             :key="col.key"
-            class="px-3 py-2 text-right"
+            class="px-3 py-2"
+            :class="col.align === 'right' ? 'text-right' : 'text-left'"
           >
             <template
               v-for="cell in (footer.get(col.key) ?? [])"

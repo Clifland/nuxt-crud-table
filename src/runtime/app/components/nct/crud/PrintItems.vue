@@ -8,14 +8,10 @@ import { useNctTableFormat } from '#imports'
  * print template (e.g. a shipping label needing a line-items table) doesn't
  * have to re-implement dot-path column resolution and footer-cell stacking
  * from scratch.
- * @remarks
- * Uses `getColumnValue`/`formatCellValue` (not plain `row[col.key]`) because
- * nct's `columns` can be dot-paths for side-loaded relation data (e.g.
- * `product.name`) — a flat index would silently resolve to `undefined`.
  */
 defineProps<{
-  /** Column defs as handed to the print-template slot (`{ key, label }[]`). */
-  columns: { key: string, label: string }[]
+  /** Column defs as handed to the print-template slot (`{ key, label, align? }[]`). */
+  columns: { key: string, label: string, align?: 'left' | 'right' }[]
   /** Row records as handed to the print-template slot. */
   rows: Record<string, unknown>[]
   /**
@@ -35,7 +31,8 @@ const { formatCellValue, getColumnValue } = useNctTableFormat()
         <th
           v-for="col in columns"
           :key="col.key"
-          class="text-left py-2 font-semibold"
+          class="py-2 font-semibold"
+          :class="col.align === 'right' ? 'text-right' : 'text-left'"
         >
           {{ col.label }}
         </th>
@@ -51,6 +48,7 @@ const { formatCellValue, getColumnValue } = useNctTableFormat()
           v-for="col in columns"
           :key="col.key"
           class="py-2"
+          :class="col.align === 'right' ? 'text-right' : 'text-left'"
         >
           {{ formatCellValue(getColumnValue(row, col.key)) }}
         </td>
@@ -61,7 +59,8 @@ const { formatCellValue, getColumnValue } = useNctTableFormat()
         <td
           v-for="col in columns"
           :key="col.key"
-          class="py-2 text-right"
+          class="py-2"
+          :class="col.align === 'right' ? 'text-right' : 'text-left'"
         >
           <template
             v-for="cell in (footer.get(col.key) ?? [])"
