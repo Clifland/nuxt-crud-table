@@ -45,34 +45,6 @@ const { data: schema } = await useFetch<NctSchemaDefinition>(`${apiBase}/_schema
   headers: useNctHeaders(),
 })
 
-const toast = useToast()
-
-/**
- * Launches an interactive UI confirmation alert layer prior to triggering table deletion executions.
- * @param id - The distinct row record numeric tracking key.
- */
-async function onDelete(id: number) {
-  toast.add({
-    title: 'Delete Record',
-    description: 'Are you sure you want to permanently delete this row?',
-    color: 'warning',
-    duration: 0, // Keeps the toast visible until an action is clicked
-    actions: [
-      {
-        label: 'Cancel',
-        variant: 'ghost',
-        color: 'neutral',
-        onClick: () => {}, // Soft dismisses the toast natively
-      },
-      {
-        label: 'Delete',
-        color: 'error',
-        onClick: async () => await useNctCrudFetch('DELETE', props.resource, id),
-      },
-    ],
-  })
-}
-
 const { exportToExcel, exportToPDF } = useNctExport()
 const crudConfig = useAppConfig().crud
 const isExportEnabled = !!crudConfig?.exports
@@ -391,42 +363,11 @@ const paginatedItems = ref<Record<string, unknown>[]>([])
               </template>
 
               <td class="relative whitespace-nowrap py-4 pl-3 pr-4 text-right text-sm font-medium sm:pr-6">
-                <UPopover
-                  :content="{ align: 'end', side: 'bottom' }"
-                >
-                  <UButton
-                    icon="i-lucide-more-vertical"
-                    color="neutral"
-                    variant="ghost"
-                    size="xs"
-                  />
-
-                  <template #content>
-                    <div class="p-1 flex flex-col gap-1 min-w-[120px]">
-                      <NctCrudViewRow
-                        v-if="schema && nctHasRowPermission(user, resource, 'read', row)"
-                        :row="row"
-                        :schema="schema"
-                      />
-                      <NctCrudEditRow
-                        v-if="schema && nctHasRowPermission(user, resource, 'update', row)"
-                        :resource="resource"
-                        :row="row"
-                        :schema="schema"
-                      />
-                      <UButton
-                        v-if="nctHasRowPermission(user, resource, 'delete', row)"
-                        label="Delete"
-                        color="error"
-                        variant="ghost"
-                        size="xs"
-                        icon="i-lucide-trash"
-                        class="justify-start"
-                        @click="onDelete(row.id as number)"
-                      />
-                    </div>
-                  </template>
-                </UPopover>
+                <NctCrudRowActions
+                  :resource="resource"
+                  :row="row"  
+                  :schema="schema"
+                />
               </td>
             </tr>
 

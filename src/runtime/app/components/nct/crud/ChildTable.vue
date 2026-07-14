@@ -1,7 +1,7 @@
 <script setup lang="ts">
 import { computed, nextTick, ref } from 'vue'
-import { useAppConfig, useNuxtApp } from '#app'
-import { useNctTableFormat, useNctCrudFetch, useToast, nctHasRowPermission, nctHasPermission } from '#imports'
+import { useNuxtApp } from '#app'
+import { useNctTableFormat, nctHasPermission } from '#imports'
 import type { NctSchemaDefinition } from '../../../../shared/types/schema'
 import type { NctPrintTemplateProps } from '../../../../shared/types/print'
 
@@ -9,24 +9,6 @@ import type { NctPrintTemplateProps } from '../../../../shared/types/print'
  * Shared renderer for a child (one-to-many) relation array, rendered as a small
  * table with an optional footer row of aggregate totals and, optionally, a
  * per-row view/edit/delete action popover identical to Table.vue's own.
- *
- * @remarks
- * Extracted from markup that previously lived independently, and slightly
- * differently, in both `Table.vue` (expanded master-detail rows, with footer
- * support) and `ViewRow.vue` (the "View" modal's child-array sections, no footer
- * support). Both now get footer *and* CRUD-action support for free by passing
- * `footer`/`resource`/`schema` when configured for that resource.
- *
- * CRUD actions require both `resource` and `schema` — the caller is responsible
- * for fetching the child resource's own `NctSchemaDefinition` (see Table.vue's
- * `childSchemas`) since this component stays presentational for the read path.
- * Without them, it renders as a plain read-only table (the original behavior).
- *
- * This assumes the child array's field key IS the child resource's plural API
- * name (e.g. an `orders` row's `orderitems` array maps 1:1 to the `orderitems`
- * resource) — already an implicit assumption elsewhere in nct (aggregatesConfig
- * keys, `relations.ts`'s query config keys), now made load-bearing here too:
- * it's what `useNctCrudFetch`/`nctHasRowPermission` use as the resource name.
  */
 const props = withDefaults(defineProps<{
   /** Ordered column definitions: the raw field key plus its resolved display label. */
@@ -133,10 +115,6 @@ const canCreate = computed(() =>
     && nctHasPermission(user, props.resource!, 'create')),
 )
 
-const toast = useToast()
-
-const crudConfig = useAppConfig().crud
-
 /**
  * Whether this child table's print area is currently teleported into `<body>`
  * and should be visible per `print.css`'s `@media print` rule.
@@ -160,35 +138,6 @@ async function triggerPrint() {
   window.addEventListener('afterprint', () => {
     isPrinting.value = false
   }, { once: true })
-}
-
-/**
- * Same delete confirmation flow as Table.vue's `onDelete`, scoped to this
- * child resource.
- * @param id - The child row's numeric identifier.
- */
-async function onDelete(id: number) {
-  if (!props.resource) return
-  const resource = props.resource
-  toast.add({
-    title: 'Delete Record',
-    description: 'Are you sure you want to permanently delete this row?',
-    color: 'warning',
-    duration: 0,
-    actions: [
-      {
-        label: 'Cancel',
-        variant: 'ghost',
-        color: 'neutral',
-        onClick: () => {},
-      },
-      {
-        label: 'Delete',
-        color: 'error',
-        onClick: async () => await useNctCrudFetch('DELETE', resource, id),
-      },
-    ],
-  })
 }
 </script>
 
@@ -266,44 +215,8 @@ async function onDelete(id: number) {
             {{ formatCellValue(getColumnValue(row, col.key)) }}
           </td>
 
-          <td
-            v-if="showActions"
-            class="relative whitespace-nowrap px-3 py-2 text-right text-sm font-medium"
-          >
-            <UPopover :content="{ align: 'end', side: 'bottom' }">
-              <UButton
-                icon="i-lucide-more-vertical"
-                color="neutral"
-                variant="ghost"
-                size="xs"
-              />
-
-              <template #content>
-                <div class="p-1 flex flex-col gap-1 min-w-[120px]">
-                  <NctCrudViewRow
-                    v-if="schema && nctHasRowPermission(user, resource!, 'read', row)"
-                    :row="row"
-                    :schema="schema"
-                  />
-                  <NctCrudEditRow
-                    v-if="schema && nctHasRowPermission(user, resource!, 'update', row)"
-                    :resource="resource!"
-                    :row="row"
-                    :schema="schema"
-                  />
-                  <UButton
-                    v-if="nctHasRowPermission(user, resource!, 'delete', row)"
-                    label="Delete"
-                    color="error"
-                    variant="ghost"
-                    size="xs"
-                    icon="i-lucide-trash"
-                    class="justify-start"
-                    @click="onDelete(row.id as number)"
-                  />
-                </div>
-              </template>
-            </UPopover>
+          <td v-if="showActions" class="relative whitespace-nowrap px-3 py-2 text-right text-sm font-medium">
+            <NctCrudRowActions :resource="resource!" :row="row" :schema="schema" />
           </td>
         </tr>
       </tbody>
