@@ -446,6 +446,7 @@ const paginatedItems = ref<Record<string, unknown>[]>([])
                     :schema="childSchemas[arrCol]"
                     :parent-resource="resource"
                     :parent-row-id="row.id as number"
+                    :parent-row="row"
                   />
                 </div>
               </td>

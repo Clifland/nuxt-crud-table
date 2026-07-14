@@ -3,28 +3,40 @@
  *
  * `NctCrudChildTable` teleports its print content (either a custom template or
  * the plain fallback table) into `<body>` only while actively printing. This
- * stylesheet hides everything else on the page during that window so the
- * browser's print dialog shows just the printed content, full width, with no
- * app chrome around it.
+ * stylesheet:
+ *   1. Keeps that teleported content invisible during normal (screen) use —
+ *      without this, it would flash on-screen appended at the bottom of
+ *      `<body>` the instant the Print button is clicked, before the print
+ *      dialog opens.
+ *   2. Hides every *other* direct child of `<body>` (the whole app root,
+ *      any other open modals/toasts, etc.) during an actual print/print-preview,
+ *      so the printed output is nothing but the print area, full width, with
+ *      no app chrome around or above it.
  *
- * Deliberately global and registered exactly once (see module.ts's
- * `_nuxt.options.css.push(...)`), rather than embedded as a `<style>` block
- * inside `ChildTable.vue` — that file can be instantiated many times on one
- * page (one per expanded row), and duplicating a `@media print` block that
- * many times would be wasteful for no benefit, since the rule is identical
- * every time.
+ * Deliberately targets `body > *` (direct children only), not `body *`
+ * (all descendants) — the print area is always a direct child of `<body>`
+ * (that's what `<Teleport to="body">` produces), so this is both simpler and
+ * more robust than a "hide everything, then re-show just this subtree" rule:
+ * there's no specificity fight between two overlapping selectors, just one
+ * rule that hides everything at the body level except the one node we want.
+ *
+ * Registered once, globally, by module.ts (`_nuxt.options.css.push(...)`)
+ * rather than embedded as a `<style>` block inside ChildTable.vue — that
+ * component can be instantiated many times on one page (one per expanded
+ * row), and duplicating this rule that many times would be wasteful for no
+ * benefit, since it's identical every time.
  */
-@media print {
-  body * {
-    visibility: hidden;
-  }
+.nct-print-area {
+  display: none;
+}
 
-  .nct-print-area,
-  .nct-print-area * {
-    visibility: visible;
+@media print {
+  body > *:not(.nct-print-area) {
+    display: none !important;
   }
 
   .nct-print-area {
+    display: block;
     position: absolute;
     left: 0;
     top: 0;

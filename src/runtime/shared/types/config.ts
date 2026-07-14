@@ -112,4 +112,27 @@ export interface NctCrudTableConfig {
   }
   /** Global database layout configuration policies defining analytical properties mapping active resources to summary definitions. */
   aggregates?: Record<string, NctResourceAggregateConfig>
+  /**
+   * Maps a child resource's plural API name to a custom print template component,
+   * used by `NctCrudChildTable`'s "Print" button.
+   *
+   * @remarks
+   * The value must be the exact Nuxt-global component name the template resolves
+   * to (e.g. a file at `components/InvoiceTemplate.vue` registers as `InvoiceTemplate`
+   * — watch for Nuxt's folder-based name prefixing if you nest it, e.g.
+   * `components/print/Invoice.vue` would register as `PrintInvoice`, not `Invoice`).
+   * The component receives the fixed {@link NctPrintTemplateProps} contract.
+   *
+   * A child resource with no entry here still gets a working "Print" button —
+   * it just prints the raw column/row data with no header or footer branding,
+   * rather than being disabled.
+   *
+   * @example
+   * ```ts
+   * printTemplates: {
+   *   orderitems: 'InvoiceTemplate',
+   * }
+   * ```
+   */
+  printTemplates?: Record<string, string>
 }
