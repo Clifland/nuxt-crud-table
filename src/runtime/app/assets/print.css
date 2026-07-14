@@ -1,0 +1,33 @@
+/**
+ * Print isolation for nct's child-table "Print" button.
+ *
+ * `NctCrudChildTable` teleports its print content (either a custom template or
+ * the plain fallback table) into `<body>` only while actively printing. This
+ * stylesheet hides everything else on the page during that window so the
+ * browser's print dialog shows just the printed content, full width, with no
+ * app chrome around it.
+ *
+ * Deliberately global and registered exactly once (see module.ts's
+ * `_nuxt.options.css.push(...)`), rather than embedded as a `<style>` block
+ * inside `ChildTable.vue` — that file can be instantiated many times on one
+ * page (one per expanded row), and duplicating a `@media print` block that
+ * many times would be wasteful for no benefit, since the rule is identical
+ * every time.
+ */
+@media print {
+  body * {
+    visibility: hidden;
+  }
+
+  .nct-print-area,
+  .nct-print-area * {
+    visibility: visible;
+  }
+
+  .nct-print-area {
+    position: absolute;
+    left: 0;
+    top: 0;
+    width: 100%;
+  }
+}
