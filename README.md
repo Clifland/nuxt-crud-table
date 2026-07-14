@@ -203,6 +203,143 @@ export default defineAppConfig({
 
 ---
 
+## 3. Custom Print Templates (Optional)
+
+Every child-array section (an order's line items, for example) gets a **Print** 
+button automatically. By default it prints the plain data table — but you can 
+swap in a fully custom layout (e.g. a formatted invoice) per resource, without 
+forking any of nct's own components.
+
+### How it works
+
+`NctCrudTable` exposes a `print-template` slot. When present, nct renders 
+*your* template inside the print area instead of its own default table — 
+mapped per child resource, so different resources (e.g. `orderitems` vs. 
+`shipments`) can each get their own layout.
+
+```vue
+<!-- app/pages/resource/[slug].vue -->
+<script setup lang="ts">
+import type { Component } from 'vue'
+import InvoiceTemplate from '~/components/InvoiceTemplate.vue'
+// import ShippingLabel from '~/components/ShippingLabel.vue'
+
+const route = useRoute()
+const resource = route.params.slug as string
+
+// Maps a child resource name to the template that should render it.
+// Resources with no entry here fall back to nct's default plain table.
+const templateMap: Record<string, Component> = {
+  orderitems: InvoiceTemplate,
+  // shipments: ShippingLabel,
+}
+</script>
+
+<template>
+  <div v-if="resource">
+    <NctCrudTable :resource="resource">
+      <template #print-template="slotProps">
+        <component
+          :is="templateMap[slotProps.resource!]"
+          v-bind="slotProps"
+        />
+      </template>
+    </NctCrudTable>
+  </div>
+</template>
+```
+
+> [!NOTE]
+> If `templateMap` has no entry for a given child resource, nct silently falls 
+> back to its own default table — you only need to write a template for the 
+> resources you actually want to customize.
+
+### The `NctPrintTemplateProps` contract
+
+Your template component receives a fixed set of props, exported from the 
+module so you get full typing:
+
+```ts
+import type { NctPrintTemplateProps } from 'nuxt-crud-table'
+
+const props = defineProps<NctPrintTemplateProps>()
+```
+
+| Prop             | Type                                                | Description                                                                                   |
+| ---------------- | ---------------------------------------------------- | ----------------------------------------------------------------------------------------------- |
+| `resource`       | `string`                                             | The child resource's plural API name (e.g. `'orderitems'`).                                    |
+| `schema`         | `NctSchemaDefinition \| undefined`                   | The child resource's own schema.                                                                |
+| `columns`        | `{ key: string, label: string, align?: 'left' \| 'right' }[]` | Visible columns, already resolved — dot-paths and all.                              |
+| `rows`           | `Record<string, unknown>[]`                          | The child rows, including any virtual/aggregate columns from `crud.aggregates`.                |
+| `footer`         | `Map<string, { label: string, value: number }[]> \| undefined` | Footer aggregate cells, keyed by column key. `undefined` if no footer is configured. |
+| `parentResource` | `string \| undefined`                                | The parent resource's plural API name (e.g. `'orders'`).                                       |
+| `parentRow`      | `Record<string, unknown> \| undefined`               | The full parent row — use this for parent-level context like a customer name or order number.  |
+
+> [!IMPORTANT]
+> `columns` may contain dot-notated keys for side-loaded relation data (e.g. 
+> `product.name`). Always resolve cell values with `useNctTableFormat()`'s 
+> `getColumnValue`/`formatCellValue` rather than a plain `row[col.key]` index 
+> — a flat index silently resolves to `undefined` for anything beyond 
+> top-level fields.
+
+### Example: a custom invoice
+
+```vue
+<!-- app/components/InvoiceTemplate.vue -->
+<script setup lang="ts">
+import type { NctPrintTemplateProps } from 'nuxt-crud-table'
+
+const props = defineProps<NctPrintTemplateProps>()
+const { formatCellValue, getColumnValue } = useNctTableFormat()
+
+const order = props.parentRow as {
+  num?: string
+  customer?: { name?: string, email?: string }
+} | undefined
+</script>
+
+<template>
+  <div class="print-invoice">
+    <header class="flex justify-between items-start mb-8 pb-4 border-b-2 border-gray-800">
+      <h1 class="text-2xl font-bold">
+        Invoice — Order #{{ order?.num }}
+      </h1>
+      <p>{{ order?.customer?.name }}</p>
+    </header>
+
+    <table class="w-full text-sm">
+      <thead>
+        <tr>
+          <th v-for="col in columns" :key="col.key">{{ col.label }}</th>
+        </tr>
+      </thead>
+      <tbody>
+        <tr v-for="row in rows" :key="String(row.id)">
+          <td v-for="col in columns" :key="col.key">
+            {{ formatCellValue(getColumnValue(row, col.key)) }}
+          </td>
+        </tr>
+      </tbody>
+    </table>
+  </div>
+</template>
+```
+
+> [!NOTE]
+> If you're writing more than one print template, consider factoring the 
+> `<table>` body out into your own shared component — it's plain markup driven 
+> entirely by `columns`/`rows`/`footer`, so it's reusable across templates 
+> with no nct-specific coupling beyond `useNctTableFormat()`.
+
+### Print styling
+
+nct injects a small print-isolation stylesheet automatically — your template 
+just needs a `.print-invoice` (or similar) wrapper class; you don't need to 
+register your own `@media print` rules or worry about the rest of the page 
+bleeding into the printed output.
+
+---
+
 ## Limitations
 
 * Global search querying, filtering, and pagination states are executed client-side via JavaScript.
