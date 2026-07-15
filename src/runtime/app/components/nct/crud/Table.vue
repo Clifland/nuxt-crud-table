@@ -353,8 +353,9 @@ const paginatedItems = ref<Record<string, unknown>[]>([])
           >
             <tr class="hover:bg-gray-50 dark:hover:bg-gray-800/50 transition-colors">
               <td class="whitespace-nowrap px-2 py-4">
+                <!-- chevron -->
                 <UButton
-                  v-if="getArrayColumns(row).length"
+                  v-if="allChildArrayColumns.length"
                   :icon="expandedRows.has(row.id as number) ? 'i-lucide-chevron-down' : 'i-lucide-chevron-right'"
                   color="neutral"
                   variant="ghost"
@@ -383,13 +384,11 @@ const paginatedItems = ref<Record<string, unknown>[]>([])
               </td>
             </tr>
 
+            <!-- expanded row -->
             <tr v-if="expandedRows.has(row.id as number)">
-              <td
-                :colspan="visibleColumns.length + 2"
-                class="bg-gray-50 dark:bg-gray-800 p-4"
-              >
+              <td :colspan="visibleColumns.length + 2" class="bg-gray-50 dark:bg-gray-800 p-4">
                 <div
-                  v-for="arrCol in getArrayColumns(row)"
+                  v-for="arrCol in allChildArrayColumns"
                   :key="arrCol"
                   class="mb-4 last:mb-0"
                 >
@@ -407,10 +406,7 @@ const paginatedItems = ref<Record<string, unknown>[]>([])
                     :parent-row="row"
                   >
                     <template #print-template="slotProps">
-                      <slot
-                        name="print-template"
-                        v-bind="slotProps"
-                      />
+                      <slot name="print-template" v-bind="slotProps" />
                     </template>
                   </NctCrudChildTable>
                 </div>
