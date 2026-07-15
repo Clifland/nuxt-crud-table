@@ -95,7 +95,7 @@ export interface NctCrudTableConfig {
    * @defaultValue NCT_FORM_READONLY_FIELDS
    */
   formReadOnlyFields?: NctFieldVisibility
-  
+
   /**
    * If set to true, columns ending with `_id` that map to structural relationships are automatically omitted from rendering.
    * @defaultValue false

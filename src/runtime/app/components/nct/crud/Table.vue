@@ -386,7 +386,10 @@ const paginatedItems = ref<Record<string, unknown>[]>([])
 
             <!-- expanded row -->
             <tr v-if="expandedRows.has(row.id as number)">
-              <td :colspan="visibleColumns.length + 2" class="bg-gray-50 dark:bg-gray-800 p-4">
+              <td
+                :colspan="visibleColumns.length + 2"
+                class="bg-gray-50 dark:bg-gray-800 p-4"
+              >
                 <div
                   v-for="arrCol in allChildArrayColumns"
                   :key="arrCol"
@@ -406,7 +409,10 @@ const paginatedItems = ref<Record<string, unknown>[]>([])
                     :parent-row="row"
                   >
                     <template #print-template="slotProps">
-                      <slot name="print-template" v-bind="slotProps" />
+                      <slot
+                        name="print-template"
+                        v-bind="slotProps"
+                      />
                     </template>
                   </NctCrudChildTable>
                 </div>
