@@ -1,6 +1,6 @@
 import { useAppConfig } from '#app'
 import type { NctCrudTableConfig } from '../shared/types/config'
-import { nctDbFieldToLabel, resolveHiddenFields } from '#imports'
+import { nctDbFieldToLabel, resolveDotPath, resolveHiddenFields } from '#imports'
 
 /**
  * A reactive state and utility composable providing client-side data export capabilities
@@ -62,7 +62,7 @@ export const useNctExport = () => {
     return items.map((row) => {
       const exportRow: Record<string, unknown> = {}
       for (const { key, label } of columnMap) {
-        exportRow[label] = row[key]
+        exportRow[label] = resolveDotPath(row, key)
       }
       return exportRow
     })
