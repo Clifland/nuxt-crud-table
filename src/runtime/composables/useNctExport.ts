@@ -1,6 +1,6 @@
 import { useAppConfig } from '#app'
 import type { NctCrudTableConfig } from '../shared/types/config'
-import { nctDbFieldToLabel } from '#imports'
+import { nctDbFieldToLabel, resolveHiddenFields } from '#imports'
 
 /**
  * A reactive state and utility composable providing client-side data export capabilities
@@ -27,18 +27,17 @@ export const useNctExport = () => {
   const isExportEnabled = !!crudConfig?.exports
 
   /**
-   * Internal helper to merge global and resource-specific field omission lists for the target document format.
-   *
-   * @param type - The format identifier being constructed.
-   * @param resource - The model or domain resource name context.
-   * @returns A deduplicated array of property keys to exclude from the payload.
+   * Resolves the field-exclusion list for a given export format and
+   * resource, via the same `resolveHiddenFields` convention as
+   * `tableHiddenFields`/`formHiddenFields` — replaces the old bespoke
+   * global+resource merge logic.
+   * @param type - The export format.
+   * @param resource - The current resource name.
+   * @returns The resolved list of field names to exclude.
    */
   const getExportExclusions = (type: 'pdf' | 'excel', resource: string) => {
-    const config = crudConfig?.exports?.[type]
-    if (!config) return []
-    const global = config.globalExclude || []
-    const resourceSpecific = (config.resourceExclude as Record<string, string[]>)?.[resource] || []
-    return [...new Set([...global, ...resourceSpecific])]
+    const rule = type === 'pdf' ? crudConfig?.exports?.pdfHiddenFields : crudConfig?.exports?.excelHiddenFields
+    return resolveHiddenFields(rule, resource, [])
   }
 
   /**

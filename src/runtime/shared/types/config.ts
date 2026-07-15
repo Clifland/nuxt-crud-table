@@ -101,22 +101,18 @@ export interface NctCrudTableConfig {
    * @defaultValue false
    */
   hideForeignKeys?: boolean
-  /** Configuration policies detailing structural access parameters for document export engines. */
+  /** Field-exclusion rules for document export engines. */
   exports?: {
-    /** Layout policies dictating parameters for Microsoft Excel file compilation formats. */
-    excel?: {
-      /** Key array identifiers universally stripped out of all Excel workbook pipelines. */
-      globalExclude?: string[]
-      /** Target resource exclusion overrides (e.g., `{ users: ['password_hash', 'salt'] }`). */
-      resourceExclude?: Record<string, string[]>
-    }
-    /** Layout policies dictating parameters for PDF document generation engines. */
-    pdf?: {
-      /** Key array identifiers universally stripped out of all PDF rendering vectors. */
-      globalExclude?: string[]
-      /** Target resource exclusion overrides (e.g., `{ transactions: ['internal_notes'] }`). */
-      resourceExclude?: Record<string, string[]>
-    }
+    /**
+     * Fields excluded from PDF export. Same shape as `tableHiddenFields`/
+     * `formHiddenFields` — a bare array, or a `{ default, resources }`
+     * object. Replaces the old `pdf: { globalExclude, resourceExclude }`
+     * shape with the same resolution convention used everywhere else in
+     * `crud` config.
+     */
+    pdfHiddenFields?: NctFieldVisibility
+    /** Fields excluded from Excel export. Same shape as `pdfHiddenFields`. */
+    excelHiddenFields?: NctFieldVisibility
   }
   /** Global database layout configuration policies defining analytical properties mapping active resources to summary definitions. */
   aggregates?: Record<string, NctResourceAggregateConfig>

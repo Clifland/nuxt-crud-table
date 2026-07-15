@@ -19,6 +19,19 @@ export default defineAppConfig({
         orders: ['num'],
       },
     },
+    exports: {
+      pdfHiddenFields: {
+        default: ['avatar', 'resetToken', 'resetExpires'],
+        resources: {
+          users: ['password', 'googleId', 'githubId'],
+        },
+      },
+      excelHiddenFields: {
+        resources: {
+          users: ['password'],
+        },
+      },
+    },
     aggregates: {
       orderitems: {
         columns: [
@@ -27,24 +40,6 @@ export default defineAppConfig({
         footer: [
           { name: 'total_amount', label: 'Total Amount', fn: 'sum', args: ['linetotal'] },
         ],
-      },
-    },
-
-    // Export specific settings
-    exports: {
-      pdf: {
-        // Excluded from ALL resources in PDF
-        globalExclude: ['avatar', 'resetToken', 'resetExpires'],
-        // Resource specific overrides
-        resourceExclude: {
-          users: ['password', 'googleId', 'githubId'],
-        },
-      },
-      excel: {
-        globalExclude: [],
-        resourceExclude: {
-          users: ['password'],
-        },
       },
     },
   },

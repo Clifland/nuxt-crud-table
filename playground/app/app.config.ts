@@ -13,6 +13,19 @@ export default defineAppConfig({
         orders: ['num'],
       },
     },
+    exports: {
+      pdfHiddenFields: {
+        default: ['avatar', 'resetToken', 'resetExpires'],
+        resources: {
+          users: ['password', 'googleId', 'githubId'],
+        },
+      },
+      excelHiddenFields: {
+        resources: {
+          users: ['password'],
+        },
+      },
+    },
     aggregates: {
       orderitems: {
         columns: [
