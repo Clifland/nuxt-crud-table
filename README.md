@@ -181,6 +181,17 @@ export default defineAppConfig({
       },
     },
 
+    // Fields locked (disabled) in forms without being hidden entirely.
+    // Same shape as tableHiddenFields/formHiddenFields. Useful when your
+    // backend can't express per-field `readonly` dynamically in its
+    // schema response — this combines with (doesn't replace) each
+    // field's own `readonly` flag from the schema contract.
+    formReadOnlyFields: {
+      resources: {
+        orders: ['num'],
+      },
+    },
+
     // Export layout targeting metrics
     exports: {
       pdf: {

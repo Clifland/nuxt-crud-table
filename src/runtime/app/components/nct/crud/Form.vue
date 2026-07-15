@@ -2,10 +2,10 @@
 import { computed, reactive } from 'vue'
 import type { FormSubmitEvent } from '@nuxt/ui'
 import { useAppConfig } from '#app'
-import { useNctDynamicZodSchema, resolveHiddenFields, isFieldHidden, NCT_FORM_HIDDEN_FIELDS, isRelationFieldName, stripRelationSuffix } from '#imports'
+import { useNctDynamicZodSchema, resolveHiddenFields, isFieldHidden, NCT_FORM_HIDDEN_FIELDS, NCT_FORM_READ_ONLY_FIELDS, isRelationFieldName, stripRelationSuffix } from '#imports'
 import { useChangeCase } from '@vueuse/integrations/useChangeCase'
 
-import type { NctSchemaDefinition } from '../../../../shared/types/schema'
+import type { NctField, NctSchemaDefinition } from '../../../../shared/types/schema'
 
 /**
  * Component properties configuration.
@@ -23,6 +23,18 @@ const props = defineProps<{
    * Boolean flag tracking network runtime updates to signal submission progress spinners.
    */
   loading?: boolean
+  /**
+   * HTTP method used for form submission. Influences whether certain fields
+   * (like `password`) are treated as unset or should be preserved.
+   *
+   * @defaultValue 'POST'
+   */
+  method?: 'POST' | 'PATCH'
+  /**
+   * Fields that should be treated as readonly in this form, regardless of their
+   * original schema `readonly` flag or whether the form is creating or editing.
+   */
+  forceReadonlyFields?: string[]
 }>()
 
 /**
@@ -51,6 +63,8 @@ const emit = defineEmits<{
 const crudConfig = useAppConfig().crud
 const hiddenFields = resolveHiddenFields(crudConfig?.formHiddenFields, props.schema.resource, NCT_FORM_HIDDEN_FIELDS)
 
+const configReadOnlyFields = resolveHiddenFields(crudConfig?.formReadOnlyFields, props.schema.resource, NCT_FORM_READ_ONLY_FIELDS)
+
 /**
  * The array subset of schema elements following runtime visibility filtering loops.
  */
@@ -59,7 +73,36 @@ const filteredFields = props.schema.fields.filter(field => !isFieldHidden(field.
 /**
  * The dynamically built Zod validation schema block mapped from active input constraints.
  */
-const formSchema = useNctDynamicZodSchema(filteredFields, !!props.initialState)
+const formSchema = useNctDynamicZodSchema(filteredFields, !!props.method && props.method === 'PATCH')
+
+const isEditMode = computed(() => props.method === 'PATCH')
+const isLockedCreate = computed(() => props.method !== 'PATCH' && !!props.initialState)
+const lockReadonlyFields = computed(() => isEditMode.value || isLockedCreate.value)
+
+/**
+ * Whether a field is readonly by *either* source: the backend schema's own
+ * `field.readonly` flag, or this resource's entry in `formReadOnlyFields`
+ * (app.config.ts). Neither source overrides the other — a field is locked
+ * if either says so.
+ * @param field - The field being evaluated.
+ */
+function isEffectivelyReadonly(field: NctField): boolean {
+  return !!field.readonly || isFieldHidden(field.name, configReadOnlyFields)
+}
+
+/**
+ * Resolves whether a given field should render disabled in the form.
+ * `forceReadonlyFields` (an nct-internal override, e.g. ChildTable.vue's
+ * "Add New" locking its pre-filled parent FK) always wins regardless of
+ * `method`/`initialState`. Otherwise, a field flagged readonly by either
+ * source in `isEffectivelyReadonly` locks only when `lockReadonlyFields`
+ * is true (edit, or a "locked" create like a child-row Add New).
+ * @param field - The field being rendered.
+ */
+function isFieldDisabled(field: NctField): boolean {
+  if (props.forceReadonlyFields?.includes(field.name)) return true
+  return isEffectivelyReadonly(field) && lockReadonlyFields.value
+}
 
 /**
  * Reactive data repository reflecting structural input key-value attributes.
@@ -150,7 +193,7 @@ function handleSubmit(event: FormSubmitEvent<Record<string, unknown>>) {
             v-if="field.type === 'boolean'"
             :id="field.name"
             v-model="state[field.name] as boolean"
-            :disabled="field.readonly"
+            :disabled="isFieldDisabled(field)"
           />
 
           <NctCrudNameList
@@ -158,7 +201,7 @@ function handleSubmit(event: FormSubmitEvent<Record<string, unknown>>) {
             v-model="state[field.name] as string | number | null"
             :field-name="field.name"
             :table-name="field.references"
-            :disabled="field.readonly"
+            :disabled="isFieldDisabled(field)"
           />
 
           <template v-else-if="field.name === 'password'">
@@ -178,7 +221,7 @@ function handleSubmit(event: FormSubmitEvent<Record<string, unknown>>) {
             v-else-if="field.type === 'date'"
             v-model="state[field.name] as string"
             type="datetime-local"
-            :disabled="field.readonly"
+            :disabled="isFieldDisabled(field)"
           />
 
           <USelect
@@ -187,14 +230,14 @@ function handleSubmit(event: FormSubmitEvent<Record<string, unknown>>) {
             :items="field.selectOptions"
             placeholder="Select "
             class="w-full"
-            :disabled="field.readonly"
+            :disabled="isFieldDisabled(field)"
           />
 
           <UTextarea
             v-else-if="field.type === 'textarea'"
             v-model="state[field.name] as string"
             :required="field.required"
-            :disabled="field.readonly"
+            :disabled="isFieldDisabled(field)"
             autoresize
           />
 
@@ -203,7 +246,7 @@ function handleSubmit(event: FormSubmitEvent<Record<string, unknown>>) {
             v-model="state[field.name] as string"
             :type="field.type"
             :required="field.required"
-            :disabled="field.readonly"
+            :disabled="isFieldDisabled(field)"
           />
         </UFormField>
       </template>

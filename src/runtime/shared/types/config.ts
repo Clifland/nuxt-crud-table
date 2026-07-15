@@ -88,6 +88,14 @@ export interface NctCrudTableConfig {
    * @defaultValue NCT_FORM_HIDDEN_FIELDS
    */
   formHiddenFields?: NctFieldVisibility
+
+  /**
+   * Fields universally read-only inside interactive edit forms.
+   *
+   * @defaultValue NCT_FORM_READONLY_FIELDS
+   */
+  formReadOnlyFields?: NctFieldVisibility
+  
   /**
    * If set to true, columns ending with `_id` that map to structural relationships are automatically omitted from rendering.
    * @defaultValue false

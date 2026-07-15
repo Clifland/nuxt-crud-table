@@ -8,6 +8,11 @@ export default defineAppConfig({
         orderitems: ['price'],
       },
     },
+    formReadOnlyFields: {
+      resources: {
+        orders: ['num'],
+      },
+    },
     aggregates: {
       orderitems: {
         columns: [
