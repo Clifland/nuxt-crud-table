@@ -73,8 +73,6 @@ const state = reactive<Record<string, unknown>>(
     (acc, field) => {
       let value = props.initialState?.[field.name]
 
-      // Handle relation fields that might be objects
-      // Case 1: value is an object with id (e.g. customer_id: { id: 1, ... })
       if (isRelationFieldName(field.name) && value && typeof value === 'object' && 'id' in value) {
         value = (value as { id: unknown }).id
       }
@@ -86,7 +84,16 @@ const state = reactive<Record<string, unknown>>(
         }
       }
 
-      acc[field.name] = value ?? (field.type === 'boolean' ? false : undefined)
+      if (field.type === 'boolean') {
+        acc[field.name] = value ?? false
+      }
+      else if (isRelationFieldName(field.name)) {
+        acc[field.name] = value ?? null
+      }
+      else {
+        acc[field.name] = value ?? undefined
+      }
+
       return acc
     },
     {} as Record<string, unknown>,
