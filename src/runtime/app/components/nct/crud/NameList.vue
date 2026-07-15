@@ -1,7 +1,7 @@
 <script setup lang="ts">
 import { computed } from 'vue'
 import pluralize from 'pluralize'
-import { useNctHeaders, useFetch, stripRelationSuffix } from '#imports'
+import { useNctHeaders, useFetch, stripRelationSuffix, resolveRelationLabel } from '#imports'
 import { useRuntimeConfig } from '#app'
 import type { NctSchemaDefinition } from '../../../../shared/types/schema'
 
@@ -75,29 +75,6 @@ const [{ data: rawOptions }, { data: relatedSchema }] = await Promise.all([
 ])
 
 /**
- * Resolves the human-readable label to show for one selectable row.
- * @remarks
- * Prefers the related resource's `labelField` (from its {@link NctSchemaDefinition}), so
- * a backend that curates it deliberately (e.g. a Laravel API setting `labelField: 'sku'`)
- * gets exactly the column it asked for. Not every provider manages this by hand — `nac`
- * (nct's Drizzle-oriented companion) doesn't set `labelField` deliberately, so it may be
- * absent, or present but pointing at a column that's empty on a given row. Either case
- * falls back to the original `name`/`title`/`num`/`#id` convention rather than rendering
- * a blank option.
- * @param row - The raw related-resource row.
- * @param labelField - The related resource's configured label field, if any.
- * @returns A non-empty display label.
- */
-function resolveOptionLabel(row: Record<string, unknown>, labelField?: string): string {
-  if (labelField) {
-    const value = row[labelField]
-    if (value !== undefined && value !== null && value !== '') return String(value)
-  }
-  const r = row as { id: string | number, name?: string, title?: string, num?: string }
-  return String(r.name || r.title || r.num || `#${r.id}`)
-}
-
-/**
  * The formatted selectable option list, combining the raw row data with the resolved
  * display label. A computed (rather than the old `transform` callback) because the label
  * now depends on two independently-resolving fetches — `rawOptions` and `relatedSchema` —
@@ -108,7 +85,7 @@ const options = computed(() => {
   return (rawOptions.value ?? []).map((row) => {
     const r = row as { id: string | number, email?: string }
     return {
-      label: resolveOptionLabel(row, labelField),
+      label: resolveRelationLabel(row, labelField),
       value: r.id,
       extra: r.email,
     }

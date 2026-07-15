@@ -12,10 +12,11 @@ const props = defineProps<{
   resource: string
   schema: NctSchemaDefinition
   method: 'POST' | 'PATCH'
-  /** Required when method is 'PATCH'; ignored for 'POST'. */
   rowId?: number
   initialState?: Record<string, unknown>
   title: string
+  forceReadonlyFields?: string[]
+  relationLabelOverrides?: Record<string, string>
 }>()
 
 const open = ref(false)
@@ -49,6 +50,9 @@ async function onSubmit(data: Record<string, unknown>) {
             v-if="schema"
             :schema="schema"
             :initial-state="initialState"
+            :method="method"
+            :force-readonly-fields="forceReadonlyFields"
+            :relation-label-overrides="relationLabelOverrides"
             :loading="loading"
             @submit="onSubmit"
           />

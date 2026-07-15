@@ -35,6 +35,15 @@ const props = defineProps<{
    * original schema `readonly` flag or whether the form is creating or editing.
    */
   forceReadonlyFields?: string[]
+  /**
+   * Precomputed display labels for relation fields, keyed by field name —
+   * when present for a field, NctCrudNameList's own fetch (options list +
+   * related schema, just to resolve a label) is skipped entirely in favor
+   * of a plain disabled display. Currently only supplied by
+   * ChildTable.vue's "Add New" for its locked parent FK field, where the
+   * label is already known from `parentRow`.
+   */
+  relationLabelOverrides?: Record<string, string>
 }>()
 
 /**
@@ -196,13 +205,20 @@ function handleSubmit(event: FormSubmitEvent<Record<string, unknown>>) {
             :disabled="isFieldDisabled(field)"
           />
 
-          <NctCrudNameList
-            v-else-if="isRelationFieldName(field.name)"
-            v-model="state[field.name] as string | number | null"
-            :field-name="field.name"
-            :table-name="field.references"
-            :disabled="isFieldDisabled(field)"
-          />
+          <template v-else-if="isRelationFieldName(field.name)">
+            <UInput
+              v-if="relationLabelOverrides?.[field.name] !== undefined"
+              :model-value="relationLabelOverrides[field.name]"
+              disabled
+            />
+            <NctCrudNameList
+              v-else
+              v-model="state[field.name] as string | number | null"
+              :field-name="field.name"
+              :table-name="field.references"
+              :disabled="isFieldDisabled(field)"
+            />
+          </template>
 
           <template v-else-if="field.name === 'password'">
             <NctCommonPassword

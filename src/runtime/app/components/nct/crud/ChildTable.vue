@@ -1,7 +1,7 @@
 <script setup lang="ts">
 import { computed, nextTick, ref } from 'vue'
 import { useNuxtApp } from '#app'
-import { useNctTableFormat, nctHasPermission } from '#imports'
+import { useNctTableFormat, nctHasPermission, resolveRelationLabel } from '#imports'
 import type { NctSchemaDefinition } from '../../../../shared/types/schema'
 import type { NctPrintTemplateProps } from '../../../../shared/types/print'
 
@@ -96,6 +96,26 @@ const parentFkField = computed(() => {
 })
 
 /**
+ * Display label for the "Add New" form's locked parent FK field, resolved
+ * directly from `parentRow` — already in memory from `Table.vue`'s own
+ * data fetch — rather than triggering NctCrudNameList's usual
+ * options+schema fetch just to show a value the user can't change anyway.
+ */
+const parentFkLabel = computed<string | undefined>(() => {
+  if (!parentFkField.value || !props.parentRow) return undefined
+  return resolveRelationLabel(props.parentRow)
+})
+
+const forceReadonlyFields = computed<string[] | undefined>(() =>
+  parentFkField.value ? [parentFkField.value.name] : undefined,
+)
+
+const relationLabelOverrides = computed<Record<string, string> | undefined>(() => {
+  if (!parentFkField.value || parentFkLabel.value === undefined) return undefined
+  return { [parentFkField.value.name]: parentFkLabel.value }
+})
+
+/**
  * Pre-filled state for the "Add New" child-row form: just the resolved parent
  * FK field set to this section's parent row id. The field stays a normal,
  * editable relation picker in the form (nct has no per-instance readonly
@@ -161,6 +181,8 @@ async function triggerPrint() {
         :resource="resource!"
         :schema="schema!"
         :initial-state="createInitialState"
+        :force-readonly-fields="forceReadonlyFields"
+        :relation-label-overrides="relationLabelOverrides"
       />
     </div>
 
