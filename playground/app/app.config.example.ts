@@ -6,8 +6,29 @@ export default defineAppConfig({
     },
   },
   crud: {
-    // Columns to always hide from the UI table
-    globalHide: ['updatedAt', 'deletedAt', 'createdBy', 'updatedBy', 'resetToken'],
+    tableHiddenFields: {
+      default: ['updated_at'],
+    },
+    formHiddenFields: {
+      resources: {
+        orderitems: ['price'],
+      },
+    },
+    formReadOnlyFields: {
+      resources: {
+        orders: ['num'],
+      },
+    },
+    aggregates: {
+      orderitems: {
+        columns: [
+          { name: 'linetotal', label: 'Line total', fn: 'multiply', args: ['price', 'quantity'] },
+        ],
+        footer: [
+          { name: 'total_amount', label: 'Total Amount', fn: 'sum', args: ['linetotal'] },
+        ],
+      },
+    },
 
     // Export specific settings
     exports: {
