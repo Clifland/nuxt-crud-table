@@ -15,25 +15,17 @@ export interface ModuleOptions {
    * @default false
    */
   auth: false | { authentication: 'nuxt-auth-utils' | 'sanctum' }
-
-  /**
-   * An optional functional evaluator supplying a structured dictionary map of network authorization headers.
-   * @remarks Useful for extracting localized browser cookies or dynamic authorization bearers safely.
-   * @default () => ({})
-   */
-  headers: () => Record<string, string>
 }
 
 declare module '@nuxt/schema' {
   interface PublicRuntimeConfig {
     /**
      * Public runtime options mapping parameters across client components and global composables.
-     * @note Excludes the `headers` method interceptor to protect structural configuration environments.
      * @note Field-visibility settings (`tableHiddenFields`/`formHiddenFields`) live in `app.config.ts`'s
      * `crud` key instead of here — see {@link NctCrudTableConfig} — since those are the kind of setting
      * a host app tends to iterate on without wanting a rebuild.
      */
-    crudTable: Omit<ModuleOptions, 'headers'>
+    crudTable: ModuleOptions
   }
 }
 
@@ -51,8 +43,7 @@ export default defineNuxtModule<ModuleOptions>({
   // Default configuration options of the Nuxt module
   defaults: {
     apiBase: '/api/_nac',
-    auth: false,
-    headers: () => ({}),
+    auth: false
   },
 
   setup(_options, _nuxt) {

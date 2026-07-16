@@ -121,26 +121,28 @@ NUXT_PUBLIC_CRUD_TABLE_API_BASE=http://localhost:8000/api
 
 ```
 
-#### Step B: Define Global Request Headers (Optional)
+#### Step B: Attach Auth Headers (Optional)
 
-If your app uses authentication, you can supply a `headers` function in your module config to attach auth tokens (or any other metadata) to internal engine fetch requests.
-
-> [!NOTE]
-> This step is **optional**. If you don't set `headers`, requests are sent without any extra headers by default — no dummy function or extra file required.
+If your app uses authentication, provide a Nuxt plugin that injects auth headers and the current user into nct's runtime context. nct reads these via `$nctAuthHeaders` and `$nctUser`.
 
 ```ts
-// nuxt.config.ts
-export default defineNuxtConfig({
-  crudTable: {
-    headers: () => ({
-      Authorization: `Bearer ${useCookie('token').value || ''}`
-    })
+// app/plugins/nct-auth.ts
+export default defineNuxtPlugin(() => {
+  const { user, authHeaders } = useNctAuth() // or your own auth composable
+
+  return {
+    provide: {
+      nctAuthHeaders: () => authHeaders.value,
+      nctUser: user,
+    },
   }
 })
 ```
 
-> [!IMPORTANT]
-> The `headers` function must be self-contained — it can't reference variables from outside its own body (e.g. imported constants or module-level variables), since it's serialized at build time. You can safely use Nuxt auto-imports like `useCookie` or `useRuntimeConfig` inside it, since those resolve globally.
+> [!NOTE]
+> This step is optional. Without a plugin, requests are sent with no extra headers, and `nctHasPermission`/`nctHasRowPermission` treat every user as unauthenticated.
+
+nct ships `useNctAuth` and `NctAuthForm` (a login/register UI) as a convenience for wiring this up quickly — swap in your own auth composable in the plugin above if you need different auth logic (e.g. `nuxt-auth-utils` or `laravel sanctum`).
 
 #### Step C: Mount the Unified Table Layout Workspace
 
@@ -201,21 +203,32 @@ export default defineAppConfig({
       },
     },
 
-    // Export layout targeting metrics
+    // Export layout targeting metrics.
     exports: {
-      pdf: {
-        globalExclude: ['avatar'],
-        resourceExclude: {
-          users: ['password', 'googleId', 'githubId']
-        }
+      pdfHiddenFields: {
+        default: ['avatar', 'resetToken', 'resetExpires'],
+        resources: {
+          users: ['password', 'googleId', 'githubId'],
+        },
       },
-      excel: {
-        globalExclude: [],
-        resourceExclude: {
-          users: ['password']
-        }
-      }
-    }
+      excelHiddenFields: {
+        resources: {
+          users: ['password'],
+        },
+      },
+    },
+
+    // Column calculations and summary footers.
+    aggregates: {
+      orderitems: {
+        columns: [
+          { name: 'linetotal', label: 'Line total', fn: 'multiply', args: ['price', 'quantity'] },
+        ],
+        footer: [
+          { name: 'total_amount', label: 'Total Amount', fn: 'sum', args: ['linetotal'] },
+        ],
+      },
+    },
   }
 })
 
