@@ -1,9 +1,10 @@
 <script setup lang="ts">
 import { computed, nextTick, ref } from 'vue'
 import { useNuxtApp } from '#app'
-import { useNctTableFormat, nctHasPermission, resolveRelationLabel } from '#imports'
+import { useNctTableFormat, nctHasPermission, resolveRelationLabel, stripRelationSuffix, isRelationFieldName } from '#imports'
 import type { NctSchemaDefinition } from '../../../../shared/types/schema'
 import type { NctPrintTemplateProps } from '../../../../shared/types/print'
+import pluralize from 'pluralize'
 
 /**
  * Shared renderer for a child (one-to-many) relation array, rendered as a small
@@ -92,7 +93,13 @@ const showActions = computed(() => !!(props.resource && props.schema))
  */
 const parentFkField = computed(() => {
   if (!props.schema || !props.parentResource) return undefined
-  return props.schema.fields.find(f => f.references === props.parentResource)
+
+  const byReference = props.schema.fields.find(f => f.references === props.parentResource)
+  if (byReference) return byReference
+
+  return props.schema.fields.find(f =>
+    isRelationFieldName(f.name) && pluralize(stripRelationSuffix(f.name)) === props.parentResource,
+  )
 })
 
 /**
