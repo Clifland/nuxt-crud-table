@@ -79,18 +79,27 @@ export interface NctSchemaDefinition {
 ```
 
 * **Route Pattern:** `GET apiBaseUrl/_schemas/:resource`
-* **Payload Example (`GET http://localhost:8000/api/_schemas/products`):**
+* **Payload Example (`GET http://localhost:8000/api/_schemas/orders`):**
 
 ```json
 {
-  "resource": "products",
-  "labelField": "name",
+  "resource": "orders",
+  "labelField": "num",
   "fields": [
-    { "name": "id", "type": "number", "required": true, "readonly": true },
-    { "name": "name", "type": "string", "required": true, "readonly": false },
-    { "name": "sku", "type": "string", "required": true, "readonly": false },
-    { "name": "price", "type": "number", "required": true, "readonly": false },
-    { "name": "stock", "type": "number", "required": true, "readonly": false }
+    { "name": "num", "type": "string", "required": true },
+    { "name": "customer_id", "type": "number", "required": true, "references": "customers" },
+    {
+      "name": "status",
+      "type": "enum",
+      "required": true,
+      "selectOptions": [
+        "pending",
+        "processing",
+        "shipped",
+        "delivered",
+        "cancelled"
+      ]
+    }
   ]
 }
 
