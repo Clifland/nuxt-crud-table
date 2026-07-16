@@ -209,7 +209,7 @@ export default defineAppConfig({
       },
     },
 
-    // Export layout targeting metrics.
+    // Define hidden fields for file exports (PDF, Excel, etc.).
     exports: {
       pdfHiddenFields: {
         default: ['avatar', 'resetToken', 'resetExpires'],
