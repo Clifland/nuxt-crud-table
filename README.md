@@ -58,7 +58,7 @@ To get started with `nct`, you'll need a backend application that serves APIs ma
 
 #### Schema Specification Endpoint
 
-Your API must provide a metadata schema to populate, and validate your forms. The data structure within your API payload must match this schema signature:
+Your API must provide a metadata schema to populate, and validate your forms. The data structure within your API response must match this schema signature:
 
 ```ts
 export interface NctField {
@@ -79,7 +79,7 @@ export interface NctSchemaDefinition {
 ```
 
 * **Route Pattern:** `GET apiBaseUrl/_schemas/:resource`
-* **Payload Example (`GET http://localhost:8000/api/_schemas/orders`):**
+* **Response Example (`GET http://localhost:8000/api/_schemas/orders`):**
 
 ```json
 {
