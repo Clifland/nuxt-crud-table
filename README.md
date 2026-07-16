@@ -174,6 +174,12 @@ Override field visibility, structural presentation rules, or data extraction exc
 // app.config.ts
 export default defineAppConfig({
   crud: {
+    // By default, nct hides the raw `_id`/`Id` column wherever a matching relation
+    // object is present — showing `Customer: Acme Corp` instead of a redundant
+    // `Customer Id: 5` next to it.
+    // Set it to `false` if you want raw FK columns to show up
+    hideForeignKeys: true, // default
+
     // Fields hidden from the main data table/list view.
     // Either a bare array (applied to every resource), or an object with an
     // optional `default` (replaces nct's built-in default entirely, if given)
