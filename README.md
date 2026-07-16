@@ -411,3 +411,8 @@ bun install
 npm install
 
 ```
+---
+
+> [!NOTE]
+> Please refer to the documentation on npm for the specific [nuxt-crud-table](https://www.npmjs.com/package/nuxt-crud-table?activeTab=versions) version you are using.
+> For upcoming features, please refer to the GitHub repository: [nuxt-crud-table](https://github.com/Clifland/nuxt-crud-table). This package is currently under active structural development; frequent updates, performance optimizations, and upstream core module changes are to be expected.
