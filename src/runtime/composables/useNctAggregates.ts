@@ -5,14 +5,31 @@ import { resolveDotPath } from '../app/utils/dot-path'
 type Row = Record<string, unknown>
 
 /**
+ * Rounds a computed aggregate value to 2 decimal places.
+ *
+ * @remarks
+ * Floating-point arithmetic (e.g. `0.1 * 3`, or summing many `price * quantity`
+ * line totals) can otherwise leak visible artifacts like `29.999999999999996`
+ * into a child table's footer or a `columns` virtual field. Applied uniformly
+ * across row-ops and reduce-ops so a footer that sums an already-rounded
+ * virtual column doesn't reintroduce drift from the underlying raw values.
+ *
+ * @param value - The raw computed value.
+ * @returns The value rounded to 2 decimal places.
+ */
+function round2(value: number): number {
+  return Number(value.toFixed(2))
+}
+
+/**
  * Row-level operations: combine sibling field values on a single row.
  * Each function receives already-resolved numeric args (see {@link computeColumnDef}).
  */
 const rowFns: Record<string, (...vals: number[]) => number> = {
-  multiply: (...v) => v.reduce((a, b) => a * b, 1),
-  add: (...v) => v.reduce((a, b) => a + b, 0),
-  subtract: (...v) => v.reduce((a, b) => a - b),
-  divide: (...v) => v.reduce((a, b) => a / b),
+  multiply: (...v) => round2(v.reduce((a, b) => a * b, 1)),
+  add: (...v) => round2(v.reduce((a, b) => a + b, 0)),
+  subtract: (...v) => round2(v.reduce((a, b) => a - b)),
+  divide: (...v) => round2(v.reduce((a, b) => a / b)),
 }
 
 /**
@@ -56,19 +73,19 @@ function countValues(values: (number | null)[]): number {
  * directly would coerce to `0` (JS numeric coercion), fabricating a phantom minimum/maximum.
  */
 const reduceFns: Record<string, (values: (number | null)[]) => number> = {
-  sum: sumValues,
+  sum: values => round2(sumValues(values)),
   count: countValues,
   avg: (values) => {
     const n = countValues(values)
-    return n ? Number((sumValues(values) / n).toFixed(2)) : 0
+    return n ? round2(sumValues(values) / n) : 0
   },
   min: (values) => {
     const present = nonNullable(values)
-    return present.length ? Math.min(...present) : 0
+    return present.length ? round2(Math.min(...present)) : 0
   },
   max: (values) => {
     const present = nonNullable(values)
-    return present.length ? Math.max(...present) : 0
+    return present.length ? round2(Math.max(...present)) : 0
   },
 }
 
