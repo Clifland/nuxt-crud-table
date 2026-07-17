@@ -13,6 +13,8 @@ export default defineNuxtConfig({
     relationsPath: 'server/db/relations',
   },
   crudTable: {
-    apiBase: '/api/_nac',
+    auth: {
+      authentication: 'sanctum'
+    }
   },
 })

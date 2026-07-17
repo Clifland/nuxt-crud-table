@@ -2,143 +2,131 @@ import { computed } from 'vue'
 import { useCookie, useRuntimeConfig, useState } from '#app'
 import { useNctHeaders } from '#imports'
 import type { NctUser } from '../shared/types/auth'
+import type { NctAuthContext, NctAuthStrategy } from '../shared/types/auth-strategy'
+import { nctAuthStrategies } from '../auth/strategy-registry'
 
 /**
- * A Nuxt composable providing authentication states and actions for the `nuxt-crud-table` workspace.
- * Handles token storage, user session persistence, SSR-safe states, and request headers.
+ * Looks up a registered strategy by name, throwing if it's unknown.
+ * Pulled out as its own function (rather than an inline `if (!x) throw`
+ * inside `useNctAuth`) so the return type itself is `NctAuthStrategy` --
+ * not `NctAuthStrategy | undefined` -- guaranteeing every closure inside
+ * `useNctAuth` that captures the result (the `computed`, and the nested
+ * login/register/logout/fetch functions) sees the non-optional type
+ * directly, rather than relying on control-flow narrowing to survive
+ * across those closure boundaries (which TS doesn't guarantee it will).
+ */
+function resolveAuthStrategy(name: string): NctAuthStrategy {
+  const strategy = nctAuthStrategies[name]
+  if (!strategy) {
+    throw new Error(`[nct] Unknown auth strategy "${name}". Registered: ${Object.keys(nctAuthStrategies).join(', ')}`)
+  }
+  return strategy
+}
+
+/**
+ * Authentication composable for nct, backed by a pluggable strategy (see
+ * `../auth/strategy-registry.ts`). Selected via `crudTable.auth.authentication`
+ * in `nuxt.config.ts` -- defaults to `'sanctum'`.
  *
- * @remarks
- * `user` is typed as the shared {@link NctUser} contract (the same type `$nctUser` expects) so that
- * a plugin can `provide: { nctUser: user }` directly with no widening/casting. If your backend's
- * `/auth/login`, `/auth/register`, or `/auth/user` responses don't include `role`/`permissions`,
- * those fields simply resolve to `undefined` — permission-gated UI (`nctIsAdmin`, `nctHasPermission`)
- * will treat that as "no elevated access", same as before.
- *
- * @example
- * ```ts
- * const { user, isAuthenticated, login, logout } = useNctAuth()
- * ```
- *
- * @returns An object containing reactive authentication state and action utilities.
+ * `loggedIn`/`fetch` deliberately mirror `nuxt-auth-utils`' own
+ * `useUserSession()` API, so a Nuxt dev already familiar with that
+ * composable can adopt nct's auth layer with near-zero relearning.
+ * `login`/`register` have no equivalent in `useUserSession()` -- nct still
+ * needs them since it (unlike nuxt-auth-utils) has to work across multiple
+ * backend auth flows, not just a single self-defined one.
  */
 export function useNctAuth() {
-  const { apiBase } = useRuntimeConfig().public.crudTable
+  const { apiBase, auth } = useRuntimeConfig().public.crudTable
+  const strategyName = typeof auth === 'object' ? auth.authentication : 'sanctum'
+  const strategy = resolveAuthStrategy(strategyName)
+
   const tokenCookie = useCookie<string | null>('nct_token', { path: '/', watch: true })
-
-  // SSR-safe global states
-  /** The current authentication token, synced via cookies. */
   const token = useState<string | null>('nct_auth_token', () => tokenCookie.value || null)
-
-  /** The profile information of the currently authenticated user. */
   const user = useState<NctUser | null>('nct_auth_user', () => null)
 
-  /** Computed boolean indicating whether a valid auth token exists. */
-  const isAuthenticated = computed(() => !!token.value)
+  /**
+   * Mirrors `useUserSession().loggedIn`. Token-mode strategies know this
+   * synchronously; session-mode strategies can only be sure once `fetch()`
+   * has resolved a user, since the session cookie itself isn't readable
+   * from JS.
+   */
+  const loggedIn = computed(() => strategy.mode === 'token' ? !!token.value : !!user.value)
 
-  /** Computed bearer authorization headers object derived from the active token state. */
-  const authHeaders = computed<Record<string, string>>(() => ({
-    ...(token.value && { Authorization: `Bearer ${token.value}` }),
-  }))
+  const authHeaders = computed<Record<string, string>>(() => strategy.getAuthHeaders(token.value))
+
+  function setSession(newUser: NctUser | null, newToken: string | null = null) {
+    user.value = newUser
+    token.value = newToken
+    tokenCookie.value = newToken
+  }
 
   /**
-   * Authenticates a user using provided credentials.
-   * On success, updates local cookies, local state, and session profiles.
-   *
-   * @param credentials - Key-value payload consisting of user credentials (e.g., email, password).
-   * @returns A promise resolving to an object indicating operations success status, accompanied by error messages if applicable.
+   * Local-only reset, no network call -- used when there was never a real
+   * session (e.g. `fetch()` failing on a fresh visit), where hitting the
+   * backend's logout endpoint would just be a wasted, noisy request.
    */
+  function clearLocalSession() {
+    setSession(null, null)
+  }
+
+  const context: NctAuthContext = {
+    apiBase,
+    get token() { return token.value },
+    useNctHeaders,
+    setSession,
+  }
+
   async function login(credentials: Record<string, string>) {
     try {
-      const data = await $fetch<{ token: string, user: NctUser }>(`${apiBase}/auth/login`, {
-        method: 'POST',
-        body: credentials,
-      })
-
-      token.value = data.token
-      user.value = data.user
-      tokenCookie.value = data.token
-
+      await strategy.login(credentials, context)
       return { success: true }
     }
-    catch {
-      return { success: false, error: 'Authentication failed' }
+    catch (err) {
+      return { success: false, error: strategy.parseError(err, 'Authentication failed') }
     }
   }
 
-  /**
-   * Registers a new user identity and automatically establishes an active session on success.
-   *
-   * @param registrationDetails - Form inputs containing registration fields (e.g., name, email, password, password_confirmation).
-   * @returns A promise resolving to an object indicating operations success status, accompanied by error messages if applicable.
-   */
-  async function register(registrationDetails: Record<string, string>) {
+  async function register(details: Record<string, string>) {
     try {
-      // Typically Sanctum registration return structures issue a token/user payload immediately on success
-      const data = await $fetch<{ token: string, user: NctUser }>(`${apiBase}/auth/register`, {
-        method: 'POST',
-        body: registrationDetails,
-      })
-
-      token.value = data.token
-      user.value = data.user
-      tokenCookie.value = data.token
-
+      await strategy.register(details, context)
       return { success: true }
     }
-    catch {
-      return {
-        success: false,
-        error: 'Registration failed. Please check your details.',
-      }
+    catch (err) {
+      return { success: false, error: strategy.parseError(err, 'Registration failed. Please check your details.') }
     }
   }
 
-  /**
-   * Dispatches a logout operation to the backend API pool.
-   * Clears the current authentication token, active user records, and global cookie state regardless of request success.
-   */
   async function logout() {
-    if (!token.value) return
     try {
-      await $fetch(`${apiBase}/auth/logout`, {
-        method: 'POST',
-        headers: useNctHeaders(),
-      })
+      await strategy.logout(context)
     }
     catch {
-      // Fall through safely
+      // best-effort -- local session clears below regardless
     }
     finally {
-      token.value = null
-      user.value = null
-      tokenCookie.value = null
+      clearLocalSession()
     }
   }
 
-  /**
-   * Populates the active user data object by fetching the logged-in profile context from the target backend API.
-   * Reverts session parameters and logs out automatically if the verification sequence fails.
-   */
-  async function fetchUser() {
-    if (!token.value) return
+  /** Mirrors `useUserSession().fetch()` -- (re)resolves the current user from the backend. */
+  async function fetchSession() {
     try {
-      user.value = await $fetch<NctUser>(`${apiBase}/auth/user`, {
-        headers: useNctHeaders(),
-      })
+      const fetchedUser = await strategy.fetchUser(context)
+      fetchedUser ? (user.value = fetchedUser) : clearLocalSession()
     }
     catch {
-      logout()
+      clearLocalSession()
     }
   }
 
   return {
-    token,
     user,
-    isAuthenticated,
+    token,
+    loggedIn,
     authHeaders,
     login,
     register,
     logout,
-    fetchUser,
+    fetch: fetchSession,
   }
 }

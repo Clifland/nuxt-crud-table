@@ -11,11 +11,14 @@ export interface ModuleOptions {
   apiBase: string
 
   /**
-   * Defines security ecosystem integrations or switches authentication layer mechanisms entirely off.
+   * Selects a registered `NctAuthStrategy` (see `runtime/auth/strategy-registry.ts`).
+   * The four values below ship with nct out of the box; any other string
+   * is accepted too, for a strategy registered via `registerNctAuthStrategy()`.
    * @default false
    */
-  auth: false | { authentication: 'nuxt-auth-utils' | 'sanctum' }
-}
+  auth: false | {
+    authentication: 'nuxt-auth-utils' | 'sanctum' | 'fastapi' | 'fortify' | (string & {})
+  }}
 
 declare module '@nuxt/schema' {
   interface PublicRuntimeConfig {
@@ -65,7 +68,7 @@ export default defineNuxtModule<ModuleOptions>({
 
     // Hook to append module declarations directly into the project's compilation references (.nuxt/tsconfig.json)
     _nuxt.hook('prepare:types', ({ references, sharedReferences }) => {
-      const typeFiles = ['auth', 'config', 'schema', 'validation-rules', 'print']
+      const typeFiles = ['auth', 'auth-strategy', 'config', 'schema', 'validation-rules', 'print']
 
       for (const file of typeFiles) {
         const resolvedPath = resolver.resolve(`runtime/shared/types/${file}.ts`)
