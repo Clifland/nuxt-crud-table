@@ -36,3 +36,13 @@ CREATE TABLE `products` (
 	`created_at` integer NOT NULL,
 	`updated_at` integer NOT NULL
 );
+--> statement-breakpoint
+CREATE TABLE `users` (
+	`id` integer PRIMARY KEY AUTOINCREMENT,
+	`name` text NOT NULL,
+	`email` text NOT NULL UNIQUE,
+	`password` text NOT NULL,
+	`avatar` text,
+	`created_at` integer NOT NULL,
+	`updated_at` integer NOT NULL
+);

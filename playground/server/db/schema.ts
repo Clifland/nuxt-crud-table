@@ -1,5 +1,15 @@
 import { sqliteTable, text, integer, numeric } from 'drizzle-orm/sqlite-core'
 
+export const users = sqliteTable('users', {
+  id: integer().primaryKey({ autoIncrement: true }),
+  name: text().notNull(),
+  email: text().notNull().unique(),
+  password: text().notNull(),
+  avatar: text(),
+  created_at: integer({ mode: 'timestamp' }).notNull().$defaultFn(() => new Date()),
+  updated_at: integer({ mode: 'timestamp' }).notNull().$defaultFn(() => new Date()),
+})
+
 export const products = sqliteTable('products', {
   id: integer('id').primaryKey({ autoIncrement: true }),
   name: text('name').notNull(),
@@ -44,6 +54,7 @@ export const orderitems = sqliteTable('orderitems', {
   price: numeric('price', { mode: 'number' }), // insert current products.price by 'trigger'
 })
 
+export type User = typeof users.$inferSelect
 export type Product = typeof products.$inferSelect
 export type Customer = typeof customers.$inferSelect
 export type Order = typeof orders.$inferSelect

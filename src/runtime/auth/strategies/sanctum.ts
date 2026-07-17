@@ -1,4 +1,3 @@
-// runtime/auth/strategies/sanctum.ts
 import { createBearerTokenStrategy } from '../create-bearer-strategy'
 import type { NctUser } from '../../shared/types/auth'
 
