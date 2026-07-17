@@ -1,4 +1,3 @@
-// runtime/composables/useNctAuth.ts
 import { computed } from 'vue'
 import { useCookie, useRuntimeConfig, useState } from '#app'
 import { useNctHeaders } from '#imports'
@@ -8,20 +7,25 @@ import { nctAuthStrategies } from '../auth/strategy-registry'
 
 export function useNctAuth() {
   const { apiBase, auth } = useRuntimeConfig().public.crudTable
-  
+
   const strategyName = typeof auth === 'object' ? auth.authentication : 'none'
   const strategy = nctAuthStrategies[strategyName]
     ?? (import.meta.dev && console.warn(`[nct] Unknown auth strategy "${strategyName}", falling back to no-op. Registered: ${Object.keys(nctAuthStrategies).join(', ')}`), nctAuthStrategies.none!)
 
+  const nativeSession = strategy.useSession?.()
+
   const tokenCookie = useCookie<string | null>('nct_token', { path: '/', watch: true })
   const token = useState<string | null>('nct_auth_token', () => tokenCookie.value || null)
-  const user = useState<NctUser | null>('nct_auth_user', () => null)
+  const fallbackUser = useState<NctUser | null>('nct_auth_user', () => null)
 
-  const loggedIn = computed(() => strategy.mode === 'token' ? !!token.value : !!user.value)
+  const user = nativeSession?.user ?? fallbackUser
+  const loggedIn = nativeSession
+    ? nativeSession.loggedIn
+    : computed(() => strategy.mode === 'token' ? !!token.value : !!user.value)
   const authHeaders = computed<Record<string, string>>(() => strategy.getAuthHeaders(token.value))
 
   function setSession(newUser: NctUser | null, newToken: string | null = null) {
-    user.value = newUser
+    fallbackUser.value = newUser
     token.value = newToken
     tokenCookie.value = newToken
   }
@@ -40,6 +44,7 @@ export function useNctAuth() {
   async function login(credentials: Record<string, string>) {
     try {
       await strategy.login(credentials, context)
+      await nativeSession?.refresh()
       return { success: true }
     }
     catch (err) {
@@ -50,6 +55,7 @@ export function useNctAuth() {
   async function register(details: Record<string, string>) {
     try {
       await strategy.register(details, context)
+      await nativeSession?.refresh()
       return { success: true }
     }
     catch (err) {
@@ -65,14 +71,18 @@ export function useNctAuth() {
       // best-effort -- local session clears below regardless
     }
     finally {
-      clearLocalSession()
+      nativeSession ? await nativeSession.clear() : clearLocalSession()
     }
   }
 
   async function fetchSession() {
+    if (nativeSession) {
+      await nativeSession.refresh()
+      return
+    }
     try {
       const fetchedUser = await strategy.fetchUser(context)
-      fetchedUser ? (user.value = fetchedUser) : clearLocalSession()
+      fetchedUser ? (fallbackUser.value = fetchedUser) : clearLocalSession()
     }
     catch {
       clearLocalSession()
