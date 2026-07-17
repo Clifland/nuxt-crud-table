@@ -6,7 +6,7 @@ interface CookieSessionStrategyConfig {
   registerPath?: string
   logoutPath?: string
   sessionPath?: string
-  extractErrorMessage: (error: any, fallback: string) => string
+  extractErrorMessage: (error: unknown, fallback: string) => string
   /**
    * Optional pre-flight hook, run before login/register. Exists for
    * CSRF-cookie-first backends -- Fortify's SPA mode requires a

@@ -108,7 +108,7 @@ describe('useNctAuth', () => {
     it('returns { success: false, error } via the strategy\'s parseError on a failed login', async () => {
       const strategy = makeMockStrategy('token', {
         login: vi.fn(async () => { throw { data: { message: 'Bad credentials' } } }),
-        parseError: (err: any, fallback) => err?.data?.message ?? fallback,
+        parseError: (err, fallback) => err?.data?.message ?? fallback,
       })
       registerNctAuthStrategy('test-token-strategy', strategy)
 

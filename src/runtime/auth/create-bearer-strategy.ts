@@ -17,7 +17,7 @@ interface BearerStrategyConfig<TLoginPayload> {
   buildLoginBody: (credentials: Record<string, string>) => NctFetchBody
   buildLoginHeaders?: () => Record<string, string>
   extractSession: (payload: TLoginPayload) => { user: NctUser, token: string }
-  extractErrorMessage: (error: any, fallback: string) => string
+  extractErrorMessage: (error: unknown, fallback: string) => string
 }
 
 /**

@@ -8,7 +8,7 @@ import { useNctCrudFetch } from '#imports'
  * `resource` prop resolves — can pass `() => props.resource`).
  */
 export function useNctRowDelete(resource: string | (() => string | undefined)) {
-  // @ts-ignore auto-import at runtime
+  // @ts-expect-error auto-import at runtime
   const toast = useToast()
 
   async function onDelete(id: number) {

@@ -181,7 +181,7 @@ describe('createBearerTokenStrategy', () => {
       const strategy = createBearerTokenStrategy<TestPayload>({
         buildLoginBody: c => c,
         extractSession: p => ({ user: p.user, token: p.token }),
-        extractErrorMessage: (err: any, fallback) => err?.data?.message ?? fallback,
+        extractErrorMessage: (err, fallback) => err?.data?.message ?? fallback,
       })
 
       expect(strategy.parseError({ data: { message: 'Invalid credentials' } }, 'fallback')).toBe('Invalid credentials')

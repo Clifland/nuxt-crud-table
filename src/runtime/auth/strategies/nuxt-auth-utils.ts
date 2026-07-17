@@ -14,7 +14,7 @@ export const nuxtAuthUtilsStrategy: NctAuthStrategy = {
   getAuthHeaders: () => ({}), // the session cookie covers the host app's own /api/* routes automatically
 
   useSession: () => {
-    // @ts-ignore auto-import at runtime
+    // @ts-expect-error auto-import at runtime
     const { user, loggedIn, fetch, clear } = useUserSession()
     return { user, loggedIn, refresh: fetch, clear }
   },

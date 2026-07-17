@@ -55,7 +55,7 @@ export interface NctAuthStrategy {
   /** Fetches the currently authenticated user from the backend, or `null` if there isn't one. Not called for strategies that supply `useSession`. */
   fetchUser: (ctx: NctAuthContext) => Promise<NctUser | null>
   /** Maps a caught error into a human-readable message, falling back to `fallback` when the error has no usable message of its own. */
-  parseError: (error: any, fallback: string) => string
+  parseError: (error: unknown, fallback: string) => string
   /**
    * Optional escape hatch for strategies backed by a framework that already
    * owns persisted, auto-rehydrating reactive session state (currently only

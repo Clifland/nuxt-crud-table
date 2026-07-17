@@ -136,7 +136,12 @@ export function useNctAuth() {
       // best-effort -- local session clears below regardless
     }
     finally {
-      nativeSession ? await nativeSession.clear() : clearLocalSession()
+      if (nativeSession) {
+        await nativeSession.clear()
+      }
+      else {
+        clearLocalSession()
+      }
     }
   }
 
@@ -152,7 +157,12 @@ export function useNctAuth() {
     }
     try {
       const fetchedUser = await strategy.fetchUser(context)
-      fetchedUser ? (fallbackUser.value = fetchedUser) : clearLocalSession()
+      if (fetchedUser) {
+        fallbackUser.value = fetchedUser
+      }
+      else {
+        clearLocalSession()
+      }
     }
     catch {
       clearLocalSession()

@@ -46,7 +46,9 @@ describe('createCookieSessionStrategy', () => {
     it('runs beforeAuth before the login request, when provided', async () => {
       fetchMock.mockResolvedValue({ user: { id: 1, name: 'X', email: 'x@x.com' } })
       const callOrder: string[] = []
-      const beforeAuth = vi.fn(async () => { callOrder.push('beforeAuth') })
+      const beforeAuth = vi.fn(async () => {
+        callOrder.push('beforeAuth')
+      })
       fetchMock.mockImplementation(async () => {
         callOrder.push('login')
         return { user: { id: 1, name: 'X', email: 'x@x.com' } }
