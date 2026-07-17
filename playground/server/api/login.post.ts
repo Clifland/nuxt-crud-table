@@ -21,7 +21,7 @@ export default defineEventHandler(async (event) => {
       email: user.email,
       createdAt: user.createdAt,
     },
-    loggedInAt: new Date()
+    loggedInAt: new Date(),
   })
 
   return { user }

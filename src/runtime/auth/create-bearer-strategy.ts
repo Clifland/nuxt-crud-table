@@ -1,10 +1,12 @@
 import type { NctAuthStrategy } from '../shared/types/auth-strategy'
 import type { NctUser } from '../shared/types/auth'
 
-/** The set of shapes `$fetch`'s `body` option actually accepts -- narrower
+/**
+ * The set of shapes `$fetch`'s `body` option actually accepts -- narrower
  * than `unknown`, wide enough to cover every login body shape nct's
  * built-in strategies need (a plain credentials object, or `fastapi.ts`'s
- * form-urlencoded `URLSearchParams`). */
+ * form-urlencoded `URLSearchParams`).
+ */
 type NctFetchBody = Record<string, unknown> | URLSearchParams
 
 interface BearerStrategyConfig<TLoginPayload> {

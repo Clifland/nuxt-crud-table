@@ -4,6 +4,6 @@ export default defineNuxtPlugin(() => {
     provide: {
       nctAuthHeaders: () => authHeaders.value,
       nctUser: user,
-    }
+    },
   }
 })

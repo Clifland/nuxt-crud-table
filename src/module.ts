@@ -40,7 +40,7 @@ export default defineNuxtModule<ModuleOptions>({
   // Default configuration options of the Nuxt module
   defaults: {
     apiBase: '/api/_nac',
-    auth: false
+    auth: false,
   },
 
   setup(_options, _nuxt) {

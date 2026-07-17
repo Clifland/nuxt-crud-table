@@ -6,8 +6,10 @@ interface SanctumPayload {
   user: NctUser
 }
 
-/** Targets a Laravel backend using Sanctum's token guard (e.g. scaffolded
- * via `php artisan install:api`). */
+/**
+ * Targets a Laravel backend using Sanctum's token guard (e.g. scaffolded
+ * via `php artisan install:api`).
+ */
 export const sanctumStrategy = createBearerTokenStrategy<SanctumPayload>({
   buildLoginBody: credentials => credentials,
   extractSession: payload => ({ user: payload.user, token: payload.token }),
