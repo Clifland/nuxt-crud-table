@@ -7,14 +7,6 @@ import type { NctAuthStrategy } from '../../src/runtime/shared/types/auth-strate
 
 let authConfig: { authentication: string } | false = { authentication: 'test-token-strategy' }
 
-// Isolated per-test stand-ins for Nuxt's useState/useCookie. Both are
-// backed by real global state (Nuxt's SSR payload / the browser's actual
-// document.cookie) that doesn't reset between tests in the same file --
-// using the real implementations here caused state to leak across tests
-// (a previous test's login was still "logged in" for the next one) and,
-// separately, useCookie's `{ watch: true }` option appears to hang inside
-// jsdom, which is what caused the timeout. Map-backed fakes, wiped in
-// beforeEach, sidestep both problems entirely.
 let stateStore: Map<string, ReturnType<typeof ref>>
 let cookieStore: Map<string, ReturnType<typeof ref>>
 

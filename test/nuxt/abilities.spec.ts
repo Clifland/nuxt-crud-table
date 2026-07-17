@@ -5,7 +5,7 @@ import type { NctUser } from '../../src/runtime/shared/types/auth'
 // imports) can read/write it, letting each test control whether auth is
 // "enabled" without re-mocking per test.
 const { authState } = vi.hoisted(() => ({
-  authState: { value: false as false | { authentication: string } },
+  authState: { value: false as false | { authentication: string, authorization?: boolean } },
 }))
 
 vi.mock('#app', async (importOriginal) => {
@@ -17,7 +17,7 @@ vi.mock('#app', async (importOriginal) => {
 })
 
 const {
-  nctIsAuthEnabled,
+  nctIsAuthzEnabled,
   nctIsAdmin,
   nctIsOwner,
   nctHasPermission,
@@ -34,15 +34,15 @@ describe('abilities', () => {
     authState.value = false
   })
 
-  describe('nctIsAuthEnabled', () => {
+  describe('nctIsAuthzEnabled', () => {
     it('is false when auth is disabled (false)', () => {
       authState.value = false
-      expect(nctIsAuthEnabled()).toBe(false)
+      expect(nctIsAuthzEnabled()).toBe(false)
     })
 
     it('is true when auth is a truthy config object', () => {
-      authState.value = { authentication: 'sanctum' }
-      expect(nctIsAuthEnabled()).toBe(true)
+      authState.value = { authentication: 'sanctum', authorization: true }
+      expect(nctIsAuthzEnabled()).toBe(true)
     })
   })
 
@@ -108,7 +108,7 @@ describe('abilities', () => {
 
     describe('with auth enabled', () => {
       beforeEach(() => {
-        authState.value = { authentication: 'sanctum' }
+        authState.value = { authentication: 'sanctum', authorization: true }
       })
 
       it('is true for an admin regardless of their permissions map', () => {
@@ -150,7 +150,7 @@ describe('abilities', () => {
 
     describe('with auth enabled', () => {
       beforeEach(() => {
-        authState.value = { authentication: 'sanctum' }
+        authState.value = { authentication: 'sanctum', authorization: true }
       })
 
       it('is true when the user has the global (non-"_own") permission, regardless of ownership', () => {
@@ -190,7 +190,7 @@ describe('abilities', () => {
 
     describe('with auth enabled', () => {
       beforeEach(() => {
-        authState.value = { authentication: 'sanctum' }
+        authState.value = { authentication: 'sanctum', authorization: true }
       })
 
       it('is true if the user has "list"', () => {

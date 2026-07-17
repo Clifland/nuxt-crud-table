@@ -42,9 +42,10 @@ export function useNctAuth() {
   const { apiBase, auth } = useRuntimeConfig().public.crudTable
 
   const strategyName = typeof auth === 'object' ? auth.authentication : 'none'
-  const strategy = nctAuthStrategies[strategyName]
-    ?? (import.meta.dev && console.warn(`[nct] Unknown auth strategy "${strategyName}", falling back to no-op. Registered: ${Object.keys(nctAuthStrategies).join(', ')}`), nctAuthStrategies.none!)
-
+  const strategy = nctAuthStrategies[strategyName]!
+  if (!strategy) {
+    throw new Error(`[nct] Unknown auth strategy "${strategyName}". Registered: ${Object.keys(nctAuthStrategies).join(', ')}`)
+  }
   /**
    * When the active strategy owns its own persisted, auto-rehydrating
    * session (see {@link NctAuthStrategy.useSession}), defer to it entirely
