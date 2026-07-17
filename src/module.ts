@@ -97,3 +97,5 @@ export default defineNuxtModule<ModuleOptions>({
 })
 
 export type { NctPrintTemplateProps } from './runtime/shared/types/print'
+export { registerNctAuthStrategy } from './runtime/auth/strategy-registry'
+export type { NctAuthStrategy, NctAuthContext } from './runtime/shared/types/auth-strategy'

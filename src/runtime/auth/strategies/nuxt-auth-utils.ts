@@ -1,4 +1,3 @@
-import { useUserSession } from '#imports'
 import type { NctAuthStrategy } from '../../shared/types/auth-strategy'
 
 /**

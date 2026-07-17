@@ -7,10 +7,7 @@ Highly useful for building admin panels and internal tools quickly.
 
 ## What It Solves
 
-Building admin panels typically requires duplicate layout, form, and validation boilerplate for every single resource. `nuxt-crud-table` eliminates this.
-
-* **Zero Boilerplate:** Renders listings, lookups, forms, and permission states natively via a single `:resource` parameter.
-* **Data-Agnostic Processing:** Works natively with standard raw data arrays (Nuxt/Nitro) or data-wrapped response objects (Laravel structures).
+Building admin panels typically requires duplicate layout, form, and validation boilerplate for every single resource. `nuxt-crud-table` eliminates this by automatically rendering listings, lookups, forms, and permission states natively via a single resource parameter.
 
 ---
 
@@ -18,7 +15,7 @@ Building admin panels typically requires duplicate layout, form, and validation 
 
 ### 1. Install the Dependencies
 
-Add `nuxt-crud-table` along with `@nuxt/ui` to your project dependencies:
+Add `nuxt-crud-table` (and `@nuxt/ui`) to your project dependencies:
 
 ```bash
 bun add nuxt-crud-table @nuxt/ui
@@ -106,7 +103,7 @@ export interface NctSchemaDefinition {
 ```
 
 > [!IMPORTANT]
-> Your API should never serialize security-sensitive fields (passwords, tokens, third-party OAuth ids, password-reset tokens, etc.) in the first place — `nct` is a rendering layer and has no way to un-leak a field that's already crossed the network. Hiding such a field client-side via `formHiddenFields` provides no protection; that's strictly the backend's responsibility (e.g. Laravel's `$hidden`/`$guarded`, or simply not selecting the column).
+> Your API should never send security-sensitive fields (passwords, tokens, third-party OAuth ids, password-reset tokens, etc.) in the first place — `nct` is a rendering layer and has no way to un-leak a field that's already crossed the network. Hiding such a field client-side via `formHiddenFields` provides no protection; that's strictly the backend's responsibility (e.g. Laravel's `$hidden`/`$guarded`, or simply not selecting the column).
 
 ---
 
@@ -121,32 +118,15 @@ NUXT_PUBLIC_CRUD_TABLE_API_BASE=http://localhost:8000/api
 
 ```
 
-#### Step B: Attach Auth Headers (Optional)
+#### Step B: Add the Component to Your Page
 
-If your app uses authentication, provide a Nuxt plugin that injects auth headers and the current user into nct's runtime context. nct reads these via `$nctAuthHeaders` and `$nctUser`.
+Use `<NctCrudTable />` component to display data and forms for a specific resource.
 
-```ts
-// app/plugins/nct-auth.ts
-export default defineNuxtPlugin(() => {
-  const { user, authHeaders } = useNctAuth() // or your own auth composable
-
-  return {
-    provide: {
-      nctAuthHeaders: () => authHeaders.value,
-      nctUser: user,
-    },
-  }
-})
+```vue
+<NctCrudTable resource="products" />
 ```
 
-> [!NOTE]
-> This step is optional. Without a plugin, requests are sent with no extra headers, and `nctHasPermission`/`nctHasRowPermission` treat every user as unauthenticated.
-
-nct ships `useNctAuth` and `NctAuthForm` (a login/register UI) as a convenience for wiring this up quickly — swap in your own auth composable in the plugin above if you need different auth logic (e.g. `nuxt-auth-utils` or `laravel sanctum`).
-
-#### Step C: Mount the Unified Table Layout Workspace
-
-Mount the component to a dynamic route view layer to instantly capture parameter changes:
+To make it dynamic, mount the component to a dynamic route view layer to instantly capture parameter changes:
 
 ```vue
 <!-- app/pages/resource/[slug].vue -->
@@ -166,9 +146,9 @@ const resource = route.params.slug as string
 
 ```
 
-#### Step D: Optional Customization Rules (`app.config.ts`)
+#### Step C: Optional Customization Rules (`app.config.ts`)
 
-Override field visibility, structural presentation rules, or data extraction exclusions via your `app.config.ts`'s `crud` key. Unlike `nuxt.config.ts`'s `crudTable` module options (which require a rebuild to change), everything here is hot-reloadable at runtime.
+Override field visibility, structural presentation rules, or data extraction exclusions via your `app.config.ts`'s `crud` key.
 
 ```ts
 // app.config.ts
@@ -177,39 +157,32 @@ export default defineAppConfig({
     // By default, nct hides the raw `_id`/`Id` column wherever a matching relation
     // object is present — showing `Customer: Acme Corp` instead of a redundant
     // `Customer Id: 5` next to it.
-    // Set it to `false` if you want raw FK columns to show up
+    // Set it to `false` if you want raw FK columns to show up.
     hideForeignKeys: true, // default
 
     // Fields hidden from the main data table/list view.
-    // Either a bare array (applied to every resource), or an object with an
-    // optional `default` (replaces nct's built-in default entirely, if given)
-    // plus per-resource `resources` additions.
     tableHiddenFields: {
-      default: ['updated_at', 'deleted_at', 'created_by', 'updated_by'],
+      default: ['updated_at', 'deleted_at', 'created_by', 'updated_by'], // appllied to every tables
+      // resources: {}, // per table config, use like the resources in formHiddenFields
     },
 
     // Fields hidden from create/edit forms. Same shape as tableHiddenFields.
-    // Field-name matching is case-convention-agnostic — listing `created_at`
-    // also matches a `createdAt` field arriving from a camelCase API, so
-    // there's no need to list both variants.
     formHiddenFields: {
+      // default: [], // Commented out to show that these are optional
       resources: {
-        users: ['password_confirmation'], // an extra on top of nct's built-in default
+        users: ['password_confirmation'], 
       },
     },
 
-    // Fields locked (disabled) in forms without being hidden entirely.
-    // Same shape as tableHiddenFields/formHiddenFields. Useful when your
-    // backend can't express per-field `readonly` dynamically in its
-    // schema response — this combines with (doesn't replace) each
-    // field's own `readonly` flag from the schema contract.
+    // Creatable but not editable fields
     formReadOnlyFields: {
+      // default: [],
       resources: {
         orders: ['num'],
       },
     },
 
-    // Define hidden fields for file exports (PDF, Excel, etc.).
+    // Fields excluded from file exports. Same shape as tableHiddenFields etc
     exports: {
       pdfHiddenFields: {
         default: ['avatar', 'resetToken', 'resetExpires'],
@@ -226,21 +199,80 @@ export default defineAppConfig({
 
     // Column calculations and summary footers.
     aggregates: {
-      orderitems: {
+      orderitems: { // child table name
         columns: [
+          // linetotal = multiply(price, quantity)
           { name: 'linetotal', label: 'Line total', fn: 'multiply', args: ['price', 'quantity'] },
         ],
         footer: [
+          // total_amount = sum(linetotal)
           { name: 'total_amount', label: 'Total Amount', fn: 'sum', args: ['linetotal'] },
         ],
       },
     },
-  }
+  },
 })
 
 ```
 
 ---
+
+#### Step B: Attach Auth Headers (Optional)
+
+If your app uses authentication, provide a Nuxt plugin that injects auth headers and the current user into nct's runtime context. nct reads these via `$nctAuthHeaders` and `$nctUser`.
+
+Example:
+
+```ts
+// app/plugins/nct-auth.ts
+export default defineNuxtPlugin(() => {
+  // Nb: token/user sourced from your own auth composable or state
+  return {
+    provide: {
+      nctAuthHeaders: () =>
+        ({
+          Accept: 'application/json',
+          Authorization: `Bearer ${token}`,
+        }),
+      nctUser: user,
+    }
+  }
+})
+
+```
+
+> [!NOTE]
+> This step is optional. Without a plugin, requests are sent with no extra headers, and `nctHasPermission`/`nctHasRowPermission` treat every user as unauthenticated.
+
+nct ships `useNctAuth` and `NctAuthForm` (a login/register UI) as a convenience for wiring this up quickly.
+
+To use it, specify the authentication package you use, in `nuxt.config.ts` as follows. (you'll still need to add the package to your project):
+
+```ts
+// nuxt.config.ts
+export default defineNuxtConfig({
+  crudTable: {
+    auth: {
+      authentication: 'nuxt-auth-utils', // or 'sanctum'
+    },
+  },
+})
+```
+
+Then use this plugin to provide user object and auth headers:
+
+```ts
+// app/plugins/nct-auth.ts
+export default defineNuxtPlugin(() => {
+  const { user, authHeaders } = useNctAuth()
+  return {
+    provide: {
+      nctAuthHeaders: () => authHeaders.value,
+      nctUser: user,
+    },
+  }
+})
+```
 
 ## 3. Custom Print Templates (Optional)
 
@@ -321,7 +353,7 @@ const props = defineProps<NctPrintTemplateProps>()
 > — a flat index silently resolves to `undefined` for anything beyond 
 > top-level fields.
 
-### Example: a custom invoice
+### Example Print Template: a custom invoice
 
 ```vue
 <!-- app/components/InvoiceTemplate.vue -->
@@ -363,12 +395,6 @@ const order = props.parentRow as {
   </div>
 </template>
 ```
-
-> [!NOTE]
-> If you're writing more than one print template, consider factoring the 
-> `<table>` body out into your own shared component — it's plain markup driven 
-> entirely by `columns`/`rows`/`footer`, so it's reusable across templates 
-> with no nct-specific coupling beyond `useNctTableFormat()`.
 
 ### Print styling
 
