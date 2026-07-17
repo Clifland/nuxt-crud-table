@@ -1,15 +1,18 @@
 import { useRuntimeConfig } from '#app'
 import type { NctUser } from '../../shared/types/auth'
 
+type NctNullableUser = NctUser | null | undefined
+
 /**
  * Checks whether authentication is globally enabled for the CRUD table module
  * via the runtime public configuration.
  *
  * @returns `true` if authentication configuration is present and enabled; otherwise, `false`.
  */
-export function nctIsAuthEnabled(): boolean {
-  const auth = useRuntimeConfig().public.crudTable.auth
-  return !!auth
+export function nctIsAuthzEnabled(): boolean {
+  const { auth } = useRuntimeConfig().public.crudTable
+  const { authorization } = typeof auth === 'object' ? auth : { authorization: false }
+  return !!authorization
 }
 
 /**
@@ -18,7 +21,7 @@ export function nctIsAuthEnabled(): boolean {
  * @param user - The user object to check.
  * @returns `true` if the user exists and has the 'admin' role; otherwise, `false`.
  */
-export function nctIsAdmin(user: NctUser | null | undefined): boolean {
+export function nctIsAdmin(user: NctNullableUser): boolean {
   if (!user) return false
   return user?.role === 'admin'
 }
@@ -32,7 +35,7 @@ export function nctIsAdmin(user: NctUser | null | undefined): boolean {
  * @param ownerKey - The property key in the record that holds the creator/owner ID. Defaults to `'createdBy'`.
  * @returns `true` if the user ID matches the record's owner field; otherwise, `false`.
  */
-export function nctIsOwner(user: NctUser | null | undefined, record?: Record<string, unknown>, ownerKey: string = 'createdBy'): boolean {
+export function nctIsOwner(user: NctNullableUser, record?: Record<string, unknown>, ownerKey: string = 'createdBy'): boolean {
   if (!user?.id || !record) return false
   return Number(user.id) === Number(record[ownerKey])
 }
@@ -46,8 +49,8 @@ export function nctIsOwner(user: NctUser | null | undefined, record?: Record<str
  * @param action - The action being performed (e.g., 'create', 'edit', 'delete').
  * @returns `true` if the action is permitted; otherwise, `false`.
  */
-export function nctHasPermission(user: NctUser | null | undefined, model: string, action: string): boolean {
-  if (!nctIsAuthEnabled()) return true
+export function nctHasPermission(user: NctNullableUser, model: string, action: string): boolean {
+  if (!nctIsAuthzEnabled()) return true
 
   if (nctIsAdmin(user)) return true
   if (!user) return false
@@ -65,8 +68,8 @@ export function nctHasPermission(user: NctUser | null | undefined, model: string
  * @param record - The specific record instance being accessed.
  * @returns `true` if the user is authorized to perform the action on this specific row; otherwise, `false`.
  */
-export function nctHasRowPermission(user: NctUser | null | undefined, model: string, action: string, record?: Record<string, unknown>): boolean {
-  if (!nctIsAuthEnabled()) return true
+export function nctHasRowPermission(user: NctNullableUser, model: string, action: string, record?: Record<string, unknown>): boolean {
+  if (!nctIsAuthzEnabled()) return true
 
   if (nctHasPermission(user, model, action)) return true
 
@@ -85,6 +88,6 @@ export function nctHasRowPermission(user: NctUser | null | undefined, model: str
  * @param model - The resource/model name to evaluate.
  * @returns `true` if the user has any listing capability for the resource; otherwise, `false`.
  */
-export function nctIsAllowedToSeeResourceMenu(user: NctUser | null | undefined, model: string): boolean {
+export function nctIsAllowedToSeeResourceMenu(user: NctNullableUser, model: string): boolean {
   return nctHasPermission(user, model, 'list') || nctHasPermission(user, model, 'list_all') || nctHasPermission(user, model, 'list_own')
 }

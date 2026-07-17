@@ -12,22 +12,16 @@ export interface ModuleOptions {
 
   /**
    * Selects a registered `NctAuthStrategy` (see `runtime/auth/strategy-registry.ts`).
-   * The four values below ship with nct out of the box; any other string
-   * is accepted too, for a strategy registered via `registerNctAuthStrategy()`.
    * @default false
    */
   auth: false | {
     authentication: 'nuxt-auth-utils' | 'sanctum' | 'fastapi' | 'fortify' | (string & {})
-  }}
+    authorization?: false | 'nuxt-crud-permissions'
+  }
+}
 
 declare module '@nuxt/schema' {
   interface PublicRuntimeConfig {
-    /**
-     * Public runtime options mapping parameters across client components and global composables.
-     * @note Field-visibility settings (`tableHiddenFields`/`formHiddenFields`) live in `app.config.ts`'s
-     * `crud` key instead of here — see {@link NctCrudTableConfig} — since those are the kind of setting
-     * a host app tends to iterate on without wanting a rebuild.
-     */
     crudTable: ModuleOptions
   }
 }
@@ -52,7 +46,7 @@ export default defineNuxtModule<ModuleOptions>({
   setup(_options, _nuxt) {
     const resolver = createResolver(import.meta.url)
 
-    // Populate localized application public configurations
+    // Assign the full configuration safely to the server-only block
     _nuxt.options.runtimeConfig.public.crudTable = {
       apiBase: _options.apiBase,
       auth: _options.auth,

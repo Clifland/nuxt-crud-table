@@ -123,7 +123,7 @@ field. It independently fetches `GET ${apiBase}/${pluralizedRelationName}` to po
 ```
 useNctAuth()          token/user state (useState, cookie-synced), login/register/logout/fetchUser
 abilities.ts
- ├─ nctIsAuthEnabled()          reads runtimeConfig.public.crudTable.auth
+ ├─ nctIsAuthzEnabled()          reads runtimeConfig.public.crudTable.auth
  ├─ nctIsAdmin(user)            role === 'admin'
  ├─ nctIsOwner(user, record, ownerKey='createdBy')   Number() coercion both sides
  ├─ nctHasPermission(user, model, action)            admin/auth-disabled short-circuit
