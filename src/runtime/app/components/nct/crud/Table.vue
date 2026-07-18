@@ -1,5 +1,5 @@
 <script setup lang="ts">
-import { computed, reactive, ref } from 'vue'
+import { computed, reactive, ref, useSlots } from 'vue'
 import { useRuntimeConfig, useAppConfig, useFetch, useNuxtApp } from '#app'
 import { useNctAggregates, useNctHeaders, nctDbFieldToLabel, nctHasPermission, useNctExport, useNctTableFormat, resolveHiddenFields, isFieldHidden, NCT_TABLE_HIDDEN_FIELDS, isRelationFieldName } from '#imports'
 import type { NctSchemaDefinition } from '../../../../shared/types/schema'
@@ -21,6 +21,8 @@ const props = defineProps<{
 defineSlots<{
   'print-template'(props: NctPrintTemplateProps): void
 }>()
+
+const slots = useSlots()
 
 const { apiBase } = useRuntimeConfig().public.crudTable
 
@@ -412,11 +414,8 @@ const paginatedItems = ref<Record<string, unknown>[]>([])
                     :parent-row-id="row.id as number"
                     :parent-row="row"
                   >
-                    <template #print-template="slotProps">
-                      <slot
-                        name="print-template"
-                        v-bind="slotProps"
-                      />
+                    <template v-if="slots['print-template']" #print-template="slotProps">
+                      <slot name="print-template" v-bind="slotProps" />
                     </template>
                   </NctCrudChildTable>
                 </div>

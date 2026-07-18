@@ -199,10 +199,15 @@ async function triggerPrint() {
         class="nct-print-area p-8"
       >
         <slot
-          v-if="resource"
           name="print-template"
           v-bind="{ resource, schema, columns, rows, footer, parentResource, parentRow }"
-        />
+        >
+          <NctCrudPrintItems
+            :columns="columns"
+            :rows="rows"
+            :footer="footer"
+          />
+        </slot>
       </div>
     </Teleport>
 
