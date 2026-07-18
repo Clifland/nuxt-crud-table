@@ -42,10 +42,24 @@ export function createBearerTokenStrategy<TLoginPayload>(
     extractErrorMessage,
   } = config
 
+  /**
+   * Builds the Authorization header from a token directly. Defined once and
+   * reused both as the strategy's public `getAuthHeaders` (consumed by
+   * `useNctAuth`'s plugin-provided `$nctAuthHeaders`) and internally by
+   * `logout`/`fetchUser` below — those two must NOT depend on
+   * `ctx.useNctHeaders()` alone, since that reads `$nctAuthHeaders`, which a
+   * host's own auth plugin typically provides only after calling
+   * `useNctAuth().fetch()` during that same plugin's setup. Relying solely
+   * on it would send `fetchUser`'s very first rehydration request with no
+   * Authorization header at all, get a 401 from the backend, and wipe out
+   * an otherwise-valid session.
+   */
+  const buildAuthHeader = (token: string | null) => ({ ...(token && { Authorization: `Bearer ${token}` }) })
+
   return {
     mode: 'token',
 
-    getAuthHeaders: token => ({ ...(token && { Authorization: `Bearer ${token}` }) }),
+    getAuthHeaders: buildAuthHeader,
 
     async login(credentials, ctx) {
       const res = await $fetch<TLoginPayload>(`${ctx.apiBase}${loginPath}`, {
@@ -69,14 +83,14 @@ export function createBearerTokenStrategy<TLoginPayload>(
     async logout(ctx) {
       await $fetch(`${ctx.apiBase}${logoutPath}`, {
         method: 'POST',
-        headers: ctx.useNctHeaders(),
+        headers: { ...ctx.useNctHeaders(), ...buildAuthHeader(ctx.token) },
       })
     },
 
     async fetchUser(ctx) {
       if (!ctx.token) return null
       return $fetch<NctUser>(`${ctx.apiBase}${userPath}`, {
-        headers: ctx.useNctHeaders(),
+        headers: { ...ctx.useNctHeaders(), ...buildAuthHeader(ctx.token) },
       })
     },
 
