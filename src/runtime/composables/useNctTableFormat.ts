@@ -80,7 +80,7 @@ export function useNctTableFormat() {
    */
   function getArrayColumns(row: Record<string, unknown>): string[] {
     return Object.entries(row)
-      .filter(([, value]) => Array.isArray(value) && value.length > 0 && typeof value[0] === 'object')
+      .filter(([, value]) => Array.isArray(value) && (value.length === 0 || typeof value[0] === 'object'))
       .map(([key]) => key)
   }
 

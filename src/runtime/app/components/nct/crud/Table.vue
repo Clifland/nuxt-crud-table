@@ -1,8 +1,7 @@
 <script setup lang="ts">
 import { computed, reactive, ref } from 'vue'
 import { useRuntimeConfig, useAppConfig, useFetch, useNuxtApp } from '#app'
-import { useNctAggregates, useNctHeaders, nctDbFieldToLabel, nctHasPermission, useNctExport, useNctTableFormat, resolveHiddenFields, isFieldHidden, NCT_TABLE_HIDDEN_FIELDS } from '#imports'
-
+import { useNctAggregates, useNctHeaders, nctDbFieldToLabel, nctHasPermission, useNctExport, useNctTableFormat, resolveHiddenFields, isFieldHidden, NCT_TABLE_HIDDEN_FIELDS, isRelationFieldName } from '#imports'
 import type { NctSchemaDefinition } from '../../../../shared/types/schema'
 import type { NctPrintTemplateProps } from '../../../../shared/types/print'
 
@@ -152,9 +151,14 @@ const visibleColumns = computed(() => {
  */
 function getChildColumns(row: Record<string, unknown>, arrCol: string): string[] {
   const arr = row[arrCol] as Record<string, unknown>[]
-  const firstChild = arr[0] ?? {}
   const hideForeignKeys = crudConfig?.hideForeignKeys ?? true
 
+  if (!arr.length) {
+    const schemaFields = childSchemas[arrCol]?.fields.map(f => f.name) ?? []
+    return hideForeignKeys ? schemaFields.filter(f => !isRelationFieldName(f)) : schemaFields
+  }
+
+  const firstChild = arr[0] ?? {}
   const fkColumns = hideForeignKeys ? getForeignKeyColumns(firstChild) : []
   const parentRefColumns = hideForeignKeys ? getParentBackReferenceColumns(firstChild, row) : []
 
