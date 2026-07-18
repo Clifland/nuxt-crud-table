@@ -21,16 +21,16 @@ import { nctAuthStrategies } from '../auth/strategy-registry'
  * it — but any other auth source works exactly as well, since nothing else
  * in nct calls this composable.
  *
- * Strategies whose `mode` is `'token'` (Sanctum, FastAPI) persist their
- * token in an `nct_token` cookie and a matching `useState`, restored on
- * next load. Strategies that supply {@link NctAuthStrategy.useSession}
- * (currently only `nuxt-auth-utils`) bypass that local state entirely and
- * defer to the external store's own persisted session instead — see that
- * field's doc comment for why.
+ * `user`/`token` live in nct's own `useState`, seeded once per session and
+ * NOT auto-rehydrated on a hard refresh. Call `fetch()` once at app init
+ * (e.g. in your `nct-auth` plugin) to re-sync from the backend via the
+ * strategy's `fetchUser` — the same pattern `nuxt-auth-utils`' own plugin
+ * uses internally for its session.
  *
  * @example
  * ```ts
- * const { user, loggedIn, login, register, logout } = useNctAuth()
+ * const { user, loggedIn, login, register, logout, fetch } = useNctAuth()
+ * await fetch() // rehydrate on load
  * const result = await login({ email, password })
  * if (!result.success) console.error(result.error)
  * ```
@@ -42,45 +42,31 @@ export function useNctAuth() {
   const { apiBase, auth } = useRuntimeConfig().public.crudTable
 
   const strategyName = typeof auth === 'object' ? auth.authentication : 'none'
-  const strategy = nctAuthStrategies[strategyName]!
-  if (!strategy) {
+  const strategy = nctAuthStrategies[strategyName] ?? (() => {
     throw new Error(`[nct] Unknown auth strategy "${strategyName}". Registered: ${Object.keys(nctAuthStrategies).join(', ')}`)
-  }
-  /**
-   * When the active strategy owns its own persisted, auto-rehydrating
-   * session (see {@link NctAuthStrategy.useSession}), defer to it entirely
-   * rather than tracking a second, disconnected copy locally.
-   */
-  const nativeSession = strategy.useSession?.()
+  })()
 
   /** Persisted bearer token for `'token'`-mode strategies, restored from cookie on load. */
   const tokenCookie = useCookie<string | null>('nct_token', { path: '/', watch: true })
   const token = useState<string | null>('nct_auth_token', () => tokenCookie.value || null)
-  /** nct's own local session-user state — only used when the strategy has no `useSession` of its own. */
-  const fallbackUser = useState<NctUser | null>('nct_auth_user', () => null)
+  /** nct's own local session-user state. */
+  const user = useState<NctUser | null>('nct_auth_user', () => null)
 
-  /** The active user, sourced from `useSession` when available, otherwise nct's local state. */
-  const user = nativeSession?.user ?? fallbackUser
-  /** Whether a session is currently active. */
-  const loggedIn = nativeSession
-    ? nativeSession.loggedIn
-    : computed(() => strategy.mode === 'token' ? !!token.value : !!user.value)
+  const loggedIn = computed(() => strategy.mode === 'token' ? !!token.value : !!user.value)
   /** Headers nct's own data fetches should attach for the current session, per the active strategy. */
   const authHeaders = computed<Record<string, string>>(() => strategy.getAuthHeaders(token.value))
 
   /**
    * Writes a resolved user/token into nct's local session state and cookie.
-   * Not used when `nativeSession` is present — that store manages its own persistence.
    * @param newUser - The authenticated user, or `null` to clear the session.
    * @param newToken - The bearer token, if the active strategy is `'token'`-mode.
    */
   function setSession(newUser: NctUser | null, newToken: string | null = null) {
-    fallbackUser.value = newUser
+    user.value = newUser
     token.value = newToken
     tokenCookie.value = newToken
   }
 
-  /** Clears nct's local session state and cookie. */
   function clearLocalSession() {
     setSession(null, null)
   }
@@ -100,7 +86,6 @@ export function useNctAuth() {
   async function login(credentials: Record<string, string>) {
     try {
       await strategy.login(credentials, context)
-      await nativeSession?.refresh()
       return { success: true }
     }
     catch (err) {
@@ -116,7 +101,6 @@ export function useNctAuth() {
   async function register(details: Record<string, string>) {
     try {
       await strategy.register(details, context)
-      await nativeSession?.refresh()
       return { success: true }
     }
     catch (err) {
@@ -136,33 +120,18 @@ export function useNctAuth() {
       // best-effort -- local session clears below regardless
     }
     finally {
-      if (nativeSession) {
-        await nativeSession.clear()
-      }
-      else {
-        clearLocalSession()
-      }
+      clearLocalSession()
     }
   }
 
   /**
-   * Re-syncs session state — either by refreshing the strategy's own external
-   * store (`useSession` strategies), or by re-fetching the user from the
-   * backend and falling back to a cleared session if that fails.
+   * Re-fetches the current user from the backend and syncs local session
+   * state, clearing it if no user is returned or the request fails.
    */
   async function fetchSession() {
-    if (nativeSession) {
-      await nativeSession.refresh()
-      return
-    }
     try {
       const fetchedUser = await strategy.fetchUser(context)
-      if (fetchedUser) {
-        fallbackUser.value = fetchedUser
-      }
-      else {
-        clearLocalSession()
-      }
+      fetchedUser ? (user.value = fetchedUser) : clearLocalSession()
     }
     catch {
       clearLocalSession()

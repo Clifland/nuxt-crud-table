@@ -1,40 +1,16 @@
-import type { NctAuthStrategy } from '../../shared/types/auth-strategy'
+import { createCookieSessionStrategy } from '../create-cookie-strategy'
+import { asFetchError } from '../fetch-error'
 
 /**
- * Delegates entirely to `nuxt-auth-utils`' own session — it already persists
- * and auto-rehydrates the logged-in user via its httpOnly session cookie and
- * its own app plugin, so nct's job here is just to trigger the host app's
- * `/api/login`/`/api/register`/`/api/logout` routes and then tell
- * `useUserSession` to refresh, rather than tracking a parallel copy of the
- * user in nct's own `useState`.
+ * Targets `nuxt-auth-utils`' httpOnly session cookie via its own auto-registered
+ * `/api/_auth/session` route.
+ *
+ * @remarks *
+ * If you *are* using `nuxt-auth-utils` and want its auto-rehydrating session
+ * state directly, call `useUserSession()` from your own app code (e.g. your
+ * `$nctUser` plugin) — that's safe there, since your app has genuinely
+ * installed the module. See the README's auth section.
  */
-export const nuxtAuthUtilsStrategy: NctAuthStrategy = {
-  mode: 'session',
-
-  getAuthHeaders: () => ({}), // the session cookie covers the host app's own /api/* routes automatically
-
-  useSession: () => {
-    // @ts-expect-error auto-import at runtime
-    const { user, loggedIn, fetch, clear } = useUserSession()
-    return { user, loggedIn, refresh: fetch, clear }
-  },
-
-  async login(credentials) {
-    await $fetch('/api/login', { method: 'POST', body: credentials })
-    // caller (useNctAuth) refreshes the session afterward via useSession().refresh()
-  },
-
-  async register(details) {
-    await $fetch('/api/register', { method: 'POST', body: details })
-  },
-
-  async logout() {
-    await $fetch('/api/logout', { method: 'POST' })
-  },
-
-  async fetchUser() {
-    return null // handled reactively via useSession(); not used for this strategy
-  },
-
-  parseError: (err, fallback) => err?.data?.statusMessage ?? err?.data?.message ?? fallback,
-}
+export const nuxtAuthUtilsStrategy = createCookieSessionStrategy({
+  extractErrorMessage: (err, fallback) => asFetchError(err)?.data?.detail ?? fallback,
+})

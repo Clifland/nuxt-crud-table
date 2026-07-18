@@ -1,5 +1,6 @@
-export default defineNuxtPlugin(() => {
-  const { user, authHeaders } = useNctAuth()
+export default defineNuxtPlugin(async () => {
+  const { user, authHeaders, fetch } = useNctAuth()
+  await fetch() // rehydrates the session.
   return {
     provide: {
       nctAuthHeaders: () => authHeaders.value,

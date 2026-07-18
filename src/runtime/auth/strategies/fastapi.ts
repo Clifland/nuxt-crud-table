@@ -1,6 +1,6 @@
-// runtime/auth/strategies/fastapi.ts
 import { createBearerTokenStrategy } from '../create-bearer-strategy'
 import type { NctUser } from '../../shared/types/auth'
+import { asFetchError } from '../fetch-error'
 
 interface FastApiTokenPayload {
   access_token: string
@@ -25,5 +25,5 @@ export const fastapiStrategy = createBearerTokenStrategy<FastApiTokenPayload>({
   },
   buildLoginHeaders: () => ({ 'Content-Type': 'application/x-www-form-urlencoded' }),
   extractSession: payload => ({ user: payload.user, token: payload.access_token }),
-  extractErrorMessage: (err, fallback) => err?.data?.detail ?? fallback,
+  extractErrorMessage: (err, fallback) => asFetchError(err)?.data?.detail ?? fallback,
 })

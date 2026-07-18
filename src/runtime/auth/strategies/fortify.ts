@@ -1,5 +1,5 @@
-// runtime/auth/strategies/fortify.ts
 import { createCookieSessionStrategy } from '../create-cookie-strategy'
+import { asFetchError } from '../fetch-error'
 
 /**
  * Targets Laravel Fortify's controllers running behind Sanctum's SPA
@@ -12,5 +12,5 @@ export const fortifyStrategy = createCookieSessionStrategy({
   logoutPath: '/logout',
   sessionPath: '/api/user',
   beforeAuth: async () => { await $fetch('/sanctum/csrf-cookie') },
-  extractErrorMessage: (err, fallback) => err?.data?.message ?? fallback,
+  extractErrorMessage: (err, fallback) => asFetchError(err)?.data?.detail ?? fallback,
 })

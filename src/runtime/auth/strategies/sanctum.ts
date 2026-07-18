@@ -1,5 +1,6 @@
 import { createBearerTokenStrategy } from '../create-bearer-strategy'
 import type { NctUser } from '../../shared/types/auth'
+import { asFetchError } from '../fetch-error'
 
 interface SanctumPayload {
   token: string
@@ -13,5 +14,5 @@ interface SanctumPayload {
 export const sanctumStrategy = createBearerTokenStrategy<SanctumPayload>({
   buildLoginBody: credentials => credentials,
   extractSession: payload => ({ user: payload.user, token: payload.token }),
-  extractErrorMessage: (err, fallback) => err?.data?.message ?? fallback,
+  extractErrorMessage: (err, fallback) => asFetchError(err)?.data?.detail ?? fallback,
 })
