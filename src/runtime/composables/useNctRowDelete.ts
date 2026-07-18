@@ -1,4 +1,4 @@
-import { useNctCrudFetch } from '#imports'
+import { useNctCrudFetch, useToast } from '#imports'
 
 /**
  * Shared delete-confirmation flow: shows a toast with Cancel/Delete actions,
@@ -8,7 +8,6 @@ import { useNctCrudFetch } from '#imports'
  * `resource` prop resolves — can pass `() => props.resource`).
  */
 export function useNctRowDelete(resource: string | (() => string | undefined)) {
-  // @ts-expect-error auto-import at runtime
   const toast = useToast()
 
   async function onDelete(id: number) {
