@@ -131,7 +131,12 @@ export function useNctAuth() {
   async function fetchSession() {
     try {
       const fetchedUser = await strategy.fetchUser(context)
-      fetchedUser ? (user.value = fetchedUser) : clearLocalSession()
+      if (fetchedUser) {
+        user.value = fetchedUser
+      }
+      else {
+        clearLocalSession()
+      }
     }
     catch {
       clearLocalSession()
