@@ -116,13 +116,18 @@ describe('useNctTableFormat', () => {
       expect(getArrayColumns(row)).toEqual(['orderitems'])
     })
 
-    it('excludes an empty array', () => {
+    it('includes an empty array as a child-table candidate', () => {
       const row = { id: 1, orderitems: [] }
-      expect(getArrayColumns(row)).toEqual([])
+      expect(getArrayColumns(row)).toEqual(['orderitems'])
     })
 
     it('excludes an array of primitives (first element is not an object)', () => {
       const row = { id: 1, tags: ['sale', 'featured'] }
+      expect(getArrayColumns(row)).toEqual([])
+    })
+
+    it('excludes a non-empty array of primitives (not a relation)', () => {
+      const row = { id: 1, tags: ['a', 'b', 'c'] }
       expect(getArrayColumns(row)).toEqual([])
     })
 
