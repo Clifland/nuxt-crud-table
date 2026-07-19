@@ -414,8 +414,14 @@ const paginatedItems = ref<Record<string, unknown>[]>([])
                     :parent-row-id="row.id as number"
                     :parent-row="row"
                   >
-                    <template v-if="slots['print-template']" #print-template="slotProps">
-                      <slot name="print-template" v-bind="slotProps" />
+                    <template
+                      v-if="slots['print-template']"
+                      #print-template="slotProps"
+                    >
+                      <slot
+                        name="print-template"
+                        v-bind="slotProps"
+                      />
                     </template>
                   </NctCrudChildTable>
                 </div>
