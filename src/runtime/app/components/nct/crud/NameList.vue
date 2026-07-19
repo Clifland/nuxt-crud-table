@@ -106,6 +106,7 @@ const selected = computed({
 <template>
   <USelectMenu
     v-model="selected"
+    virtualize
     :items="options"
     option-attribute="label"
     placeholder="Select"
