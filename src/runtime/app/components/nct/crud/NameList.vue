@@ -61,7 +61,7 @@ const { apiBase } = useRuntimeConfig().public.crudTable
  * the key convention means two `NameList` pickers referencing the same relation on one
  * page do dedupe against each other.
  */
-const [{ data: rawOptions }, { data: relatedSchema }] = await Promise.all([
+const [{ data: rawOptions }, { data: relatedSchema, status }] = await Promise.all([
   useFetch<Record<string, unknown>[]>(() => `${apiBase}/${urlPath}`, {
     key: `crud-${urlPath}`,
     lazy: true,
@@ -107,6 +107,7 @@ const selected = computed({
   <USelectMenu
     v-model="selected"
     virtualize
+    :loading="status === 'pending'"
     :items="options"
     option-attribute="label"
     placeholder="Select"
